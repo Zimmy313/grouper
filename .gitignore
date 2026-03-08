@@ -6,3 +6,9 @@ inst/doc
 /doc/
 /Meta/
 .DS_Store
+
+# feature/mingyuan. Can remove after merging back to main
+temp_data/*
+data/phdModel
+dba_gc_ex003.Rd
+dba_gc_ex004.Rd
