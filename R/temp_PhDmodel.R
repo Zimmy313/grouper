@@ -1,4 +1,7 @@
 prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
+                              ta_min = NULL, ta_max = NULL,
+                              gr_min = NULL, gr_max = NULL,
+                              e_min = NULL,
                               alpha = 2, beta = 1, phi = 1, rho = 10) {
   # keep role order fixed
   job_names <- c("TA", "GR", "E")
@@ -15,11 +18,27 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   idx_y1     <- which(s == -1)
   idx_non_y1 <- which(s >= 0)
 
-  # basic validation for optional E cap
-  if (!is.null(e_max)) {
-    if (!is.numeric(e_max) || length(e_max) != 1 || is.na(e_max) || e_max < 0) {
-      stop("e_max must be NULL or a single non-negative number.")
+  # chcek optional workload bounds
+  validate_optional_bound <- function(x, nm) {
+    if (!is.null(x) && (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 0)) {
+      stop(nm, " must be NULL or a single non-negative number.")
     }
+  }
+  validate_optional_bound(e_max, "e_max")
+  validate_optional_bound(ta_min, "ta_min")
+  validate_optional_bound(ta_max, "ta_max")
+  validate_optional_bound(gr_min, "gr_min")
+  validate_optional_bound(gr_max, "gr_max")
+  validate_optional_bound(e_min, "e_min")
+
+  if (!is.null(ta_min) && !is.null(ta_max) && ta_min > ta_max) {
+    stop("ta_min cannot be greater than ta_max.")
+  }
+  if (!is.null(gr_min) && !is.null(gr_max) && gr_min > gr_max) {
+    stop("gr_min cannot be greater than gr_max.")
+  }
+  if (!is.null(e_min) && !is.null(e_max) && e_min > e_max) {
+    stop("e_min cannot be greater than e_max.")
   }
 
   model <- ompr::MIPModel() %>%
@@ -79,7 +98,46 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
       i = idx_y1
     )
 
-  # optional per-student cap on E units
+  # optional per-student lower/upper bound on TA units
+  if (!is.null(ta_min)) {
+    model <- model %>%
+      ompr::add_constraint(
+        ompr::sum_over(X[i, j, 1], j = 1:Nj) >= ta_min,
+        i = 1:Ns
+      )
+  }
+  if (!is.null(ta_max)) {
+    model <- model %>%
+      ompr::add_constraint(
+        ompr::sum_over(X[i, j, 1], j = 1:Nj) <= ta_max,
+        i = 1:Ns
+      )
+  }
+
+  # optional per-student lower/upper bound on GR units
+  if (!is.null(gr_min)) {
+    model <- model %>%
+      ompr::add_constraint(
+        ompr::sum_over(X[i, j, 2], j = 1:Nj) >= gr_min,
+        i = 1:Ns
+      )
+  }
+  if (!is.null(gr_max)) {
+    model <- model %>%
+      ompr::add_constraint(
+        ompr::sum_over(X[i, j, 2], j = 1:Nj) <= gr_max,
+        i = 1:Ns
+      )
+  }
+
+  # optional per-student lower/upper bound on E units
+  if (!is.null(e_min)) {
+    model <- model %>%
+      ompr::add_constraint(
+        ompr::sum_over(X[i, j, 3], j = 1:Nj) >= e_min,
+        i = 1:Ns
+      )
+  }
   if (!is.null(e_max)) {
     model <- model %>%
       ompr::add_constraint(
@@ -93,6 +151,7 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
 
 
 # Extract student-level TA/GR/E assignments from solved PhD model
+# Note the course level(j) information is aggregated. 
 extract_phd_assignment <- function(model_result,
                                    student_df,
                                    id_col = "S/No.",
@@ -117,7 +176,7 @@ extract_phd_assignment <- function(model_result,
 
   alloc_df <- ompr::get_solution(model_result, X[i, j, r]) %>%
     dplyr::filter(.data$value > 1e-8) %>%
-    dplyr::group_by(.data$i, .data$r) %>%
+    dplyr::group_by(.data$i, .data$r) %>% # group by student and job type
     dplyr::summarise(units = sum(.data$value), .groups = "drop") %>%
     dplyr::mutate(
       role = factor(.data$r, levels = 1:3, labels = role_names)
@@ -153,6 +212,222 @@ extract_phd_assignment <- function(model_result,
   out %>%
     dplyr::select("student_id", "student_name", "seniority", dplyr::all_of(role_names)) %>%
     dplyr::arrange(.data$student_id)
+}
+
+# Extract TA assignment detail at student-course level (assigned pairs only)
+extract_phd_ta_detail <- function(model_result, preference) {
+  if (!is.data.frame(preference)) {
+    stop("preference must be a data frame.")
+  }
+
+  # resolve student id/name columns
+  if (all(c("S/No.", "Name") %in% names(preference))) {
+    id_col <- "S/No."
+    name_col <- "Name"
+  } else if (all(c("student_id", "student_name") %in% names(preference))) {
+    id_col <- "student_id"
+    name_col <- "student_name"
+  } else {
+    stop("preference must contain either (S/No., Name) or (student_id, student_name).")
+  }
+
+  # resolve preference columns
+  nm_l <- tolower(names(preference))
+  find_col <- function(candidates) {
+    idx <- match(candidates, nm_l, nomatch = 0L)
+    idx <- idx[idx > 0]
+    if (length(idx) == 0) {
+      return(NA_character_)
+    }
+    names(preference)[idx[1]]
+  }
+  first_col <- find_col(c("first", "1st", "choice1", "pref1"))
+  second_col <- find_col(c("second", "2nd", "choice2", "pref2"))
+  third_col <- find_col(c("third", "3rd", "choice3", "pref3"))
+
+  norm_code <- function(x) toupper(trimws(as.character(x)))
+
+  student_map <- preference %>%
+    dplyr::transmute(
+      i = dplyr::row_number(),
+      student_id = .data[[id_col]],
+      student_name = .data[[name_col]],
+      first_choice = if (!is.na(first_col)) norm_code(.data[[first_col]]) else NA_character_,
+      second_choice = if (!is.na(second_col)) norm_code(.data[[second_col]]) else NA_character_,
+      third_choice = if (!is.na(third_col)) norm_code(.data[[third_col]]) else NA_character_
+    )
+
+  ta_sol <- ompr::get_solution(model_result, X[i, j, r]) %>%
+    dplyr::filter(.data$r == 1, .data$value > 1e-8) %>%
+    dplyr::transmute(i = .data$i, j = .data$j, units = as.numeric(.data$value))
+
+  if (nrow(ta_sol) == 0) {
+    return(tibble::tibble(
+      student_id = student_map$student_id[0],
+      student_name = student_map$student_name[0],
+      course_code = character(0),
+      preference_rank = character(0),
+      units = numeric(0)
+    ))
+  }
+
+  j_vals <- sort(unique(ta_sol$j))
+  j_max <- max(j_vals)
+
+  # course code inference:
+  # 1) use attr(preference, "course_codes") if available
+  # 2) else use object "courses" from caller env if available and aligned
+  # 3) else use observed course index as fallback
+  course_codes <- attr(preference, "course_codes", exact = TRUE)
+
+  if (is.null(course_codes)) {
+    course_codes <- get0("courses", envir = parent.frame(), inherits = TRUE, ifnotfound = NULL)
+  }
+
+  if (!is.null(course_codes)) {
+    course_codes <- norm_code(course_codes)
+  }
+
+  if (is.null(course_codes) || length(course_codes) < j_max) {
+    course_map <- tibble::tibble(
+      j = j_vals,
+      course_code = as.character(j_vals)
+    )
+    warning(
+      "Unable to infer full course code mapping from preference alone; ",
+      "using course index as course_code."
+    )
+  } else {
+    course_map <- tibble::tibble(
+      j = j_vals,
+      course_code = course_codes[j_vals]
+    )
+  }
+
+  ta_sol %>%
+    dplyr::left_join(student_map, by = "i") %>%
+    dplyr::left_join(course_map, by = "j") %>%
+    dplyr::mutate(
+      preference_rank = dplyr::case_when(
+        is.na(.data$first_choice) | .data$first_choice == "" ~ "First",
+        .data$course_code == .data$first_choice ~ "First",
+        .data$course_code == .data$second_choice ~ "Second",
+        .data$course_code == .data$third_choice ~ "Third",
+        TRUE ~ "Unranked"
+      )
+    ) %>%
+    dplyr::select(
+      .data$student_id,
+      .data$student_name,
+      .data$course_code,
+      .data$preference_rank,
+      .data$units
+    ) %>%
+    dplyr::arrange(.data$student_id, dplyr::desc(.data$units), .data$course_code)
+}
+
+# Wrapper extractor for key PhD model outputs
+extract_phd_results <- function(model_result, preference) {
+  extract_scalar <- function(x, nm) {
+    if (is.data.frame(x)) {
+      if (!("value" %in% names(x)) || nrow(x) == 0) {
+        stop("Could not extract ", nm, " from model_result.")
+      }
+      return(as.numeric(x$value[[1]]))
+    }
+    xv <- as.numeric(x)
+    if (length(xv) == 0 || is.na(xv[[1]])) {
+      stop("Could not extract ", nm, " from model_result.")
+    }
+    xv[[1]]
+  }
+
+  tmax_val <- extract_scalar(ompr::get_solution(model_result, Tmax), "Tmax")
+  tmin_val <- extract_scalar(ompr::get_solution(model_result, Tmin), "Tmin")
+  obj_val <- as.numeric(model_result$objective_value)
+  if (length(obj_val) == 0 || is.na(obj_val[[1]])) {
+    # fallback to solver message payload when objective_value is unavailable
+    obj_val <- as.numeric(
+      model_result$additional_solver_output$ROI$message$objval
+    )
+  }
+  if (length(obj_val) == 0 || is.na(obj_val[[1]])) {
+    stop("Could not extract objective value from model_result.")
+  }
+
+  pref_for_assignment <- preference
+  if (!"seniority" %in% names(pref_for_assignment)) {
+    pref_for_assignment <- dplyr::mutate(pref_for_assignment, seniority = NA_real_)
+  }
+
+  list(
+    objective_value = obj_val[[1]],
+    ta_min = tmin_val,
+    ta_max = tmax_val,
+    phd_assignment = extract_phd_assignment(
+      model_result = model_result,
+      student_df = pref_for_assignment
+    ),
+    ta_detail = extract_phd_ta_detail(
+      model_result = model_result,
+      preference = preference
+    )
+  )
+}
+
+# Extract and dedupe solution-pool results from a solved model
+extract_phd_pool_results <- function(result_pool, preference, k = NULL) {
+  pool <- result_pool$additional_solver_output$ROI$message$pool
+  if (is.null(pool) || length(pool) == 0) {
+    stop("No solution pool found in result_pool.")
+  }
+  if (is.null(result_pool$solution) || is.null(names(result_pool$solution))) {
+    stop("result_pool does not contain named base solution vector.")
+  }
+
+  if (!is.null(k)) {
+    if (!is.numeric(k) || length(k) != 1 || is.na(k) || k < 1) {
+      stop("k must be NULL or a single positive integer.")
+    }
+    k <- as.integer(k)
+  }
+
+  n_take <- if (is.null(k)) length(pool) else min(length(pool), k)
+  pool <- pool[seq_len(n_take)]
+
+  make_result_from_pool <- function(base_result, pool_entry) {
+    out <- base_result
+    out$solution <- stats::setNames(pool_entry$poolnx, names(base_result$solution))
+    out$objective_value <- as.numeric(pool_entry$objval)
+    out
+  }
+
+  make_key <- function(x) {
+    ta_df <- x$ta_detail %>%
+      dplyr::arrange(.data$student_id, .data$course_code, .data$preference_rank, .data$units)
+
+    ta_df$student_id <- as.character(ta_df$student_id)
+    ta_df$student_name <- as.character(ta_df$student_name)
+    ta_df$course_code <- as.character(ta_df$course_code)
+    ta_df$preference_rank <- as.character(ta_df$preference_rank)
+    ta_df$units <- sprintf("%.10f", as.numeric(ta_df$units))
+
+    detail_key <- if (nrow(ta_df) == 0) {
+      "EMPTY"
+    } else {
+      paste(apply(ta_df, 1, paste, collapse = "|"), collapse = ";")
+    }
+
+    paste0(sprintf("%.10f", as.numeric(x$objective_value)), "||", detail_key)
+  }
+
+  out_list <- lapply(seq_along(pool), function(idx) {
+    rk_result <- make_result_from_pool(result_pool, pool[[idx]])
+    extract_phd_results(rk_result, preference)
+  })
+
+  keys <- vapply(out_list, make_key, FUN.VALUE = character(1))
+  out_list[!duplicated(keys)]
 }
 
 
