@@ -1,3 +1,38 @@
+#' Prepare the PhD workload allocation model
+#'
+#' Builds a mixed-integer optimisation model for assigning TA, GR, and E units
+#' across students and courses.
+#'
+#' @param df_list A list of model inputs, typically from [extract_phd_info()].
+#'   Required elements are:
+#'   \itemize{
+#'   \item \code{Ns}: number of students
+#'   \item \code{Nj}: number of courses
+#'   \item \code{P}: preference matrix \code{[i, j]}
+#'   \item \code{d}: demand matrix \code{[j, r]} where \code{r = 1:3} for TA, GR, E
+#'   \item \code{s}: seniority vector (offset form; e.g. year - 2)
+#'   \item \code{t1}: past TA workload vector
+#'   \item \code{g1}: past GR workload vector
+#'   }
+#' @param t_max_y1 Maximum current-semester TA load for Year-1 students
+#'   (\code{s == -1}) before slack is used.
+#' @param e_max Optional upper bound on per-student E units in current semester.
+#' @param ta_min,ta_max Optional lower/upper bounds on per-student TA units in
+#'   current semester.
+#' @param gr_min,gr_max Optional lower/upper bounds on per-student GR units in
+#'   current semester.
+#' @param e_min Optional lower bound on per-student E units in current semester.
+#' @param alpha Objective weight on TA spread \code{(Tmax - Tmin)}.
+#' @param beta Objective weight on TA preference term.
+#' @param phi Objective weight on seniority-weighted E term.
+#' @param rho Objective weight on Year-1 TA slack penalties.
+#'
+#' @details
+#' Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
+#' \code{t1[i]}, and \code{g1[i]} must refer to the same student/course ordering.
+#'
+#' @return An \code{ompr} model object ready for \code{ompr::solve_model()}.
+#' @export
 prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
                               ta_min = NULL, ta_max = NULL,
                               gr_min = NULL, gr_max = NULL,
@@ -623,9 +658,4 @@ plot_phd_year_distribution <- function(current_alloc_df,
   }
 
   p
-}
-
-
-extract_phd_info <- function(df){
-    
 }

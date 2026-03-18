@@ -481,4 +481,177 @@ allocation_compare_summary <- alloc_compare %>%
 allocation_compare_summary
 ```
 
+## Objective Comparison (Model vs Manual)
+
+```{r}
+# Must match the settings used in prepare_phd_model(...) above.
+obj_cfg <- list(alpha = 2, beta = 1, phi = 1, rho = 10, t_max_y1 = 1)
+
+compute_obj_from_components <- function(ta_by_student, e_by_student, ta_pref_sum,
+                                        t1, s, t_max_y1, alpha, beta, phi, rho) {
+  if (!all(c(length(ta_by_student), length(e_by_student), length(t1), length(s)) ==
+           length(s))) {
+    stop("Length mismatch in objective inputs.")
+  }
+
+  idx_non_y1 <- which(s >= 0)
+  idx_y1 <- which(s == -1)
+
+  year_ta <- t1 + ta_by_student
+  ta_spread <- if (length(idx_non_y1) > 0) {
+    max(year_ta[idx_non_y1]) - min(year_ta[idx_non_y1])
+  } else {
+    0
+  }
+
+  seniority_e_sum <- sum(s * e_by_student)
+  y1_slack_sum <- if (length(idx_y1) > 0) {
+    sum(pmax(0, ta_by_student[idx_y1] - t_max_y1))
+  } else {
+    0
+  }
+
+  tibble(
+    ta_spread = ta_spread,
+    ta_pref_sum = ta_pref_sum,
+    seniority_e_sum = seniority_e_sum,
+    y1_slack_sum = y1_slack_sum,
+    objective_recalc = alpha * ta_spread -
+      beta * ta_pref_sum -
+      phi * seniority_e_sum +
+      rho * y1_slack_sum
+  )
+}
+```
+
+```{r}
+# Recalculate model objective from solved X[i, j, r].
+model_sol <- get_solution(result_0, X[i, j, r]) %>%
+  filter(value > 1e-8)
+
+model_ta_by_student <- model_sol %>%
+  filter(r == 1) %>%
+  group_by(i) %>%
+  summarise(ta_units = sum(value), .groups = "drop") %>%
+  right_join(pref_lookup %>% select(i), by = "i") %>%
+  mutate(ta_units = replace_na(ta_units, 0)) %>%
+  arrange(i) %>%
+  pull(ta_units)
+
+model_e_by_student <- model_sol %>%
+  filter(r == 3) %>%
+  group_by(i) %>%
+  summarise(e_units = sum(value), .groups = "drop") %>%
+  right_join(pref_lookup %>% select(i), by = "i") %>%
+  mutate(e_units = replace_na(e_units, 0)) %>%
+  arrange(i) %>%
+  pull(e_units)
+
+model_ta_pref_sum <- model_sol %>%
+  filter(r == 1) %>%
+  mutate(pref_score = P[cbind(i, j)]) %>%
+  summarise(val = sum(pref_score * value, na.rm = TRUE)) %>%
+  pull(val)
+
+model_obj_breakdown <- compute_obj_from_components(
+  ta_by_student = model_ta_by_student,
+  e_by_student = model_e_by_student,
+  ta_pref_sum = model_ta_pref_sum,
+  t1 = t1,
+  s = s,
+  t_max_y1 = obj_cfg$t_max_y1,
+  alpha = obj_cfg$alpha,
+  beta = obj_cfg$beta,
+  phi = obj_cfg$phi,
+  rho = obj_cfg$rho
+)
+
+model_solver_obj <- as.numeric(result_0$objective_value)
+if (length(model_solver_obj) == 0 || is.na(model_solver_obj[[1]])) {
+  model_solver_obj <- as.numeric(result_0$additional_solver_output$ROI$message$objval)
+}
+model_solver_obj <- model_solver_obj[[1]]
+```
+
+```{r}
+# Recalculate manual objective using manual TA by course + derived E.
+manual_ta_detail <- manual_output %>%
+  inner_join(pref_lookup, by = "name_std") %>%
+  select(i, student_id, student_name, matches("-t$")) %>%
+  pivot_longer(
+    cols = matches("-t$"),
+    names_to = "course_col",
+    values_to = "ta_units"
+  ) %>%
+  mutate(
+    ta_units = replace_na(as.numeric(ta_units), 0),
+    course_code = norm_code(str_remove(course_col, "-t$")),
+    j = match(course_code, courses)
+  ) %>%
+  filter(ta_units > 1e-8)
+
+manual_unmatched <- manual_ta_detail %>%
+  filter(is.na(j)) %>%
+  summarise(
+    unmatched_rows = n(),
+    unmatched_ta_units = sum(ta_units)
+  )
+
+manual_ta_pref_sum <- manual_ta_detail %>%
+  filter(!is.na(j)) %>%
+  mutate(pref_score = P[cbind(i, j)]) %>%
+  summarise(val = sum(pref_score * ta_units, na.rm = TRUE)) %>%
+  pull(val)
+
+manual_totals_by_i <- pref_lookup %>%
+  select(i, student_id, student_name) %>%
+  left_join(manual_alloc, by = c("student_id", "student_name")) %>%
+  mutate(
+    manual_TA = replace_na(as.numeric(manual_TA), 0),
+    manual_E = replace_na(as.numeric(manual_E), 0)
+  ) %>%
+  arrange(i)
+
+manual_obj_breakdown <- compute_obj_from_components(
+  ta_by_student = manual_totals_by_i$manual_TA,
+  e_by_student = manual_totals_by_i$manual_E,
+  ta_pref_sum = manual_ta_pref_sum,
+  t1 = t1,
+  s = s,
+  t_max_y1 = obj_cfg$t_max_y1,
+  alpha = obj_cfg$alpha,
+  beta = obj_cfg$beta,
+  phi = obj_cfg$phi,
+  rho = obj_cfg$rho
+)
+```
+
+```{r}
+objective_compare <- bind_rows(
+  model_obj_breakdown %>% mutate(source = "model_recalc"),
+  manual_obj_breakdown %>% mutate(source = "manual_recalc")
+) %>%
+  select(source, objective_recalc, ta_spread, ta_pref_sum, seniority_e_sum, y1_slack_sum)
+
+objective_summary <- tibble(
+  metric = c(
+    "model_solver_objective",
+    "model_recalc_minus_solver",
+    "manual_minus_model_recalc",
+    "manual_unmatched_ta_rows",
+    "manual_unmatched_ta_units"
+  ),
+  value = c(
+    model_solver_obj,
+    objective_compare$objective_recalc[objective_compare$source == "model_recalc"] - model_solver_obj,
+    objective_compare$objective_recalc[objective_compare$source == "manual_recalc"] -
+      objective_compare$objective_recalc[objective_compare$source == "model_recalc"],
+    manual_unmatched$unmatched_rows,
+    manual_unmatched$unmatched_ta_units
+  )
+)
+
+objective_compare
+objective_summary
+```
 

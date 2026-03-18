@@ -147,6 +147,132 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 }
 
 
+#' Extract inputs for the PhD workload allocation model
+#'
+#' Converts student-level data and input matrices into the list expected by
+#' `prepare_phd_model()`.
+#'
+#' @param student_df A data frame with one row per student. Required columns are:
+#'   `student_id`, `year`, `past_ta`, and `past_gr`. `year` is capped to 1-4.
+#' @param p_mat Preference matrix with dimensions `Ns x Nj`.
+#'   Row order must match `student_df` row order.
+#' @param d_mat Demand matrix with dimensions `Nj x 2` or `Nj x 3`.
+#'   Columns are interpreted in order as `TA`, `GR`, and optional `E`.
+#'   Row order must match the column order of `p_mat`.
+#' @param e_mode How to handle E demand when `d_mat` does not include E.
+#'   `"rr"` computes E using round-robin allocation from highest to lowest GR
+#'   demand; `"none"` leaves E at 0.
+#' @param student_cols Optional integer vector of length 4 indicating the
+#'   column positions in `student_df` for `student_id`, `year`, `past_ta`,
+#'   and `past_gr` respectively. If `NULL`, the function expects these exact
+#'   column names.
+#'
+#' @details
+#' This function assumes input order is already aligned:
+#'
+#' * `student_df` row `i` corresponds to `P[i, ]`, `s[i]`, `t1[i]`, and `g1[i]`.
+#' * `d_mat` row `j` corresponds to `P[, j]`.
+#'
+#' If E is computed (`e_mode = "rr"`), total E is set to:
+#'
+#' `Ns * 4 - sum(TA) - sum(GR)`.
+#'
+#' @returns A list containing:
+#'
+#' * `Ns`: number of students
+#' * `Nj`: number of courses
+#' * `P`: preference matrix (`Ns x Nj`)
+#' * `d`: demand matrix (`Nj x 3`) with columns `TA`, `GR`, `E`
+#' * `s`: seniority vector (`year - 2`)
+#' * `t1`: past TA workload vector
+#' * `g1`: past GR workload vector
+#'
+#' @export
+extract_phd_info <- function(student_df, p_mat, d_mat, e_mode = c("rr", "none"),
+                             student_cols = NULL) {
+  e_mode <- match.arg(e_mode)
+
+  # student_cols not supplied
+  if (is.null(student_cols)) {
+    required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
+    missing_student_cols <- setdiff(required_student_cols, names(student_df))
+    if (length(missing_student_cols) > 0) {
+      stop(
+        "student_df is missing required columns: ",
+        paste(missing_student_cols, collapse = ", ")
+      )
+    }
+
+    year_num <- as.numeric(student_df$year)
+    past_ta_num <- as.numeric(student_df$past_ta)
+    past_gr_num <- as.numeric(student_df$past_gr)
+  }
+  # student column supplied
+  else {
+    if (!is.numeric(student_cols) || length(student_cols) != 4) {
+      stop("student_cols must be an integer vector of length 4.")
+    }
+    student_cols <- as.integer(student_cols)
+    year_num <- as.numeric(student_df[[student_cols[2]]])
+    past_ta_num <- as.numeric(student_df[[student_cols[3]]])
+    past_gr_num <- as.numeric(student_df[[student_cols[4]]])
+  }
+
+  year_num <- pmin(4, pmax(1, year_num))
+
+  Ns <- nrow(student_df)
+  P <- matrix(as.numeric(p_mat), nrow = nrow(p_mat), ncol = ncol(p_mat))
+  if (nrow(P) != Ns) {
+    stop("nrow(p_mat) must match nrow(student_df).")
+  }
+
+  Nj <- ncol(P)
+  d_in <- matrix(as.numeric(d_mat), nrow = nrow(d_mat), ncol = ncol(d_mat))
+  if (nrow(d_in) != Nj) {
+    stop("nrow(d_mat) must match ncol(p_mat).")
+  }
+
+  ta_units <- d_in[, 1]
+  gr_units <- d_in[, 2]
+  if (ncol(d_in) >= 3) {
+    e_units <- d_in[, 3]
+  } else {
+    e_units <- rep(0, Nj)
+  }
+
+  if (ncol(d_in) < 3 && e_mode == "rr") {
+    total_units <- Ns * 4
+    total_demand <- sum(ta_units, na.rm = TRUE) + sum(gr_units, na.rm = TRUE)
+    total_E <- total_units - total_demand
+
+    if (total_E > 0) {
+      eligible <- which(gr_units > 0)
+      if (length(eligible) > 0) {
+        ranked <- eligible[order(gr_units[eligible], decreasing = TRUE)]
+        rr_idx <- ranked[((seq_len(total_E) - 1) %% length(ranked)) + 1]
+        e_units <- tabulate(rr_idx, nbins = Nj)
+      }
+    }
+  }
+
+  d_num <- cbind(TA = ta_units, GR = gr_units, E = e_units)
+
+  s <- as.integer(year_num) - 2
+  t1 <- as.numeric(past_ta_num)
+  g1 <- as.numeric(past_gr_num)
+
+  list(
+    Ns = Ns,
+    Nj = Nj,
+    P = P,
+    d = d_num,
+    s = s,
+    t1 = t1,
+    g1 = g1
+  )
+}
+
+
 #' Extract parameters from a YAML file
 #'
 #' The remaining parameters for the models are retrieved from a YAML file, so as

@@ -8,6 +8,8 @@ library(tidyverse)
 library(ompr)
 library(ompr.roi)
 library(ROI.plugin.gurobi)
+library(ROI.plugin.glpk)
+library(ROI.plugin.highs)
 library(devtools)
 library(readxl)
 library(digest)
@@ -262,6 +264,7 @@ pool_results <- extract_phd_pool_results(
 ```{r}
 pool_results[[2]]$phd_assignment
 ```
+
 ```{r}
 pool_results[[2]]$ta_detail
 ```
@@ -292,6 +295,61 @@ for (i in seq_len(n_plot)) {
 
   print(p)
 }
+```
+
+## Using other solver 
+
+```{r}
+bench_solver <- function(model, solver_name) {
+  t <- system.time({
+    res <- solve_model(model, with_ROI(solver = solver_name))
+  })
+  list(
+    solver = solver_name,
+    result = res,
+    time_sec = unname(t["elapsed"])
+  )
+}
+
+b_gurobi <- bench_solver(model_0, "gurobi")
+b_glpk   <- bench_solver(model_0, "glpk")
+b_highs  <- bench_solver(model_0, "highs")
+
+solver_compare <- tibble::tibble(
+  solver = c("gurobi", "glpk", "highs"),
+  time_sec = c(b_gurobi$time_sec, b_glpk$time_sec, b_highs$time_sec),
+  objective = c(
+    objective_value(b_gurobi$result),
+    objective_value(b_glpk$result),
+    objective_value(b_highs$result)
+  )
+)
+
+solver_compare
+```
+
+```{r}
+alloc_df_glpk <- extract_phd_assignment(
+  model_result = b_glpk[[2]],
+  student_df = preference
+)
+
+alloc_df_highs <- extract_phd_assignment(
+  model_result = b_highs[[2]],
+  student_df = preference
+)
+
+
+plot_phd_year_distribution(alloc_df_glpk,t1 = df_list$t1, g1 = df_list$g1,
+  facet_by_seniority = TRUE, seniority_col = "seniority")
+
+plot_phd_year_distribution(alloc_df_highs,
+  t1 = df_list$t1, g1 = df_list$g1,
+  facet_by_seniority = TRUE, seniority_col = "seniority"
+)
+
+plot_phd_year_distribution(alloc_df_0, t1 = df_list$t1, g1 = df_list$g1,
+                           facet_by_seniority = TRUE, seniority_col = "seniority")
 ```
 
 
