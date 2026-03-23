@@ -153,7 +153,8 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' `prepare_phd_model()`.
 #'
 #' @param student_df A data frame with one row per student. Required columns are:
-#'   `student_id`, `year`, `past_ta`, and `past_gr`. `year` is capped to 1-4.
+#'   `student_id`, `year`, `past_ta`, and `past_gr`. Note that it
+#'    has to be in this order and name. `year` is capped to 1-4.
 #' @param p_mat Preference matrix with dimensions `Ns x Nj`.
 #'   Row order must match `student_df` row order.
 #' @param d_mat Demand matrix with dimensions `Nj x 2` or `Nj x 3`.
@@ -162,10 +163,6 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' @param e_mode How to handle E demand when `d_mat` does not include E.
 #'   `"rr"` computes E using round-robin allocation from highest to lowest GR
 #'   demand; `"none"` leaves E at 0.
-#' @param student_cols Optional integer vector of length 4 indicating the
-#'   column positions in `student_df` for `student_id`, `year`, `past_ta`,
-#'   and `past_gr` respectively. If `NULL`, the function expects these exact
-#'   column names.
 #'
 #' @details
 #' This function assumes input order is already aligned:
@@ -188,37 +185,23 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' * `g1`: past GR workload vector
 #'
 #' @export
-extract_phd_info <- function(student_df, p_mat, d_mat, e_mode = c("rr", "none"),
-                             student_cols = NULL) {
+extract_phd_info <- function(student_df, p_mat, d_mat, e_mode = c("rr", "none")){
   e_mode <- match.arg(e_mode)
 
-  # student_cols not supplied
-  if (is.null(student_cols)) {
-    required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
-    missing_student_cols <- setdiff(required_student_cols, names(student_df))
-    if (length(missing_student_cols) > 0) {
-      stop(
-        "student_df is missing required columns: ",
-        paste(missing_student_cols, collapse = ", ")
-      )
-    }
 
-    year_num <- as.numeric(student_df$year)
-    past_ta_num <- as.numeric(student_df$past_ta)
-    past_gr_num <- as.numeric(student_df$past_gr)
-  }
-  # student column supplied
-  else {
-    if (!is.numeric(student_cols) || length(student_cols) != 4) {
-      stop("student_cols must be an integer vector of length 4.")
-    }
-    student_cols <- as.integer(student_cols)
-    year_num <- as.numeric(student_df[[student_cols[2]]])
-    past_ta_num <- as.numeric(student_df[[student_cols[3]]])
-    past_gr_num <- as.numeric(student_df[[student_cols[4]]])
+  required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
+  current_head_cols <- names(student_df)[seq_along(required_student_cols)]
+  if (!identical(current_head_cols, required_student_cols)) {
+    stop(
+      "Please ensure student_df first 4 columns are exactly: ",
+      paste(required_student_cols, collapse = ", ")
+    )
   }
 
+  year_num <- as.numeric(student_df$year)
   year_num <- pmin(4, pmax(1, year_num))
+  past_ta_num <- as.numeric(student_df$past_ta)
+  past_gr_num <- as.numeric(student_df$past_gr)
 
   Ns <- nrow(student_df)
   P <- matrix(as.numeric(p_mat), nrow = nrow(p_mat), ncol = ncol(p_mat))

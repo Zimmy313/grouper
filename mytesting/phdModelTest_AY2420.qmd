@@ -1,5 +1,5 @@
 ---
-title: "PhD model testing AY 2510"
+title: "PhD model testing AY 2420"
 format: html
 ---
 
@@ -25,25 +25,26 @@ exists("prepare_phd_model", where = globalenv(), inherits = FALSE)
 
 ```{r}
 preference_y24_raw <- read_excel(
-  "../data/phdModel/AY2510/List of research scholars and teaching preferences for Sem 1, AY202526.xlsx",
+  "../data/phdModel/AY2420/List of research scholars and teaching preferences for Sem 2 AY2425.xlsx",
   sheet = "List of RS ( Yr 2-4 )",
-  skip = 2
+  skip = 2, range = "B4:O37"
 )
 
 preference_y1_raw <- read_excel(
-  "../data/phdModel/AY2510/List of research scholars and teaching preferences for Sem 1, AY202526.xlsx",
+  "../data/phdModel/AY2420/List of research scholars and teaching preferences for Sem 2 AY2425.xlsx",
   sheet = "List of RS ( Yr 1 )",
   skip = 2
 )
 
-manual_output_current <- read_excel(
-  "../data/phdModel/AY2510/output_005.xlsx",
-  sheet = "Sheet3"
+demand_raw <- read_excel(
+  "../data/phdModel/AY2420/2425_Sem2_tutor_grader_request_working.xlsx",
+  sheet = 1
 )
 
-past_output_2420 <- read_excel(
-  "../data/phdModel/AY2420/output_009.xlsx",
-  sheet = "output_001a"
+past_output_2410 <- read_excel(
+  "../data/phdModel/AY2410/output_009.xlsx",
+  # AY2410 output uses `full_tbl` for student names + course allocations.
+  sheet = "full_tbl"
 )
 ```
 
@@ -81,7 +82,7 @@ excel_to_date <- function(x) {
 ## Data cleaning
 ```{r}
 # Date handling
-reference_date <- ymd("2025-12-01")
+reference_date <- ymd("2025-05-01")
 
 preference_y24 <- preference_y24_raw %>%
   filter(!is.na(`S/No.`)) %>%
@@ -104,7 +105,11 @@ preference_y24 <- preference_y24_raw %>%
 
 preference_y1 <- preference_y1_raw %>%
   filter(!is.na(`S/No.`)) %>%
-  mutate(intake_date = as.Date(`Year (intake enrolled in)`)) %>%
+  mutate(
+    intake_date = as.Date(`Year (intake enrolled in)`),
+    # AY2420 Yr1 sheet has missing intake dates it should be Aug-2024.
+    intake_date = coalesce(intake_date, ymd("2024-08-01"))
+  ) %>%
   transmute(
     `S/No._raw` = as.integer(`S/No.`),
     Name,
@@ -120,7 +125,7 @@ preference_y1 <- preference_y1_raw %>%
 ```
 
 ```{r}
-# AY2510 has overlapping S/No. across Yr1 and Yr2-4 sheets.
+# AY2420 has overlapping S/No. across Yr1 and Yr2-4 sheets.
 # Rebuild a unique student ID after combining both sheets.
 preference <- bind_rows(preference_y24, preference_y1) %>%
   mutate(
@@ -143,48 +148,22 @@ student_id <- preference %>%
 
 ```{r}
 # Extracting demand
-demand_source <- manual_output_current %>%
-  filter(str_detect(email, "@"), !is.na(Name)) %>%
-  mutate(name_std = standardise_name(Name))
+demand_cols <- tail(names(demand_raw), 2)
 
-demand_ta_cols <- names(demand_source)[str_detect(names(demand_source), "-t$")]
-demand_gr_cols <- names(demand_source)[str_detect(names(demand_source), "-g$")]
-
-# Demand is now derived directly from manually completed output_005.xlsx.
-# Exclude full-time TA WONG YEAN LING from the remaining allocatable demand.
-demand_allocatable <- demand_source %>%
-  filter(name_std != "WONG YEAN LING")
-
-demand_ta <- demand_allocatable %>%
-  summarise(across(all_of(demand_ta_cols), ~ sum(as.numeric(.x), na.rm = TRUE))) %>%
-  pivot_longer(
-    cols = everything(),
-    names_to = "course_col",
-    values_to = "TA"
-  ) %>%
+# AY2420 demand source: first sheet's last 2 columns of raw request file.
+# GR is reported in hours in this file; convert to model units (11 hrs = 1 unit).
+demand <- demand_raw %>%
   transmute(
-    course_code = norm_code(str_remove(course_col, "-t$")),
-    TA = replace_na(as.numeric(TA), 0)
-  )
-
-demand_gr <- demand_allocatable %>%
-  summarise(across(all_of(demand_gr_cols), ~ sum(as.numeric(.x), na.rm = TRUE))) %>%
-  pivot_longer(
-    cols = everything(),
-    names_to = "course_col",
-    values_to = "GR"
+    course_code = norm_code(`Course Code`),
+    TA = suppressWarnings(as.numeric(.data[[demand_cols[1]]])),
+    GR = suppressWarnings(as.numeric(.data[[demand_cols[2]]])) / 11
   ) %>%
-  transmute(
-    course_code = norm_code(str_remove(course_col, "-g$")),
-    GR = replace_na(as.numeric(GR), 0)
-  )
-
-demand <- full_join(demand_ta, demand_gr, by = "course_code") %>%
   mutate(
     TA = replace_na(TA, 0),
     GR = replace_na(GR, 0),
-    E = 0 # E not derived from output_005 in this workflow
+    E = 0
   ) %>%
+  filter(!is.na(course_code), course_code != "") %>%
   filter(TA + GR > 0) %>%
   arrange(course_code) %>%
   mutate(ID = row_number()) %>%
@@ -226,6 +205,16 @@ same course.**
 # preference matrix
 P <- matrix(-99L, nrow = Ns, ncol = Nj)
 
+# AY2420 demand has cross-listed codes (e.g. ST2131/MA2116).
+match_course <- function(code, courses) {
+  code <- norm_code(code)
+  j <- match(code, courses)
+  if (!is.na(j)) return(j)
+  starts <- which(str_starts(courses, paste0(code, "/")))
+  if (length(starts) == 1) return(starts[[1]])
+  NA_integer_
+}
+
 for (i in seq_len(Ns)) {
   first <- norm_code(preference[["first"]][i])
   second <- norm_code(preference[["second"]][i])
@@ -238,17 +227,17 @@ for (i in seq_len(Ns)) {
   }
 
   if (!is.na(first) && first != "") {
-    j <- match(first, courses)
+    j <- match_course(first, courses)
     if (!is.na(j)) P[i, j] <- 3L
   }
 
   if (!is.na(second) && second != "") {
-    j <- match(second, courses)
+    j <- match_course(second, courses)
     if (!is.na(j)) P[i, j] <- 2L
   }
 
   if (!is.na(third) && third != "") {
-    j <- match(third, courses)
+    j <- match_course(third, courses)
     if (!is.na(j)) P[i, j] <- 1L
   }
 }
@@ -256,11 +245,11 @@ for (i in seq_len(Ns)) {
 
 ```{r}
 # Extracting previous semester workload
-past_ta_cols <- names(past_output_2420)[str_detect(names(past_output_2420), "-t$")]
-past_gr_cols <- names(past_output_2420)[str_detect(names(past_output_2420), "-g$")]
+past_ta_cols <- names(past_output_2410)[str_detect(names(past_output_2410), "-t$")]
+past_gr_cols <- names(past_output_2410)[str_detect(names(past_output_2410), "-g$")]
 
-# Past workload is now derived from AY2420 output_009.xlsx.
-past_summary <- past_output_2420 %>%
+# Past workload for AY2420 is sourced from prior-cycle AY2410 output.
+past_summary <- past_output_2410 %>%
   filter(!is.na(Name), Name != "") %>%
   mutate(
     Name = standardise_name(Name),
@@ -276,8 +265,7 @@ past_summary <- past_output_2420 %>%
 ```
 
 ```{r}
-# AY2420-only students are not included in this workflow.
-# AY2510 students with no past rows default to zero before final padding.
+# AY2420 students with no AY2410 rows default to zero before final padding.
 past_clean <- student_id %>%
   left_join(past_summary, by = "Name") %>%
   mutate(
@@ -303,25 +291,26 @@ table (even if they had no past assignments). remove those not in current
 allocation.
 
 ```{r}
-# Extracting seniority
-s <- pull(preference, seniority) - 2 # offset
-```
-
-```{r}
 # Input prep
-t1 <- pull(past_final, TA)
-g1 <- pull(past_final, GR)
+student_input <- student_id %>%
+  left_join(past_final %>% select(ID, TA, GR), by = "ID") %>%
+  transmute(
+    student_id = ID,
+    year = seniority,
+    past_ta = TA,
+    past_gr = GR
+  )
 
-# final input to model
-df_list = list(
-  Ns = Ns,
-  Nj = Nj,
-  P = P,
-  d = D,
-  s = s,
-  t1 = t1,
-  g1 = g1
+df_list <- extract_phd_info(
+  student_df = student_input,
+  p_mat = P,
+  d_mat = D,
+  e_mode = "none"
 )
+
+s <- df_list$s
+t1 <- df_list$t1
+g1 <- df_list$g1
 ```
 
 ## Modelling
@@ -366,6 +355,7 @@ result_pool <- solve_model(
   )
 )
 ```
+
 ```{r}
 pool_results <- extract_phd_pool_results(
   result_pool = result_pool,
@@ -410,14 +400,14 @@ for (i in seq_len(n_plot)) {
 }
 ```
 
-## Comparison with Manual `output_005`
+## Comparison with Manual `output_009`
 
 ```{r}
 manual_output <- read_excel(
-  "../data/phdModel/AY2510/output_005.xlsx",
-  sheet = "Sheet3"
+  "../data/phdModel/AY2420/output_009.xlsx",
+  sheet = "output_001a"
 ) %>%
-  filter(str_detect(email, "@"), !is.na(Name)) %>%
+  filter(!is.na(Name), Name != "") %>%
   mutate(name_std = standardise_name(Name))
 
 pref_lookup <- preference %>%

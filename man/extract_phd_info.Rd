@@ -4,17 +4,12 @@
 \alias{extract_phd_info}
 \title{Extract inputs for the PhD workload allocation model}
 \usage{
-extract_phd_info(
-  student_df,
-  p_mat,
-  d_mat,
-  e_mode = c("rr", "none"),
-  student_cols = NULL
-)
+extract_phd_info(student_df, p_mat, d_mat, e_mode = c("rr", "none"))
 }
 \arguments{
 \item{student_df}{A data frame with one row per student. Required columns are:
-\code{student_id}, \code{year}, \code{past_ta}, and \code{past_gr}. \code{year} is capped to 1-4.}
+\code{student_id}, \code{year}, \code{past_ta}, and \code{past_gr}. Note that it
+has to be in this order and name. \code{year} is capped to 1-4.}
 
 \item{p_mat}{Preference matrix with dimensions \verb{Ns x Nj}.
 Row order must match \code{student_df} row order.}
@@ -26,11 +21,6 @@ Row order must match the column order of \code{p_mat}.}
 \item{e_mode}{How to handle E demand when \code{d_mat} does not include E.
 \code{"rr"} computes E using round-robin allocation from highest to lowest GR
 demand; \code{"none"} leaves E at 0.}
-
-\item{student_cols}{Optional integer vector of length 4 indicating the
-column positions in \code{student_df} for \code{student_id}, \code{year}, \code{past_ta},
-and \code{past_gr} respectively. If \code{NULL}, the function expects these exact
-column names.}
 }
 \value{
 A list containing:

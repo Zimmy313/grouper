@@ -525,4 +525,15 @@ pref_compare <- full_join(model_pref_summary, manual_pref_summary, by = "prefere
 pref_compare
 ```
 
+## Manual-Style Solver Output
 
+```{r}
+job_output <- assign_job(
+  model_result = result_0,
+  student_df = preference,
+  course_codes = courses,
+  name_col = "Name"
+)
+
+job_output
+```
