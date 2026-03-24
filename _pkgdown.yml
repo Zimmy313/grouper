@@ -35,6 +35,7 @@ reference:
   contents:
   - starts_with("dba_")
   - starts_with("pba_")
+  - starts_with("phd_")
 
 articles:
 - title: Vignettes
@@ -44,3 +45,4 @@ articles:
   - b-diversity-skill
   - c-subgroups-preference
   - d-sanity-checks
+  - e-phd-workload

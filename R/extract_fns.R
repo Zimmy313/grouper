@@ -199,6 +199,7 @@ extract_phd_info <- function(student_df, p_mat, d_mat, e_mode = c("rr", "none"))
   }
 
   year_num <- as.numeric(student_df$year)
+  # Cap year_num to the range 1-4
   year_num <- pmin(4, pmax(1, year_num))
   past_ta_num <- as.numeric(student_df$past_ta)
   past_gr_num <- as.numeric(student_df$past_gr)
