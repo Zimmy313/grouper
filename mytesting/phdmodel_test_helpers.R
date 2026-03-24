@@ -29,7 +29,7 @@ extract_phd_assignment <- function(model_result,
     dplyr::mutate(
       role = factor(.data$r, levels = 1:3, labels = role_names)
     ) %>%
-    dplyr::select(.data$i, .data$role, .data$units) %>%
+    dplyr::select("i", "role", "units") %>%
     tidyr::pivot_wider(
       names_from = .data$role,
       values_from = .data$units,
@@ -165,11 +165,11 @@ extract_phd_ta_detail <- function(model_result, preference) {
       )
     ) %>%
     dplyr::select(
-      .data$student_id,
-      .data$student_name,
-      .data$course_code,
-      .data$preference_rank,
-      .data$units
+      "student_id",
+      "student_name",
+      "course_code",
+      "preference_rank",
+      "units"
     ) %>%
     dplyr::arrange(.data$student_id, dplyr::desc(.data$units), .data$course_code)
 }
@@ -471,4 +471,66 @@ plot_phd_year_distribution <- function(current_alloc_df,
   }
 
   p
+}
+
+
+## for course code normalisaton
+norm_code <- function(x) {
+  toupper(trimws(as.character(x)))
+}
+
+## for names
+standardise_name <- function(x) {
+  x %>%
+    as.character() %>%
+    str_to_upper() %>%        
+    str_replace_all("[^A-Z ]", "") %>% # remove funny letters
+    str_squish()             
+}
+
+## for preference code cleanup
+clean_pref_code <- function(x) {
+  out <- norm_code(x)
+  out[out %in% c("", "-", "NIL", "NA")] <- NA_character_
+  out
+}
+
+## for recomputing manual scores
+compute_obj_from_components <- function(ta_by_student, e_by_student, ta_pref_sum,
+                                        t1, s, t_max_y1, alpha, beta, phi, rho) {
+
+  idx_non_y1 <- which(s >= 0)
+  idx_y1 <- which(s == -1)
+
+  year_ta <- t1 + ta_by_student
+  ta_spread <- if (length(idx_non_y1) > 0) {
+    max(year_ta[idx_non_y1]) - min(year_ta[idx_non_y1])
+  } else {
+    0
+  }
+
+  seniority_e_sum <- sum(s * e_by_student)
+  y1_slack_sum <- if (length(idx_y1) > 0) {
+    sum(pmax(0, ta_by_student[idx_y1] - t_max_y1))
+  } else {
+    0
+  }
+
+  tibble(
+    ta_spread = ta_spread,
+    ta_pref_sum = ta_pref_sum,
+    seniority_e_sum = seniority_e_sum,
+    y1_slack_sum = y1_slack_sum,
+    objective_recalc = alpha * ta_spread -
+      beta * ta_pref_sum -
+      phi * seniority_e_sum +
+      rho * y1_slack_sum
+  )
+}
+
+
+## parse excel serial date to Date
+excel_to_date <- function(x) {
+  x_num <- suppressWarnings(as.numeric(x))
+  as.Date(x_num, origin = "1899-12-30")
 }

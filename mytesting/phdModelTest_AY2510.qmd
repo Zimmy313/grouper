@@ -19,6 +19,7 @@ library(purrr)
 # Setting up
 load_all()
 exists("prepare_phd_model", where = globalenv(), inherits = FALSE)
+source("phdModelTest_helpers.R")
 ```
 
 ## Loading Data
@@ -45,37 +46,6 @@ past_output_2420 <- read_excel(
   "../data/phdModel/AY2420/output_009.xlsx",
   sheet = "output_001a"
 )
-```
-
-```{r}
-# helpers
-
-## for course code normalisaton
-norm_code <- function(x) {
-  toupper(trimws(as.character(x)))
-}
-
-## for names
-standardise_name <- function(x) {
-  x %>%
-    as.character() %>%
-    str_to_upper() %>%
-    str_replace_all("[^A-Z ]", "") %>%
-    str_squish()
-}
-
-## for preference code cleanup
-clean_pref_code <- function(x) {
-  out <- norm_code(x)
-  out[out %in% c("", "-", "NIL", "NA")] <- NA_character_
-  out
-}
-
-## parse excel serial date to Date
-excel_to_date <- function(x) {
-  x_num <- suppressWarnings(as.numeric(x))
-  as.Date(x_num, origin = "1899-12-30")
-}
 ```
 
 ## Data cleaning
