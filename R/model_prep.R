@@ -159,6 +159,8 @@ prepare_model <- function(df_list, yaml_list,
 #' @param beta Objective weight on TA preference term.
 #' @param phi Objective weight on seniority-weighted E term.
 #' @param rho Objective weight on Year-1 TA slack penalties.
+#' @param workload_cap Annual per-student workload cap in
+#'   \code{T_i + G_i + e_i^(2) <= workload_cap}. Default is \code{8}.
 #'
 #' @details
 #' Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
@@ -170,7 +172,8 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
                               ta_min = NULL, ta_max = NULL,
                               gr_min = NULL, gr_max = NULL,
                               e_min = NULL,
-                              alpha = 2, beta = 1, phi = 1, rho = 10) {
+                              alpha = 2, beta = 1, phi = 1, rho = 10,
+                              workload_cap = 8) {
   # keep role order fixed
   job_names <- c("TA", "GR", "E")
 
@@ -252,11 +255,11 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
     ) %>%
 
     # total workload cap:
-    # T_i + G_i + e_i^(2) <= 8
+    # T_i + G_i + e_i^(2) <= workload_cap
     ompr::add_constraint(
       (t1[i] + ompr::sum_over(X[i, j, 1], j = 1:Nj)) +
       (g1[i] + ompr::sum_over(X[i, j, 2], j = 1:Nj)) +
-               ompr::sum_over(X[i, j, 3], j = 1:Nj) <= 8,
+               ompr::sum_over(X[i, j, 3], j = 1:Nj) <= workload_cap,
       i = 1:Ns
     ) %>%
 
