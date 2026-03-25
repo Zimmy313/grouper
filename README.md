@@ -16,7 +16,7 @@ You can install the development version of grouper from [GitHub](https://github.
 pak::pak("singator/grouper")
 ```
 
-But to be honest, the package on CRAN is already the most updated on. 
+But to be honest, the package on CRAN is already the most up to date.
 Please refer to the [vignettes](https://cran.r-project.org/package=grouper) for examples and documentation on the models in the package.
 
 For best performance, it is best to get a license for [Gurobi optimiser](https://www.gurobi.com/downloads/).

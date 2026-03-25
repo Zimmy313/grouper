@@ -23,14 +23,17 @@ navbar:
 reference:
 - title: Data preparation
   contents:
+  - prepare_diversity_model
   - prepare_model
   - prepare_phd_model
+  - prepare_preference_model
   - extract_params_yaml
   - extract_student_info
   - extract_phd_info
 - title: Optimization
   contents:
   - assign_groups
+  - assign_job
 - title: Included data
   contents:
   - starts_with("dba_")
