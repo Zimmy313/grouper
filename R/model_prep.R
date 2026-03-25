@@ -159,8 +159,9 @@ prepare_model <- function(df_list, yaml_list,
 #' @param beta Objective weight on TA preference term.
 #' @param phi Objective weight on seniority-weighted E term.
 #' @param rho Objective weight on Year-1 TA slack penalties.
-#' @param C Semester workload capacity per student. The model uses annual cap
-#'   \code{2 * C} in \code{T_i + G_i + e_i^(2) <= 2 * C}. Default is \code{4}.
+#' @param C Semester workload capacity per student. The model fixes annual
+#'   workload at \code{2 * C} via \code{T_i + G_i + e_i^(2) == 2 * C}.
+#'   Default is \code{4}.
 #'
 #' @details
 #' Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
@@ -255,11 +256,11 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
     ) %>%
 
     # annual workload cap from semester capacity C:
-    # T_i + G_i + e_i^(2) <= 2 * C
+    # T_i + G_i + e_i^(2) == 2 * C
     ompr::add_constraint(
       (t1[i] + ompr::sum_over(X[i, j, 1], j = 1:Nj)) +
       (g1[i] + ompr::sum_over(X[i, j, 2], j = 1:Nj)) +
-               ompr::sum_over(X[i, j, 3], j = 1:Nj) <= 2 * C,
+               ompr::sum_over(X[i, j, 3], j = 1:Nj) == 2 * C,
       i = 1:Ns
     ) %>%
 

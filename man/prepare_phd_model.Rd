@@ -54,8 +54,9 @@ current semester.}
 
 \item{rho}{Objective weight on Year-1 TA slack penalties.}
 
-\item{C}{Semester workload capacity per student. The model uses annual cap
-\code{2 * C} in \code{T_i + G_i + e_i^(2) <= 2 * C}. Default is \code{4}.}
+\item{C}{Semester workload capacity per student. The model fixes annual
+workload at \code{2 * C} via \code{T_i + G_i + e_i^(2) == 2 * C}.
+Default is \code{4}.}
 }
 \value{
 An \code{ompr} model object ready for \code{ompr::solve_model()}.

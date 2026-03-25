@@ -84,13 +84,13 @@ T_i &\le T_{\max}, \quad \forall i : s_i \ge 0 \\
 T_i &\ge T_{\min}, \quad \forall i : s_i \ge 0
 \end{align}
 
-## Annual workload cap
+## Annual workload equality
 
-Let $C$ denote semester workload capacity per student. The annual cap is then
-set to $2C$.
+Let $C$ denote semester workload capacity per student. The model fixes each
+student's annual workload total at $2C$.
 
 $$
-T_i + G_i + e_i^{(2)} \le 2C, \quad \forall i
+T_i + G_i + e_i^{(2)} = 2C, \quad \forall i
 $$
 
 ## Year-1 TA soft upper bound
