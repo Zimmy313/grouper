@@ -163,6 +163,8 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' @param e_mode How to handle E demand when `d_mat` does not include E.
 #'   `"rr"` computes E using round-robin allocation from highest to lowest GR
 #'   demand; `"none"` leaves E at 0.
+#' @param C Semester workload capacity per student. Used when `e_mode = "rr"`
+#'   to compute total semester capacity as `Ns * C`.
 #'
 #' @details
 #' This function assumes input order is already aligned:
@@ -172,7 +174,7 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #'
 #' If E is computed (`e_mode = "rr"`), total E is set to:
 #'
-#' `Ns * 4 - sum(TA) - sum(GR)`.
+#' `Ns * C - sum(TA) - sum(GR)`.
 #'
 #' @returns A list containing:
 #'
@@ -185,7 +187,8 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' * `g1`: past GR workload vector
 #'
 #' @export
-extract_phd_info <- function(student_df, p_mat, d_mat, e_mode = c("rr", "none")){
+extract_phd_info <- function(student_df, p_mat, d_mat,
+                             e_mode = c("rr", "none"), C = 4){
   e_mode <- match.arg(e_mode)
 
 
@@ -225,7 +228,7 @@ extract_phd_info <- function(student_df, p_mat, d_mat, e_mode = c("rr", "none"))
   }
 
   if (ncol(d_in) < 3 && e_mode == "rr") {
-    total_units <- Ns * 4
+    total_units <- Ns * C
     total_demand <- sum(ta_units, na.rm = TRUE) + sum(gr_units, na.rm = TRUE)
     total_E <- total_units - total_demand
 

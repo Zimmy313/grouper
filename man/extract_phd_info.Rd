@@ -4,7 +4,7 @@
 \alias{extract_phd_info}
 \title{Extract inputs for the PhD workload allocation model}
 \usage{
-extract_phd_info(student_df, p_mat, d_mat, e_mode = c("rr", "none"))
+extract_phd_info(student_df, p_mat, d_mat, e_mode = c("rr", "none"), C = 4)
 }
 \arguments{
 \item{student_df}{A data frame with one row per student. Required columns are:
@@ -21,6 +21,9 @@ Row order must match the column order of \code{p_mat}.}
 \item{e_mode}{How to handle E demand when \code{d_mat} does not include E.
 \code{"rr"} computes E using round-robin allocation from highest to lowest GR
 demand; \code{"none"} leaves E at 0.}
+
+\item{C}{Semester workload capacity per student. Used when \code{e_mode = "rr"}
+to compute total semester capacity as \code{Ns * C}.}
 }
 \value{
 A list containing:
@@ -47,5 +50,5 @@ This function assumes input order is already aligned:
 
 If E is computed (\code{e_mode = "rr"}), total E is set to:
 
-\code{Ns * 4 - sum(TA) - sum(GR)}.
+\code{Ns * C - sum(TA) - sum(GR)}.
 }

@@ -86,10 +86,11 @@ T_i &\ge T_{\min}, \quad \forall i : s_i \ge 0
 
 ## Annual workload cap
 
-Each student must satisfy the annual cap:
+Let $C$ denote semester workload capacity per student. The annual cap is then
+set to $2C$.
 
 $$
-T_i + G_i + e_i^{(2)} \le C, \quad \forall i
+T_i + G_i + e_i^{(2)} \le 2C, \quad \forall i
 $$
 
 ## Year-1 TA soft upper bound

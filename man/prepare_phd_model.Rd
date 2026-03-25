@@ -17,7 +17,7 @@ prepare_phd_model(
   beta = 1,
   phi = 1,
   rho = 10,
-  workload_cap = 8
+  C = 4
 )
 }
 \arguments{
@@ -54,8 +54,8 @@ current semester.}
 
 \item{rho}{Objective weight on Year-1 TA slack penalties.}
 
-\item{workload_cap}{Annual per-student workload cap in
-\code{T_i + G_i + e_i^(2) <= workload_cap}. Default is \code{8}.}
+\item{C}{Semester workload capacity per student. The model uses annual cap
+\code{2 * C} in \code{T_i + G_i + e_i^(2) <= 2 * C}. Default is \code{4}.}
 }
 \value{
 An \code{ompr} model object ready for \code{ompr::solve_model()}.

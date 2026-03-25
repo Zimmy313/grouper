@@ -174,12 +174,13 @@ demand <- demand_raw %>%
 # parameters
 Ns <- nrow(preference)
 Nj <- nrow(demand)
+C <- 4
 ```
 
 
 ```{r}
 # calculate the number of Empty units
-total_units <- Ns * 4
+total_units <- Ns * C
 total_demand <- sum(demand[["TA"]]) + sum(demand[["GR"]])
 total_E <- total_units - total_demand
 
@@ -275,11 +276,11 @@ past_clean <- student_id %>%
   arrange(ID)
 
 
-# check if every one has exactly 4 units in total. If less than 4, pad with GR.
+# check if every one has exactly C units in total. If less than C, pad with GR.
 past_final <- past_clean %>%
   mutate(
     total = TA + GR,
-    pad_GR = pmax(0, 4 - total),
+    pad_GR = pmax(0, C - total),
     GR = GR + pad_GR
   ) %>%
   select(ID, Name, TA, GR) %>%
@@ -305,7 +306,8 @@ df_list <- extract_phd_info(
   student_df = student_input,
   p_mat = P,
   d_mat = D,
-  e_mode = "none"
+  e_mode = "none",
+  C = C
 )
 
 s <- df_list$s
@@ -316,7 +318,7 @@ g1 <- df_list$g1
 ## Modelling
 ```{r}
 # initialisation
-model_0 <- prepare_phd_model(df_list, e_max = 2)
+model_0 <- prepare_phd_model(df_list, e_max = 2, C = C)
 
 result_0 <- solve_model(model_0, with_ROI(solver = "gurobi"))
 
