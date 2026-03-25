@@ -17,6 +17,9 @@ A data frame with 4 rows and 5 columns.
 }
 
 In this toy dataset, \code{past_ta + past_gr = 4} for every student.
+
+For a one-semester sanity-check variant, reuse this dataset with
+\code{past_ta = 0} and \code{past_gr = C} for all students before extraction.
 }
 }
 \source{

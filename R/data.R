@@ -87,6 +87,9 @@
 #'
 #' In this toy dataset, `past_ta + past_gr = 4` for every student.
 #'
+#' For a one-semester sanity-check variant, reuse this dataset with
+#' `past_ta = 0` and `past_gr = C` for all students before extraction.
+#'
 #' @source This dataset was constructed by hand.
 "phd_students_ex001"
 
