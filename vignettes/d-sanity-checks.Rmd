@@ -273,7 +273,7 @@ c(capacity_units = nrow(phd_students_ex001) * c_sem,
 The following chunk focuses on the three core PhD workflow functions:
 
 1.  `extract_phd_info()`
-2.  `prepare_phd_model()`
+2.  `prepare_model(..., assignment = "phd")`
 3.  `assign_job()`
 
 ```{r}
@@ -290,8 +290,9 @@ phd_ex001_list$d
 ```
 
 ```{r}
-m_phd_ex001 <- prepare_phd_model(
+m_phd_ex001 <- prepare_model(
   phd_ex001_list,
+  assignment = "phd",
   t_max_y1 = 1,
   ta_min = 1, ta_max = 1,
   gr_min = 1, gr_max = 1,
@@ -341,8 +342,9 @@ phd_ex001_sem_list$d
 ```
 
 ```{r}
-m_phd_ex001_sem <- prepare_phd_model(
+m_phd_ex001_sem <- prepare_model(
   phd_ex001_sem_list,
+  assignment = "phd",
   t_max_y1 = 1,
   ta_min = 1, ta_max = 1,
   gr_min = 1, gr_max = 1,
@@ -381,3 +383,7 @@ simple test data, the result is the same.
 
 The four hyperparameter inside the objective function can be turned off by
 setting the value to be 0.
+
+Note: Standalone constructors are also available:
+`prepare_diversity_model()`, `prepare_preference_model()`,
+and `prepare_phd_model()`.

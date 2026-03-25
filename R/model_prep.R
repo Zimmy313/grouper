@@ -1,48 +1,40 @@
-#' Initialise optimisation model
+#' Prepare the diversity-based assignment model
 #'
-#' @param df_list The output list from extract_student_info().
-#' @param yaml_list The output list from extract_params_yaml().
-#' @param assignment Character string indicating the type of model that this
-#'   dataset is for. The argument is either 'preference' or 'diversity'. Partial
-#'   matching is fine.
+#' @param df_list The output list from [extract_student_info()] for
+#'   `assignment = "diversity"`.
+#' @param yaml_list The output list from [extract_params_yaml()] for
+#'   `assignment = "diversity"`.
 #' @param w1,w2 Numeric values between 0 and 1. Should sum to 1. These weights
 #'   correspond to the importance given to the diversity- and skill-based
 #'   portions in the objective function.
 #'
 #' @returns An ompr model.
 #' @export
-#'
-prepare_model <- function(df_list, yaml_list,
-                          assignment=c("diversity", "preference"),
-                          w1=0.5, w2=0.5) {
+prepare_diversity_model <- function(df_list, yaml_list, w1 = 0.5, w2 = 0.5) {
+  N <- df_list$N
+  G <- df_list$G
+  m <- df_list$m
+  d <- df_list$d
+  s <- df_list$s
 
-  assignment <- match.arg(assignment)
+  n_topics <- yaml_list$n_topics
+  R <- yaml_list$R
+  nmin <- yaml_list$nmin
+  nmax <- yaml_list$nmax
+  rmin <- yaml_list$rmin
+  rmax <- yaml_list$rmax
 
-  if(assignment == "diversity") {
-    N <- df_list$N
-    G <- df_list$G
-    m <- df_list$m
-    d <- df_list$d
-    s <- df_list$s
-
-    n_topics <- yaml_list$n_topics
-    R <- yaml_list$R
-    nmin <- yaml_list$nmin
-    nmax <- yaml_list$nmax
-    rmin <- yaml_list$rmin
-    rmax <- yaml_list$rmax
-
-    model <- ompr::MIPModel() %>%
+  model <- ompr::MIPModel() %>%
     # DEFINE DECISION VARIABLES
     ompr::add_variable(x[g,t,r], g=1:G, t=1:n_topics, r=1:R, type="binary") %>%
     ompr::add_variable(z[i,j,t,r], i=1:(N-1), j=(i+1):N, t=1:n_topics, r=1:R, type="binary") %>%
     ompr::add_variable(a[t,r], t=1:n_topics, r=1:R, type="binary")
 
-    if(is.null(s)) {
-      model <- model %>%
+  if(is.null(s)) {
+    model <- model %>%
       # DEFINE OBJECTIVE FUNCTION
       ompr::set_objective(
-      # MAXIMISE DIVERSITY
+        # MAXIMISE DIVERSITY
         ompr::sum_over(z[i,j,t,r]*d[i,j], i=1:(N-1), j=(i+1):N, t=1:n_topics, r=1:R), "max") %>%
       # DEFINE CONSTRAINTS (EACH GROUP ASSIGNED A TOPIC-REP)
       ompr::add_constraint(ompr::sum_over(x[g,t,r], t=1:n_topics, r=1:R)==1, g=1:G) %>%
@@ -58,13 +50,13 @@ prepare_model <- function(df_list, yaml_list,
       # DEFINE CONSTRAINTS (MIN AND MAX NO. OF STUDENTS PER TOPIC-REPETITION)
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)>=a[t,r]*nmin[t,r], t=1:n_topics, r=1:R) %>%
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)<=a[t,r]*nmax[t,r], t=1:n_topics, r=1:R)
-    } else {
-      model <- model %>%
+  } else {
+    model <- model %>%
       ompr::add_variable(smin, type="continuous", lb=0) %>%
       ompr::add_variable(smax, type="continuous", lb=0) %>%
       # DEFINE OBJECTIVE FUNCTION
       ompr::set_objective(
-      # MAXIMISE DIVERSITY
+        # MAXIMISE DIVERSITY
         w1*ompr::sum_over(z[i,j,t,r]*d[i,j], i=1:(N-1), j=(i+1):N, t=1:n_topics, r=1:R)+
           # MINIMIZE SKILL VARIABILITY
           w2*(smin-smax), "max") %>%
@@ -85,27 +77,37 @@ prepare_model <- function(df_list, yaml_list,
       # DEFINE CONSTRAINTS (SKILL VARIABILITY)
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r]*s[i], i=1:N, g=1:G)>=smin, t=1:n_topics, r=1:R) %>%
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r]*s[i], i=1:N, g=1:G)<=smax, t=1:n_topics, r=1:R)
-    }
+  }
 
-    return(model)
+  model
+}
 
-  } else if(assignment == "preference") {
-    # message("incomplete function")
-    N <- df_list$N
-    G <- df_list$G
-    m <- df_list$m
-    n <- df_list$n
-    p <- df_list$p
 
-    T <- yaml_list$n_topics
-    B <- yaml_list$B
-    R <- yaml_list$R
-    nmin <- yaml_list$nmin
-    nmax <- yaml_list$nmax
-    rmin <- yaml_list$rmin
-    rmax <- yaml_list$rmax
+#' Prepare the preference-based assignment model
+#'
+#' @param df_list The output list from [extract_student_info()] for
+#'   `assignment = "preference"`.
+#' @param yaml_list The output list from [extract_params_yaml()] for
+#'   `assignment = "preference"`.
+#'
+#' @returns An ompr model.
+#' @export
+prepare_preference_model <- function(df_list, yaml_list) {
+  N <- df_list$N
+  G <- df_list$G
+  m <- df_list$m
+  n <- df_list$n
+  p <- df_list$p
 
-    model <- ompr::MIPModel() %>%
+  T <- yaml_list$n_topics
+  B <- yaml_list$B
+  R <- yaml_list$R
+  nmin <- yaml_list$nmin
+  nmax <- yaml_list$nmax
+  rmin <- yaml_list$rmin
+  rmax <- yaml_list$rmax
+
+  ompr::MIPModel() %>%
     # DEFINE DECISION VARIABLES
     ompr::add_variable(x[g,t,r], g=1:G, t=1:(B*T), r=1:R, type="binary") %>%
     ompr::add_variable(a[t,r], t=1:(B*T), r=1:R, type="binary") %>%
@@ -122,13 +124,8 @@ prepare_model <- function(df_list, yaml_list,
     # DEFINE CONSTRAINTS (MIN AND MAX NO. OF STUDENTS PER TOPIC-REPETITION)
     ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)>=a[t,r]*nmin[t,r], t=1:(B*T), r=1:R) %>%
     ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)<=a[t,r]*nmax[t,r], t=1:(B*T), r=1:R)
-
-    return(model)
-  } else {
-    stop("assignment model not found: should be 'diversity' or 'preference'.")
-  }
-
 }
+
 
 
 #' Prepare the PhD workload allocation model
@@ -319,4 +316,42 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   }
 
   model
+}
+
+
+#' Initialise optimisation model (wrapper)
+#'
+#' @param df_list Model input list.
+#' @param yaml_list Parameter list from [extract_params_yaml()]. Required for
+#'   `assignment = "diversity"` and `assignment = "preference"`. Ignored for
+#'   `assignment = "phd"`.
+#' @param assignment Character string indicating model type. Must be one of
+#'   `"diversity"`, `"preference"`, or `"phd"`.
+#' @param w1,w2 Numeric values between 0 and 1. Should sum to 1. Used only for
+#'   `assignment = "diversity"`.
+#' @param ... Additional arguments passed to [prepare_phd_model()] when
+#'   `assignment = "phd"`.
+#'
+#' @returns An ompr model.
+#' @export
+prepare_model <- function(df_list, yaml_list = NULL,
+                          assignment = c("diversity", "preference", "phd"),
+                          w1 = 0.5, w2 = 0.5, ...) {
+  assignment <- match.arg(assignment)
+
+  if (assignment == "diversity") {
+    if (is.null(yaml_list)) {
+      stop("yaml_list must be provided for assignment = 'diversity'.")
+    }
+    return(prepare_diversity_model(df_list, yaml_list, w1 = w1, w2 = w2))
+  }
+
+  if (assignment == "preference") {
+    if (is.null(yaml_list)) {
+      stop("yaml_list must be provided for assignment = 'preference'.")
+    }
+    return(prepare_preference_model(df_list, yaml_list))
+  }
+
+  prepare_phd_model(df_list, ...)
 }
