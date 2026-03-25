@@ -1,5 +1,16 @@
-# Extract student-level TA/GR/E assignments from solved PhD model
-# Note the course level(j) information is aggregated. 
+# PhD model testing helpers
+# Usage:
+# 1) source("phdmodel_test_helpers.R")
+# 2) extract_phd_assignment() / extract_phd_ta_detail() for a solved model
+# 3) extract_phd_results() or extract_phd_pool_results() for summary workflows
+# 4) plot_phd_year_distribution() for workload visualisation
+
+# -------------------------------------------------------------------------
+# Result extraction helpers
+# -------------------------------------------------------------------------
+
+# Extract student-level TA/GR/E assignments from a solved PhD model.
+# Note that course-level (j) information is aggregated here.
 extract_phd_assignment <- function(model_result,
                                    student_df,
                                    id_col = "S/No.",
@@ -92,8 +103,6 @@ extract_phd_ta_detail <- function(model_result, preference) {
   first_col <- find_col(c("first", "1st", "choice1", "pref1"))
   second_col <- find_col(c("second", "2nd", "choice2", "pref2"))
   third_col <- find_col(c("third", "3rd", "choice3", "pref3"))
-
-  norm_code <- function(x) toupper(trimws(as.character(x)))
 
   student_map <- preference %>%
     dplyr::transmute(
@@ -279,7 +288,11 @@ extract_phd_pool_results <- function(result_pool, preference, k = NULL) {
 }
 
 
-# Plot per-student workload distribution for the full year
+# -------------------------------------------------------------------------
+# Plot helper
+# -------------------------------------------------------------------------
+
+# Plot per-student workload distribution for current semester / full year.
 plot_phd_year_distribution <- function(current_alloc_df,
                                        t1 = NULL,
                                        g1 = NULL,
@@ -474,12 +487,16 @@ plot_phd_year_distribution <- function(current_alloc_df,
 }
 
 
-## for course code normalisaton
+# -------------------------------------------------------------------------
+# General utilities used by PhD testing notebooks
+# -------------------------------------------------------------------------
+
+# Course-code normalisation helper
 norm_code <- function(x) {
   toupper(trimws(as.character(x)))
 }
 
-## for names
+# Name standardisation helper
 standardise_name <- function(x) {
   x %>%
     as.character() %>%
@@ -488,14 +505,14 @@ standardise_name <- function(x) {
     str_squish()             
 }
 
-## for preference code cleanup
+# Preference-code cleanup helper
 clean_pref_code <- function(x) {
   out <- norm_code(x)
   out[out %in% c("", "-", "NIL", "NA")] <- NA_character_
   out
 }
 
-## for recomputing manual scores
+# Recompute objective components for manual cross-checks
 compute_obj_from_components <- function(ta_by_student, e_by_student, ta_pref_sum,
                                         t1, s, t_max_y1, alpha, beta, phi, rho) {
 
@@ -526,11 +543,4 @@ compute_obj_from_components <- function(ta_by_student, e_by_student, ta_pref_sum
       phi * seniority_e_sum +
       rho * y1_slack_sum
   )
-}
-
-
-## parse excel serial date to Date
-excel_to_date <- function(x) {
-  x_num <- suppressWarnings(as.numeric(x))
-  as.Date(x_num, origin = "1899-12-30")
 }

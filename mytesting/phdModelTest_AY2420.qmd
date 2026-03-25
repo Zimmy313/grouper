@@ -19,6 +19,7 @@ library(purrr)
 # Setting up
 load_all()
 exists("prepare_phd_model", where = globalenv(), inherits = FALSE)
+source("phdmodel_test_helpers.R")
 ```
 
 ## Loading Data
@@ -36,48 +37,11 @@ preference_y1_raw <- read_excel(
   skip = 2
 )
 
-demand_raw <- read_excel(
-  "../data/phdModel/AY2420/2425_Sem2_tutor_grader_request_working.xlsx",
-  sheet = 1
-)
-
-past_output_2410 <- read_excel(
-  "../data/phdModel/AY2410/output_009.xlsx",
-  # AY2410 output uses `full_tbl` for student names + course allocations.
-  sheet = "full_tbl"
-)
+demand_raw <- read_excel("../data/phdModel/AY2420/2425_Sem2_tutor_grader_request_working.xlsx", sheet = 1)
+manual_output_current <- read_excel("../data/phdModel/AY2420/output_009.xlsx", sheet = "output_001a")
+past_output_2410 <- read_excel("../data/phdModel/AY2410/output_009.xlsx", sheet = "full_tbl")
 ```
 
-```{r}
-# helpers
-
-## for course code normalisaton
-norm_code <- function(x) {
-  toupper(trimws(as.character(x)))
-}
-
-## for names
-standardise_name <- function(x) {
-  x %>%
-    as.character() %>%
-    str_to_upper() %>%
-    str_replace_all("[^A-Z ]", "") %>%
-    str_squish()
-}
-
-## for preference code cleanup
-clean_pref_code <- function(x) {
-  out <- norm_code(x)
-  out[out %in% c("", "-", "NIL", "NA")] <- NA_character_
-  out
-}
-
-## parse excel serial date to Date
-excel_to_date <- function(x) {
-  x_num <- suppressWarnings(as.numeric(x))
-  as.Date(x_num, origin = "1899-12-30")
-}
-```
 
 ## Data cleaning
 ```{r}
@@ -168,6 +132,12 @@ demand <- demand_raw %>%
   arrange(course_code) %>%
   mutate(ID = row_number()) %>%
   relocate(ID, .before = course_code)
+
+################# HARD CODING CHANGE IN TA HOUR ##############
+demand[7, 3] = demand[7, 3] - 5 # ST1131
+demand[10,3] = demand[10,3] - 7 # ST2334
+############################################################## 
+
 ```
 
 ```{r}
@@ -318,7 +288,7 @@ g1 <- df_list$g1
 ## Modelling
 ```{r}
 # initialisation
-model_0 <- prepare_phd_model(df_list, e_max = 2, C = C)
+model_0 <- prepare_phd_model(df_list, e_max = 1, C = C)
 
 result_0 <- solve_model(model_0, with_ROI(solver = "gurobi"))
 
@@ -402,13 +372,10 @@ for (i in seq_len(n_plot)) {
 }
 ```
 
-## Comparison with Manual `output_009`
+## Objective Comparison with manual output
 
 ```{r}
-manual_output <- read_excel(
-  "../data/phdModel/AY2420/output_009.xlsx",
-  sheet = "output_001a"
-) %>%
+manual_output <- manual_output_current %>%
   filter(!is.na(Name), Name != "") %>%
   mutate(name_std = standardise_name(Name))
 
@@ -441,123 +408,15 @@ manual_alloc <- pref_lookup %>%
     manual_GR = replace_na(as.numeric(manual_GR), 0),
     manual_E = pmax(0, 4 - manual_TA - manual_GR)
   )
-
-alloc_compare <- alloc_df_0 %>%
-  rename(model_TA = TA, model_GR = GR, model_E = E) %>%
-  left_join(manual_alloc, by = c("student_id", "student_name")) %>%
-  mutate(
-    diff_TA = model_TA - manual_TA,
-    diff_GR = model_GR - manual_GR,
-    diff_E = model_E - manual_E
-  ) %>%
-  arrange(student_id)
-
-alloc_compare
 ```
 
 ```{r}
-allocation_compare_summary <- alloc_compare %>%
-  summarise(
-    model_total_TA = sum(model_TA),
-    manual_total_TA = sum(manual_TA),
-    model_total_GR = sum(model_GR),
-    manual_total_GR = sum(manual_GR),
-    model_total_E = sum(model_E),
-    manual_total_E = sum(manual_E),
-    exact_match_count = sum(diff_TA == 0 & diff_GR == 0 & diff_E == 0),
-    mae_TA = mean(abs(diff_TA)),
-    mae_GR = mean(abs(diff_GR)),
-    mae_E = mean(abs(diff_E))
-  )
-
-allocation_compare_summary
-```
-
-## Objective Comparison (Model vs Manual)
-
-```{r}
-# Must match the settings used in prepare_phd_model(...) above.
+# Must match the settings used in prepare_phd_model above.
 obj_cfg <- list(alpha = 2, beta = 1, phi = 1, rho = 10, t_max_y1 = 1)
-
-compute_obj_from_components <- function(ta_by_student, e_by_student, ta_pref_sum,
-                                        t1, s, t_max_y1, alpha, beta, phi, rho) {
-  if (!all(c(length(ta_by_student), length(e_by_student), length(t1), length(s)) ==
-           length(s))) {
-    stop("Length mismatch in objective inputs.")
-  }
-
-  idx_non_y1 <- which(s >= 0)
-  idx_y1 <- which(s == -1)
-
-  year_ta <- t1 + ta_by_student
-  ta_spread <- if (length(idx_non_y1) > 0) {
-    max(year_ta[idx_non_y1]) - min(year_ta[idx_non_y1])
-  } else {
-    0
-  }
-
-  seniority_e_sum <- sum(s * e_by_student)
-  y1_slack_sum <- if (length(idx_y1) > 0) {
-    sum(pmax(0, ta_by_student[idx_y1] - t_max_y1))
-  } else {
-    0
-  }
-
-  tibble(
-    ta_spread = ta_spread,
-    ta_pref_sum = ta_pref_sum,
-    seniority_e_sum = seniority_e_sum,
-    y1_slack_sum = y1_slack_sum,
-    objective_recalc = alpha * ta_spread -
-      beta * ta_pref_sum -
-      phi * seniority_e_sum +
-      rho * y1_slack_sum
-  )
-}
 ```
 
 ```{r}
-# Recalculate model objective from solved X[i, j, r].
-model_sol <- get_solution(result_0, X[i, j, r]) %>%
-  filter(value > 1e-8)
-
-model_ta_by_student <- model_sol %>%
-  filter(r == 1) %>%
-  group_by(i) %>%
-  summarise(ta_units = sum(value), .groups = "drop") %>%
-  right_join(pref_lookup %>% select(i), by = "i") %>%
-  mutate(ta_units = replace_na(ta_units, 0)) %>%
-  arrange(i) %>%
-  pull(ta_units)
-
-model_e_by_student <- model_sol %>%
-  filter(r == 3) %>%
-  group_by(i) %>%
-  summarise(e_units = sum(value), .groups = "drop") %>%
-  right_join(pref_lookup %>% select(i), by = "i") %>%
-  mutate(e_units = replace_na(e_units, 0)) %>%
-  arrange(i) %>%
-  pull(e_units)
-
-model_ta_pref_sum <- model_sol %>%
-  filter(r == 1) %>%
-  mutate(pref_score = P[cbind(i, j)]) %>%
-  summarise(val = sum(pref_score * value, na.rm = TRUE)) %>%
-  pull(val)
-
-model_obj_breakdown <- compute_obj_from_components(
-  ta_by_student = model_ta_by_student,
-  e_by_student = model_e_by_student,
-  ta_pref_sum = model_ta_pref_sum,
-  t1 = t1,
-  s = s,
-  t_max_y1 = obj_cfg$t_max_y1,
-  alpha = obj_cfg$alpha,
-  beta = obj_cfg$beta,
-  phi = obj_cfg$phi,
-  rho = obj_cfg$rho
-)
-
+# Solver objective for the model solution.
 model_solver_obj <- as.numeric(result_0$objective_value)
 if (length(model_solver_obj) == 0 || is.na(model_solver_obj[[1]])) {
   model_solver_obj <- as.numeric(result_0$additional_solver_output$ROI$message$objval)
@@ -582,13 +441,6 @@ manual_ta_detail <- manual_output %>%
   ) %>%
   filter(ta_units > 1e-8)
 
-manual_unmatched <- manual_ta_detail %>%
-  filter(is.na(j)) %>%
-  summarise(
-    unmatched_rows = n(),
-    unmatched_ta_units = sum(ta_units)
-  )
-
 manual_ta_pref_sum <- manual_ta_detail %>%
   filter(!is.na(j)) %>%
   mutate(pref_score = P[cbind(i, j)]) %>%
@@ -603,7 +455,9 @@ manual_totals_by_i <- pref_lookup %>%
     manual_E = replace_na(as.numeric(manual_E), 0)
   ) %>%
   arrange(i)
+```
 
+```{r}
 manual_obj_breakdown <- compute_obj_from_components(
   ta_by_student = manual_totals_by_i$manual_TA,
   e_by_student = manual_totals_by_i$manual_E,
@@ -616,35 +470,12 @@ manual_obj_breakdown <- compute_obj_from_components(
   phi = obj_cfg$phi,
   rho = obj_cfg$rho
 )
+
+manual_obj_breakdown
 ```
 
 ```{r}
-objective_compare <- bind_rows(
-  model_obj_breakdown %>% mutate(source = "model_recalc"),
-  manual_obj_breakdown %>% mutate(source = "manual_recalc")
-) %>%
-  select(source, objective_recalc, ta_spread, ta_pref_sum, seniority_e_sum, y1_slack_sum)
-
-objective_summary <- tibble(
-  metric = c(
-    "model_solver_objective",
-    "model_recalc_minus_solver",
-    "manual_minus_model_recalc",
-    "manual_unmatched_ta_rows",
-    "manual_unmatched_ta_units"
-  ),
-  value = c(
-    model_solver_obj,
-    objective_compare$objective_recalc[objective_compare$source == "model_recalc"] - model_solver_obj,
-    objective_compare$objective_recalc[objective_compare$source == "manual_recalc"] -
-      objective_compare$objective_recalc[objective_compare$source == "model_recalc"],
-    manual_unmatched$unmatched_rows,
-    manual_unmatched$unmatched_ta_units
-  )
-)
-
-objective_compare
-objective_summary
+model_solver_obj
 ```
 
 ## Manual-Style Solver Output
@@ -658,4 +489,22 @@ job_output <- assign_job(
 )
 
 job_output
+```
+
+```{r}
+# check per-student TA / GR sessions from job_output
+ta_cols_job <- names(job_output)[str_detect(names(job_output), "-t$")]
+gr_cols_job <- names(job_output)[str_detect(names(job_output), "-g$")]
+e_cols_job <- names(job_output)[str_detect(names(job_output), "-e$")]
+
+job_output_summary <- job_output %>%
+  transmute(
+    Name,
+    TA_sessions = rowSums(across(all_of(ta_cols_job)), na.rm = TRUE),
+    GR_sessions = rowSums(across(all_of(gr_cols_job)), na.rm = TRUE),
+    E_sessions = rowSums(across(all_of(e_cols_job)), na.rm = TRUE)
+  ) %>%
+  arrange(Name)
+
+job_output_summary
 ```

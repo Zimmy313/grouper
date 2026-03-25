@@ -445,3 +445,21 @@ job_output <- assign_job(
 
 job_output
 ```
+
+```{r}
+# check per-student TA / GR sessions from job_output
+ta_cols_job <- names(job_output)[str_detect(names(job_output), "-t$")]
+gr_cols_job <- names(job_output)[str_detect(names(job_output), "-g$")]
+e_cols_job <- names(job_output)[str_detect(names(job_output), "-e$")]
+
+job_output_summary <- job_output %>%
+  transmute(
+    Name,
+    TA_sessions = rowSums(across(all_of(ta_cols_job)), na.rm = TRUE),
+    GR_sessions = rowSums(across(all_of(gr_cols_job)), na.rm = TRUE),
+    E_sessions = rowSums(across(all_of(e_cols_job)), na.rm = TRUE)
+  ) %>%
+  arrange(Name)
+
+job_output_summary
+```
