@@ -1,7 +1,7 @@
 # grouper
 
-The goal of grouper is to make it easier for an instructor to divide
-students into groups.
+The goal of grouper is to make it easier for an instructor to do student
+or workload allocations.
 
 ## Installation
 
@@ -35,8 +35,8 @@ shiny::runApp().
 
 ## Contact
 
-For more details, please contact Vik Gopal <vik.gopal@nus.edu.sg> or
-Kevin Lam <lamfy@u.nus.edu>.
+For more details, please contact Vik Gopal <vik.gopal@nus.edu.sg>, Kevin
+Lam <lamfy@u.nus.edu> or Mingyuan Zhang <mingyuan.z@nus.edu.sg>
 
 # Package index
 
@@ -89,7 +89,7 @@ Kevin Lam <lamfy@u.nus.edu>.
   Skill](https://Zimmy313.github.io/grouper/articles/b-diversity-skill.md):
 - [Maximising
   Preference](https://Zimmy313.github.io/grouper/articles/c-subgroups-preference.md):
-- [Application to simple
-  datasets](https://Zimmy313.github.io/grouper/articles/d-sanity-checks.md):
 - [PhD Workload
   Allocation](https://Zimmy313.github.io/grouper/articles/e-phd-workload.md):
+- [Application to simple
+  datasets](https://Zimmy313.github.io/grouper/articles/d-sanity-checks.md):

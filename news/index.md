@@ -1,5 +1,15 @@
 # Changelog
 
+## grouper 0.6.0
+
+- Added a PhD workload allocation model, with associated extraction and
+  post-processing functions.
+- Modularized model preparation and added a wrapper for easier use.
+- Updated `data/` testing datasets for the PhD model.
+- Added a PhD-model vignette and expanded sanity checks to include a
+  sample workflow.
+- Deployed the pkgdown website.
+
 ## grouper 0.5.1
 
 - Added functionality to choose solver
@@ -13,15 +23,15 @@ CRAN release: 2025-10-16
 
 ## grouper 0.4.0
 
-- added functionality to use custom dissimilarity matrix in DBA
-- vignette examples added for above, and to demonstrate use of arrays in
+- Added functionality to use custom dissimilarity matrix in DBA
+- Vignette examples added for above, and to demonstrate use of arrays in
   YAML file.
 
 ## grouper 0.3.0
 
 - Removed gurobi from Suggests
-- datasets in mytesting updated
-- quarto documents in mytesting/ updated
+- Datasets in mytesting updated
+- Quarto documents in mytesting/ updated
 
 ## grouper 0.2.0
 

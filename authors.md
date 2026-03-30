@@ -8,6 +8,9 @@
 
 - **Ju Xue**. Contributor.
 
+- **Mingyuan Zhang**. Author.  
+  cre
+
 - **National University of Singapore**. Copyright holder.
 
 ## Citation
@@ -15,12 +18,13 @@
 Source:
 [`DESCRIPTION`](https://github.com/Zimmy313/grouper/blob/main/DESCRIPTION)
 
-Gopal V, Lam K (2026). *grouper: Optimal Assignment of Students to
-Groups*. R package version 0.5.1, <https://Zimmy313.github.io/grouper/>.
+Gopal V, Lam K, Zhang M (2026). *grouper: Optimal Assignment of Students
+to Groups*. R package version 0.5.1,
+<https://Zimmy313.github.io/grouper/>.
 
     @Manual{,
       title = {grouper: Optimal Assignment of Students to Groups},
-      author = {Vik Gopal and Kevin Lam},
+      author = {Vik Gopal and Kevin Lam and Mingyuan Zhang},
       year = {2026},
       note = {R package version 0.5.1},
       url = {https://Zimmy313.github.io/grouper/},
