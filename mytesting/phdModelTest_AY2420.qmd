@@ -136,6 +136,7 @@ demand <- demand_raw %>%
 ################# HARD CODING CHANGE IN TA HOUR ##############
 demand[7, 3] = demand[7, 3] - 5 # ST1131
 demand[10,3] = demand[10,3] - 7 # ST2334
+demand[5,3] = demand[5,3] - 11 # DSA4265
 ############################################################## 
 
 ```
@@ -507,4 +508,185 @@ job_output_summary <- job_output %>%
   arrange(Name)
 
 job_output_summary
+```
+
+## AY2420 Objective-Term Decomposition
+
+```{r}
+# Break down manual-vs-model objective gap into weighted terms.
+
+model_ta_detail <- get_solution(result_0, X[i, j, r]) %>%
+  filter(r == 1, value > 1e-8) %>%
+  transmute(i = as.integer(i), j = as.integer(j), ta_units = as.numeric(value))
+
+model_ta_pref_sum <- model_ta_detail %>%
+  mutate(pref_score = P[cbind(i, j)]) %>%
+  summarise(val = sum(pref_score * ta_units, na.rm = TRUE)) %>%
+  pull(val)
+
+model_totals_by_i <- pref_lookup %>%
+  select(i, student_id, student_name) %>%
+  left_join(
+    alloc_df_0 %>%
+      transmute(
+        student_id,
+        model_TA = as.numeric(TA),
+        model_E = as.numeric(E)
+      ),
+    by = "student_id"
+  ) %>%
+  mutate(
+    model_TA = replace_na(model_TA, 0),
+    model_E = replace_na(model_E, 0)
+  ) %>%
+  arrange(i)
+
+model_obj_breakdown <- compute_obj_from_components(
+  ta_by_student = model_totals_by_i$model_TA,
+  e_by_student = model_totals_by_i$model_E,
+  ta_pref_sum = model_ta_pref_sum,
+  t1 = t1,
+  s = s,
+  t_max_y1 = obj_cfg$t_max_y1,
+  alpha = obj_cfg$alpha,
+  beta = obj_cfg$beta,
+  phi = obj_cfg$phi,
+  rho = obj_cfg$rho
+)
+
+obj_term_breakdown <- bind_rows(
+  Model = model_obj_breakdown,
+  Manual = manual_obj_breakdown,
+  .id = "Schedule"
+) %>%
+  mutate(
+    fairness_term = obj_cfg$alpha * ta_spread,
+    preference_term = -obj_cfg$beta * ta_pref_sum,
+    seniority_e_term = -obj_cfg$phi * seniority_e_sum,
+    y1_slack_term = obj_cfg$rho * y1_slack_sum
+  ) %>%
+  select(
+    Schedule,
+    fairness_term,
+    preference_term,
+    seniority_e_term,
+    y1_slack_term,
+    objective_recalc,
+    ta_spread,
+    ta_pref_sum,
+    seniority_e_sum,
+    y1_slack_sum
+  )
+
+obj_term_gap <- obj_term_breakdown %>%
+  select(Schedule, fairness_term, preference_term, seniority_e_term, y1_slack_term, objective_recalc) %>%
+  pivot_longer(-Schedule, names_to = "term", values_to = "value") %>%
+  pivot_wider(names_from = Schedule, values_from = value) %>%
+  mutate(
+    manual_minus_model = Manual - Model,
+    abs_gap = abs(manual_minus_model)
+  ) %>%
+  arrange(desc(abs_gap))
+
+model_obj_check <- tibble(
+  solver_objective = model_solver_obj,
+  recalc_objective = obj_term_breakdown %>% filter(Schedule == "Model") %>% pull(objective_recalc),
+  recalc_minus_solver = recalc_objective - solver_objective
+)
+
+obj_term_gap
+model_obj_check
+```
+
+```{r}
+# Decomposition chart: weighted objective-term differences (Manual - Model).
+term_plot_df <- obj_term_gap %>%
+  filter(term %in% c("preference_term", "fairness_term", "seniority_e_term", "y1_slack_term")) %>%
+  mutate(
+    term = recode(
+      term,
+      preference_term = "Preference",
+      fairness_term = "Fairness",
+      seniority_e_term = "Seniority-E",
+      y1_slack_term = "Year-1 Slack"
+    ),
+    term = factor(term, levels = c("Preference", "Fairness", "Seniority-E", "Year-1 Slack")),
+    direction = if_else(manual_minus_model >= 0, "Higher in Manual", "Lower in Manual"),
+    label_hjust = if_else(manual_minus_model >= 0, -0.15, 1.15)
+  )
+
+p_obj_gap <- ggplot(term_plot_df, aes(x = term, y = manual_minus_model, fill = direction)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey45") +
+  geom_col(width = 0.62) +
+  geom_text(aes(label = round(manual_minus_model, 1), hjust = label_hjust), size = 3) +
+  coord_flip() +
+  scale_fill_manual(values = c("Higher in Manual" = "#e61b00", "Lower in Manual" = "#0072B2")) +
+  labs(x = NULL, y = "Weighted term difference (Manual - Model)", fill = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "top",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank()
+  )
+
+p_obj_gap
+```
+
+```{r}
+# Side-by-side TA preference composition (units): model vs manual.
+pref_levels <- c("First", "Second", "Third", "Unranked")
+
+map_pref_rank <- function(score) {
+  case_when(
+    score >= 3 ~ "First",
+    score == 2 ~ "Second",
+    score == 1 ~ "Third",
+    TRUE ~ "Unranked"
+  )
+}
+
+model_pref_units <- model_ta_detail %>%
+  mutate(
+    pref_score = P[cbind(i, j)],
+    preference = map_pref_rank(pref_score)
+  ) %>%
+  group_by(preference) %>%
+  summarise(units = sum(ta_units, na.rm = TRUE), .groups = "drop")
+
+manual_pref_units <- manual_ta_detail %>%
+  mutate(
+    pref_score = if_else(!is.na(j), P[cbind(i, j)], -99),
+    preference = map_pref_rank(pref_score)
+  ) %>%
+  group_by(preference) %>%
+  summarise(units = sum(ta_units, na.rm = TRUE), .groups = "drop")
+
+pref_plot_df <- bind_rows(
+  model_pref_units %>% mutate(Schedule = "Model"),
+  manual_pref_units %>% mutate(Schedule = "Manual")
+) %>%
+  mutate(
+    preference = factor(preference, levels = pref_levels),
+    Schedule = factor(Schedule, levels = c("Model", "Manual"))
+  ) %>%
+  tidyr::complete(Schedule, preference, fill = list(units = 0))
+
+p_pref_side <- ggplot(pref_plot_df, aes(x = preference, y = units, fill = Schedule)) +
+  geom_col(position = position_dodge(width = 0.72), width = 0.62) +
+  geom_text(
+    aes(label = round(units, 1)),
+    position = position_dodge(width = 0.72),
+    vjust = -0.25,
+    size = 3
+  ) +
+  scale_fill_manual(values = c("Model" = "#0072B2", "Manual" = "#e61b00")) +
+  labs(x = NULL, y = "TA units", fill = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "top",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+p_pref_side
 ```
