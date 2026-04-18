@@ -234,7 +234,7 @@ assign_groups(result2, assignment = "preference",
 
 # PhD Workload Assignment
 
-In the following walk through, we demostrate how the PhD work allocation model
+In the following walk through, we demonstrate how the PhD work allocation model
 can be used on a simple dataset. 
 
 ## Dataset 001(Year-long)

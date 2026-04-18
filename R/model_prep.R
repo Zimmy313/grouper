@@ -172,8 +172,7 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
                               e_min = NULL,
                               alpha = 2, beta = 1, phi = 1, rho = 10,
                               C = 4) {
-  # keep role order fixed
-  job_names <- c("TA", "GR", "E")
+  # keep role order fixed: 1 = TA, 2 = GR, 3 = E
 
   # extract inputs
   Ns <- df_list$Ns
@@ -187,7 +186,7 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   idx_y1     <- which(s == -1)
   idx_non_y1 <- which(s >= 0)
 
-  # chcek optional workload bounds
+  # check optional workload bounds
   validate_optional_bound <- function(x, nm) {
     if (!is.null(x) && (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 0)) {
       stop(nm, " must be NULL or a single non-negative number.")

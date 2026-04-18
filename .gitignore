@@ -8,7 +8,7 @@ inst/doc
 docs/
 .DS_Store
 
-# feature/mingyuan. Can remove after merging back to main
+# feature/mingyuan.
 data/phdModel
 dba_gc_ex003.Rd
 dba_gc_ex004.Rd

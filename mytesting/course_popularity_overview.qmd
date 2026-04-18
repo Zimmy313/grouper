@@ -360,8 +360,12 @@ top_k <- course_pop_rankable %>%
 
 p_top10 <- ggplot(top_k, aes(y = course_sem, x = n_first, fill = semester)) +
   geom_col(show.legend = FALSE) +
-  facet_wrap(~semester, scales = "free") +
+  facet_wrap(~semester, scales = "free_y") +
   scale_y_discrete(labels = function(x) sub("^.*___", "", x)) +
+  scale_x_continuous(
+    limits = c(0, max(top_k$n_first, na.rm = TRUE)),
+    breaks = scales::pretty_breaks(n = 5)
+  ) +
   labs(x = "Student count", y = NULL) +
   theme_minimal(base_size = 11) +
   theme(panel.grid.minor = element_blank())
@@ -433,6 +437,26 @@ p_rank <- ggplot(rank_trend, aes(x = semester, y = rank, color = course_code, gr
   theme(panel.grid.minor = element_blank())
 
 p_rank
+```
+
+```{r}
+# Export figures used in thesis.
+thesis_fig_dir <- file.path("..", "..", "LATEX", "thesis", "figures")
+dir.create(thesis_fig_dir, recursive = TRUE, showWarnings = FALSE)
+
+ggsave(
+  filename = file.path(thesis_fig_dir, "course_popularity_top10.pdf"),
+  plot = p_top10,
+  width = 9.0,
+  height = 4.2
+)
+
+ggsave(
+  filename = file.path(thesis_fig_dir, "course_popularity_rank_trend.pdf"),
+  plot = p_rank,
+  width = 8.6,
+  height = 4.2
+)
 ```
 
 ```{r}
