@@ -2,7 +2,11 @@
 
 Converts a dataframe with information on students to a list of
 parameters. This list forms one half of the inputs to prepare_model().
-The other half comes from extract_params_yaml.
+The remaining model parameters can come from
+[`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
+or be supplied directly to
+[`prepare_model()`](https://Zimmy313.github.io/grouper/reference/prepare_model.md)
+for non-YAML workflows.
 
 ## Usage
 

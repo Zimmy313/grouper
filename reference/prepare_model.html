@@ -69,8 +69,9 @@
 
 
 <dt id="arg-yaml-list">yaml_list<a class="anchor" aria-label="anchor" href="#arg-yaml-list"></a></dt>
-<dd><p>Parameter list from <code><a href="extract_params_yaml.html">extract_params_yaml()</a></code>. Required for
-<code>assignment = "diversity"</code> and <code>assignment = "preference"</code>. Ignored for
+<dd><p>Parameter list from <code><a href="extract_params_yaml.html">extract_params_yaml()</a></code>. Optional for
+<code>assignment = "diversity"</code> and <code>assignment = "preference"</code> for backward
+compatibility. If supplied, this list is used directly. Ignored for
 <code>assignment = "phd"</code>.</p></dd>
 
 
@@ -85,8 +86,12 @@
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to <code><a href="prepare_phd_model.html">prepare_phd_model()</a></code> when
-<code>assignment = "phd"</code>.</p></dd>
+<dd><p>Additional arguments:</p><ul><li><p>For <code>assignment = "diversity"</code> when <code>yaml_list</code> is <code>NULL</code>: supply
+<code>n_topics</code>, <code>R</code>, <code>nmin</code>, <code>nmax</code>, <code>rmin</code>, and <code>rmax</code>.</p></li>
+<li><p>For <code>assignment = "preference"</code> when <code>yaml_list</code> is <code>NULL</code>: supply
+<code>n_topics</code>, <code>B</code>, <code>R</code>, <code>nmin</code>, <code>nmax</code>, <code>rmin</code>, and <code>rmax</code>.</p></li>
+<li><p>For <code>assignment = "phd"</code>: passed to <code><a href="prepare_phd_model.html">prepare_phd_model()</a></code>.</p></li>
+</ul></dd>
 
 </dl></div>
     <div class="section level2">

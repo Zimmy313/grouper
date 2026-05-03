@@ -160,14 +160,14 @@ Gurobi over open source solvers.</p>
 <div class="section level3">
 <h3 id="student-to-project-supervisor-assignment">Student-to-project supervisor assignment<a class="anchor" aria-label="anchor" href="#student-to-project-supervisor-assignment"></a>
 </h3>
-<p>The next article we discuss is <span class="citation">Ramotsisi,
-Kgomotso, and Seboni (2022)</span>. The formulation of this model was
-the result of a thorough investigation into the process by which
-students are assigned projects that are supervised by faculty members at
-the University of Botswana. However, similar to <span class="citation">Anwar and Bahaj (2003)</span>, the objective function
-in this study aims to maximise the total workload of supervisors. It
-does not approach the problem solely from the angle of student
-preferences.</p>
+<p>The next article we discuss is <span class="citation">Ramotsisi et
+al. (2022)</span>. The formulation of this model was the result of a
+thorough investigation into the process by which students are assigned
+projects that are supervised by faculty members at the University of
+Botswana. However, similar to <span class="citation">Anwar and Bahaj
+(2003)</span>, the objective function in this study aims to maximise the
+total workload of supervisors. It does not approach the problem solely
+from the angle of student preferences.</p>
 </div>
 <div class="section level3">
 <h3 id="automated-group-assignments-in-academic-setting">Automated group assignments in academic setting<a class="anchor" aria-label="anchor" href="#automated-group-assignments-in-academic-setting"></a>
@@ -203,8 +203,15 @@ prepare:</p>
 self-formed group.</li>
 <li>A preference matrix containing the preference that each self-formed
 group has for each topic.</li>
-<li>A YAML file defining the remaining parameters of the model.</li>
+<li>The remaining model parameters, supplied either:
+<ul>
+<li>through a YAML file (backward-compatible workflow), or</li>
+<li>directly in <code>prepare_model(...)</code> as named arguments.</li>
+</ul>
+</li>
 </ol>
+<p>In both cases, extraction can be handled through the wrapper
+entrypoint <code><a href="../reference/extract_info.html">extract_info()</a></code>.</p>
 <p>The Diversity-Based Assignment (DBA) model enables educators to
 assign students to groups and topics with the dual aims of maximising
 diversity (based on student attributes) within groups and balancing
@@ -221,8 +228,15 @@ between students, and</li>
 <li>a numeric measure of each student’s skill.</li>
 </ul>
 </li>
-<li>A YAML file defining the remaining parameters of the model.</li>
+<li>The remaining model parameters, supplied either:
+<ul>
+<li>through a YAML file (backward-compatible workflow), or</li>
+<li>directly in <code>prepare_model(...)</code> as named arguments.</li>
+</ul>
+</li>
 </ol>
+<p>As above, extraction can be handled through
+<code><a href="../reference/extract_info.html">extract_info()</a></code>.</p>
 <p>Refer to the remaining vignettes for more information about the model
 definition and application.</p>
 <p>In our package, we use the <code>ompr</code> framework for
@@ -249,7 +263,7 @@ gurobi solver:</p>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-anwar2003student" class="csl-entry">
 Anwar, Arif A, and AS Bahaj. 2003. <span>“Student Project Allocation
 Using Integer Programming.”</span> <em>IEEE Transactions on
@@ -262,7 +276,7 @@ Operational Research Review</em>, 511–24.
 </div>
 <div id="ref-bonfert2020improving" class="csl-entry">
 Bonfert-Taylor, Petra, and Christopher Miller. 2020. <span>“Improving
-Automated Group Assignments in an Academic Setting.”</span> In <em>2020
+Automated Group Assignments in an Academic Setting.”</span> <em>2020
 ASEE Virtual Annual Conference Content Access</em>.
 </div>
 <div id="ref-mcguirk2020assigning" class="csl-entry">

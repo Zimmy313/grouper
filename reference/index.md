@@ -12,6 +12,8 @@
   : Prepare the preference-based assignment model
 - [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
   : Extract parameters from a YAML file
+- [`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md)
+  : Extract model inputs (wrapper)
 - [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
   : Extract student information
 - [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)

@@ -2,14 +2,13 @@
 
 ## Authors
 
-- **Vik Gopal**. Author, maintainer.
+- **Vik Gopal**. Author.
 
 - **Kevin Lam**. Author.
 
 - **Ju Xue**. Contributor.
 
-- **Mingyuan Zhang**. Author.  
-  cre
+- **Mingyuan Zhang**. Author, maintainer.
 
 - **National University of Singapore**. Copyright holder.
 

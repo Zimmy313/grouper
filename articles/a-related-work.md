@@ -65,9 +65,11 @@ linear programming model. The assignment was used to assign students to
 discussion groups at the University of New Hampshire chemistry
 department. The complete objective function can be written as:
 
-$$\begin{array}{r}
-{\text{Minmise:}\;\text{preferences} + \text{sizes} + \text{single-trait} + \text{shared-trait}}
-\end{array}$$
+``` math
+\begin{eqnarray}
+\text{Minmise:}\; \text{preferences} + \text{sizes} + \text{single-trait} + \text{shared-trait}
+\end{eqnarray}
+```
 
 The first component, preferences, incorporates the ranking that put
 students put down for a group. The second component was used to control
@@ -89,13 +91,13 @@ over open source solvers.
 
 ### Student-to-project supervisor assignment
 
-The next article we discuss is Ramotsisi, Kgomotso, and Seboni (2022).
-The formulation of this model was the result of a thorough investigation
-into the process by which students are assigned projects that are
-supervised by faculty members at the University of Botswana. However,
-similar to Anwar and Bahaj (2003), the objective function in this study
-aims to maximise the total workload of supervisors. It does not approach
-the problem solely from the angle of student preferences.
+The next article we discuss is Ramotsisi et al. (2022). The formulation
+of this model was the result of a thorough investigation into the
+process by which students are assigned projects that are supervised by
+faculty members at the University of Botswana. However, similar to Anwar
+and Bahaj (2003), the objective function in this study aims to maximise
+the total workload of supervisors. It does not approach the problem
+solely from the angle of student preferences.
 
 ### Automated group assignments in academic setting
 
@@ -129,7 +131,12 @@ To execute the optimisation routine, an instructor needs to prepare:
     self-formed group.
 2.  A preference matrix containing the preference that each self-formed
     group has for each topic.
-3.  A YAML file defining the remaining parameters of the model.
+3.  The remaining model parameters, supplied either:
+    - through a YAML file (backward-compatible workflow), or
+    - directly in `prepare_model(...)` as named arguments.
+
+In both cases, extraction can be handled through the wrapper entrypoint
+[`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md).
 
 The Diversity-Based Assignment (DBA) model enables educators to assign
 students to groups and topics with the dual aims of maximising diversity
@@ -145,7 +152,12 @@ prepare:
     - the demographics that will be used to compute pairwise
       dissimilarity between students, and
     - a numeric measure of each student’s skill.
-2.  A YAML file defining the remaining parameters of the model.
+2.  The remaining model parameters, supplied either:
+    - through a YAML file (backward-compatible workflow), or
+    - directly in `prepare_model(...)` as named arguments.
+
+As above, extraction can be handled through
+[`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md).
 
 Refer to the remaining vignettes for more information about the model
 definition and application.
@@ -179,8 +191,8 @@ Assigning Students to Elective Courses.” *Croatian Operational Research
 Review*, 511–24.
 
 Bonfert-Taylor, Petra, and Christopher Miller. 2020. “Improving
-Automated Group Assignments in an Academic Setting.” In *2020 ASEE
-Virtual Annual Conference Content Access*.
+Automated Group Assignments in an Academic Setting.” *2020 ASEE Virtual
+Annual Conference Content Access*.
 
 McGuirk, Brendan. 2020. “Assigning Students to Groups Based on
 Preference and Traits.” Master’s thesis, University of New Hampshire.

@@ -25,8 +25,9 @@ prepare_model(
 
   Parameter list from
   [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).
-  Required for `assignment = "diversity"` and
-  `assignment = "preference"`. Ignored for `assignment = "phd"`.
+  Optional for `assignment = "diversity"` and
+  `assignment = "preference"` for backward compatibility. If supplied,
+  this list is used directly. Ignored for `assignment = "phd"`.
 
 - assignment:
 
@@ -40,9 +41,16 @@ prepare_model(
 
 - ...:
 
-  Additional arguments passed to
-  [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md)
-  when `assignment = "phd"`.
+  Additional arguments:
+
+  - For `assignment = "diversity"` when `yaml_list` is `NULL`: supply
+    `n_topics`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+
+  - For `assignment = "preference"` when `yaml_list` is `NULL`: supply
+    `n_topics`, `B`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+
+  - For `assignment = "phd"`: passed to
+    [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md).
 
 ## Value
 

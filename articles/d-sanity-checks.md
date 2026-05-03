@@ -1,6 +1,7 @@
 # Application to simple datasets
 
 ``` r
+
 library(grouper)
 library(ompr)
 library(ompr.roi)
@@ -13,6 +14,20 @@ library(ROI.plugin.glpk)
 This vignette illustrates the use of the package on simple datasets, for
 which the optimal solutions are apparent from inspection.
 
+For each dataset below, we will use 2 workflows to run the optimisation.
+The first workflow do not make use of the wrapper function
+[`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md)
+and instead uses
+[`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
+and
+[`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).
+The alternative uses
+[`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md)
+as the extraction wrapper; for diversity and preference models it also
+demonstrates direct parameter supply in
+[`prepare_model()`](https://Zimmy313.github.io/grouper/reference/prepare_model.md)
+(without YAML).
+
 ## Diversity-Based Assignment
 
 ### Dataset 001 (diversity only)
@@ -23,6 +38,7 @@ diversity-based-assignment (dba) model and that it consists of the group
 composition (gc) information.
 
 ``` r
+
 dba_gc_ex001
 #>   id major skill groups
 #> 1  1     A     1      1
@@ -50,6 +66,7 @@ we can use the following commands. We can use either the gurobi solver,
 or the glpk solver for this example. Both are equally fast.
 
 ``` r
+
 # indicate appropriate columns using integer ids.
 df_ex001_list <- extract_student_info(dba_gc_ex001, "diversity",
                                   demographic_cols = 2, skills = 3, 
@@ -71,6 +88,45 @@ assign_groups(result3, assignment = "diversity", dframe=dba_gc_ex001,
 #> 4     2   1     3  3     B     3
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
+``` r
+
+df_ex001_alt <- extract_info(
+  assignment = "diversity",
+  dframe = dba_gc_ex001,
+  demographic_cols = 2,
+  skills = 3,
+  self_formed_groups = 4
+)
+
+m1_alt <- prepare_model(
+  df_ex001_alt,
+  assignment = "diversity",
+  w1 = 1.0,
+  w2 = 0.0,
+  n_topics = 2,
+  R = 1,
+  nmin = 2,
+  nmax = 2,
+  rmin = 1,
+  rmax = 1
+)
+
+result3_alt <- solve_model(m1_alt, with_ROI(solver = "glpk"))
+assign_groups(
+  model_result = result3_alt,
+  assignment = "diversity",
+  dframe = dba_gc_ex001,
+  group_names = "groups"
+)
+#>   topic rep group id major skill
+#> 1     1   1     2  2     A     1
+#> 2     1   1     4  4     B     3
+#> 3     2   1     1  1     A     1
+#> 4     2   1     3  3     B     3
+```
+
 We can see that students 1 and 2 have been assigned to topic 1,
 repetition 1. Students 3 and 4 have been assigned to topic 2, repetition
 1.
@@ -78,6 +134,7 @@ repetition 1. Students 3 and 4 have been assigned to topic 2, repetition
 ### Dataset 001 (skills only)
 
 ``` r
+
 # indicate appropriate columns using integer ids.
 df_ex001_list <- extract_student_info(dba_gc_ex001, "diversity",
                                   demographic_cols = 2, skills = 3, 
@@ -107,6 +164,53 @@ get_solution(result3, smax)
 #>    4
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
+``` r
+
+df_ex001_skill_alt <- extract_info(
+  assignment = "diversity",
+  dframe = dba_gc_ex001,
+  demographic_cols = 2,
+  skills = 3,
+  self_formed_groups = 4
+)
+
+m1a_alt <- prepare_model(
+  df_ex001_skill_alt,
+  assignment = "diversity",
+  w1 = 0.0,
+  w2 = 1.0,
+  n_topics = 2,
+  R = 1,
+  nmin = 2,
+  nmax = 2,
+  rmin = 1,
+  rmax = 1
+)
+
+result3_skill_alt <- solve_model(m1a_alt, with_ROI(solver = "glpk"))
+
+assign_groups(
+  model_result = result3_skill_alt,
+  assignment = "diversity",
+  dframe = dba_gc_ex001,
+  group_names = "groups"
+)
+#>   topic rep group id major skill
+#> 1     1   1     2  2     A     1
+#> 2     1   1     3  3     B     3
+#> 3     2   1     1  1     A     1
+#> 4     2   1     4  4     B     3
+
+get_solution(result3_skill_alt, smin)
+#> smin 
+#>    4
+get_solution(result3_skill_alt, smax)
+#> smax 
+#>    4
+```
+
 We can see that students 1 and 2 have been assigned to topic 1,
 repetition 1. Students 3 and 4 have been assigned to topic 2, repetition
 1.
@@ -118,6 +222,7 @@ instead of using the default Gower distance from the
 [cluster](https://cran.r-project.org/package=cluster) package.
 
 ``` r
+
 dba_gc_ex003
 #>   year   major self_groups id
 #> 1    1    math           1  1
@@ -138,6 +243,7 @@ have score of 2, due to their differences in majors and in years. The
 overall dissimilarity matrix would be:
 
 ``` r
+
 d_mat <- matrix(c(0, 1, 1, 2,
                   1, 0, 2, 1,
                   1, 2, 0, 1,
@@ -148,6 +254,7 @@ To run the optimisation for this model, we can execute the following
 code:
 
 ``` r
+
 df_ex003_list <- extract_student_info(dba_gc_ex003, "diversity",
                                 skills = NULL,
                                 self_formed_groups = 3,
@@ -184,6 +291,63 @@ assign_groups(result, "diversity", dba_gc_ex003, group_names="self_groups")
 #> 4     2   1     3    3    dsds  3
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
+``` r
+
+df_ex003_alt <- extract_info(
+  assignment = "diversity",
+  dframe = dba_gc_ex003,
+  skills = NULL,
+  self_formed_groups = 3,
+  d_mat = d_mat
+)
+
+m3_alt <- prepare_model(
+  df_ex003_alt,
+  assignment = "diversity",
+  w1 = 1.0,
+  w2 = 0.0,
+  n_topics = 2,
+  R = 1,
+  nmin = 2,
+  nmax = 2,
+  rmin = 1,
+  rmax = 1
+)
+
+result_alt <- solve_model(m3_alt, with_ROI(solver = "glpk", verbose = TRUE))
+#> <SOLVER MSG>  ----
+#> GLPK Simplex Optimizer 5.0
+#> 58 rows, 22 columns, 142 non-zeros
+#>       0: obj =  -0.000000000e+00 inf =   6.000e+00 (6)
+#>      12: obj =  -0.000000000e+00 inf =   1.110e-15 (0)
+#> *    28: obj =   8.000000000e+00 inf =   7.772e-16 (0)
+#> OPTIMAL LP SOLUTION FOUND
+#> GLPK Integer Optimizer 5.0
+#> 58 rows, 22 columns, 142 non-zeros
+#> 22 integer variables, all of which are binary
+#> Integer optimization begins...
+#> Long-step dual simplex will be used
+#> +    28: mip =     not found yet <=              +inf        (1; 0)
+#> +    44: >>>>>   4.000000000e+00 <=   7.000000000e+00  75.0% (6; 0)
+#> +    49: mip =   4.000000000e+00 <=     tree is empty   0.0% (0; 11)
+#> INTEGER OPTIMAL SOLUTION FOUND
+#> <!SOLVER MSG> ----
+
+assign_groups(
+  model_result = result_alt,
+  assignment = "diversity",
+  dframe = dba_gc_ex003,
+  group_names = "self_groups"
+)
+#>   topic rep group year   major id
+#> 1     1   1     1    1    math  1
+#> 2     1   1     4    4    elts  4
+#> 3     2   1     2    2 history  2
+#> 4     2   1     3    3    dsds  3
+```
+
 As you can see, the members of the two groups have maximal difference
 between them - they differ in terms of their year, and in terms of their
 major.
@@ -198,6 +362,7 @@ The dataset we use contains only skill levels (Python skills, higher
 corresponding to more skill).
 
 ``` r
+
 dba_gc_ex004
 #>   id python self_groups
 #> 1  1      1           1
@@ -213,6 +378,7 @@ example, we only utilise the skill levels; no demographic variables are
 included in the objective function.
 
 ``` r
+
 df_ex004_list <- extract_student_info(dba_gc_ex004, 
                                       skills = 2, 
                                       self_formed_groups = 3, 
@@ -249,6 +415,63 @@ assign_groups(result, "diversity", dba_gc_ex004, group_names="self_groups")
 #> 5     2   1     4  4      2
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
+``` r
+
+df_ex004_alt <- extract_info(
+  assignment = "diversity",
+  dframe = dba_gc_ex004,
+  skills = 2,
+  self_formed_groups = 3,
+  d_mat = matrix(0, 5, 5)
+)
+
+m4_alt <- prepare_model(
+  df_ex004_alt,
+  assignment = "diversity",
+  w1 = 0.0,
+  w2 = 1.0,
+  n_topics = 2,
+  R = 1,
+  nmin = c(2, 3),
+  nmax = c(2, 3),
+  rmin = 1,
+  rmax = 1
+)
+
+result4_alt <- solve_model(m4_alt, with_ROI(solver = "glpk", verbose = TRUE))
+#> <SOLVER MSG>  ----
+#> GLPK Simplex Optimizer 5.0
+#> 89 rows, 34 columns, 234 non-zeros
+#>       0: obj =  -0.000000000e+00 inf =   7.000e+00 (7)
+#>      28: obj =  -4.000000000e+00 inf =   4.441e-16 (0)
+#> *    29: obj =  -4.440892099e-16 inf =   4.441e-16 (0)
+#> OPTIMAL LP SOLUTION FOUND
+#> GLPK Integer Optimizer 5.0
+#> 89 rows, 34 columns, 234 non-zeros
+#> 32 integer variables, all of which are binary
+#> Integer optimization begins...
+#> Long-step dual simplex will be used
+#> +    29: mip =     not found yet <=              +inf        (1; 0)
+#> +    40: >>>>>   0.000000000e+00 <=   0.000000000e+00   0.0% (3; 0)
+#> +    40: mip =   0.000000000e+00 <=     tree is empty   0.0% (0; 5)
+#> INTEGER OPTIMAL SOLUTION FOUND
+#> <!SOLVER MSG> ----
+assign_groups(
+  model_result = result4_alt,
+  assignment = "diversity",
+  dframe = dba_gc_ex004,
+  group_names = "self_groups"
+)
+#>   topic rep group id python
+#> 1     1   1     2  2      1
+#> 2     1   1     5  5      3
+#> 3     2   1     1  1      1
+#> 4     2   1     3  3      1
+#> 5     2   1     4  4      2
+```
+
 Due to the constraints, topic 2 was assigned 3 members, while preserving
 the total skill level in each group (to be 4).
 
@@ -260,6 +483,7 @@ The second datasets comprises 8 students. Here is a listing of the
 dataset:
 
 ``` r
+
 pba_gc_ex002
 #>   id grouping
 #> 1  1        1
@@ -285,6 +509,7 @@ There should be 4 rows in the preference matrix - one for each
 self-formed group.
 
 ``` r
+
 pba_prefmat_ex002
 #>      col1 col2 col3 col4
 #> [1,]    4    3    2    1
@@ -299,6 +524,7 @@ is assigned to subtopic 1 of topic 1, group 2 is assigned to sub-topic 1
 of topic 2, and so on.
 
 ``` r
+
 df_ex002_list <- extract_student_info(pba_gc_ex002, "preference", 
                                       self_formed_groups = 2, 
                                       pref_mat = pba_prefmat_ex002)
@@ -320,10 +546,48 @@ assign_groups(result2, assignment = "preference",
 #> 4      2        2   1     4    2
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
+``` r
+
+df_ex002_alt <- extract_info(
+  assignment = "preference",
+  dframe = pba_gc_ex002,
+  self_formed_groups = 2,
+  pref_mat = pba_prefmat_ex002
+)
+
+m2_alt <- prepare_model(
+  df_ex002_alt,
+  assignment = "preference",
+  n_topics = 2,
+  B = 2,
+  R = 1,
+  nmin = 2,
+  nmax = 2,
+  rmin = 1,
+  rmax = 1
+)
+
+result2_alt <- solve_model(m2_alt, with_ROI(solver = "glpk"))
+assign_groups(
+  model_result = result2_alt,
+  assignment = "preference",
+  dframe = pba_gc_ex002,
+  params_list = list(n_topics = 2, B = 2),
+  group_names = "grouping"
+)
+#>   topic2 subtopic rep group size
+#> 1      1        1   1     1    2
+#> 2      2        1   1     2    2
+#> 3      1        2   1     3    2
+#> 4      2        2   1     4    2
+```
+
 ## PhD Workload Assignment
 
-In the following walk through, we demostrate how the PhD work allocation
-model can be used on a simple dataset.
+In the following walk through, we demonstrate how the PhD work
+allocation model can be used on a simple dataset.
 
 ### Dataset 001(Year-long)
 
@@ -331,6 +595,7 @@ This example dataset has 4 students and 4 courses. Each student has
 non-zero past workload with `past_ta + past_gr = 4`
 
 ``` r
+
 phd_students_ex001
 #>   student_id year past_ta past_gr  Name
 #> 1          1    1       2       2   Ava
@@ -344,6 +609,7 @@ Each row in the preference matrix encodes first/second/third choices as
 numbering can be used.
 
 ``` r
+
 phd_prefmat_ex001
 #>      C101 C102 C103 C104
 #> [1,]    3    2    1  -99
@@ -357,6 +623,7 @@ The demand table includes only `TA` and `GR`, and intentionally excludes
 `e_mode = "rr"` to automatically generate E demand.
 
 ``` r
+
 phd_demand_ex001
 #>      TA GR
 #> C101  1  1
@@ -366,6 +633,7 @@ phd_demand_ex001
 ```
 
 ``` r
+
 c_sem <- 4
 c(capacity_units = nrow(phd_students_ex001) * c_sem,
   ta_gr_demand = sum(phd_demand_ex001))
@@ -380,6 +648,7 @@ The following chunk focuses on the three core PhD workflow functions:
 3.  [`assign_job()`](https://Zimmy313.github.io/grouper/reference/assign_job.md)
 
 ``` r
+
 phd_ex001_list <- extract_phd_info(
   student_df = phd_students_ex001,
   p_mat = phd_prefmat_ex001,
@@ -397,7 +666,30 @@ phd_ex001_list$d
 #> [4,]  1  1 2
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
 ``` r
+
+phd_ex001_alt <- extract_info(
+  assignment = "phd",
+  student_df = phd_students_ex001,
+  p_mat = phd_prefmat_ex001,
+  d_mat = phd_demand_ex001,
+  e_mode = "rr",
+  C = c_sem
+)
+
+# show generated demand matrix with E appended by round-robin
+phd_ex001_alt$d
+#>      TA GR E
+#> [1,]  1  1 2
+#> [2,]  1  1 2
+#> [3,]  1  1 2
+#> [4,]  1  1 2
+```
+
+``` r
+
 m_phd_ex001 <- prepare_model(
   phd_ex001_list,
   assignment = "phd",
@@ -410,10 +702,45 @@ m_phd_ex001 <- prepare_model(
 ```
 
 ``` r
+
 result_phd_ex001 <- solve_model(m_phd_ex001, with_ROI(solver = "glpk"))
 
 assign_job(
   result_phd_ex001,
+  student_df = phd_students_ex001,
+  course_codes = rownames(phd_demand_ex001),
+  name_col = "Name"
+)
+#>    Name C101-t C102-t C103-t C104-t C101-g C102-g C103-g C104-g C101-e C102-e
+#> 1   Ava      1      0      0      0      1      0      0      0      2      0
+#> 2   Ben      0      1      0      0      0      1      0      0      0      2
+#> 3 Chloe      0      0      1      0      0      0      1      0      0      0
+#> 4 Dylan      0      0      0      1      0      0      0      1      0      0
+#>   C103-e C104-e
+#> 1      0      0
+#> 2      0      0
+#> 3      2      0
+#> 4      0      2
+```
+
+Alternative workflow (wrapper + direct parameters):
+
+``` r
+
+m_phd_ex001_alt <- prepare_model(
+  phd_ex001_alt,
+  assignment = "phd",
+  t_max_y1 = 1,
+  ta_min = 1, ta_max = 1,
+  gr_min = 1, gr_max = 1,
+  alpha = 2, beta = 1, phi = 1, rho = 10,
+  C = c_sem
+)
+
+result_phd_ex001_alt <- solve_model(m_phd_ex001_alt, with_ROI(solver = "glpk"))
+
+assign_job(
+  result_phd_ex001_alt,
   student_df = phd_students_ex001,
   course_codes = rownames(phd_demand_ex001),
   name_col = "Name"
@@ -440,6 +767,7 @@ function.
 We will reuse `phd_students_ex001`.
 
 ``` r
+
 phd_students_ex001_sem <- phd_students_ex001
 phd_students_ex001_sem$past_ta <- 0
 phd_students_ex001_sem$past_gr <- c_sem
@@ -453,6 +781,7 @@ phd_students_ex001_sem
 ```
 
 ``` r
+
 phd_ex001_sem_list <- extract_phd_info(
   student_df = phd_students_ex001_sem,
   p_mat = phd_prefmat_ex001,
@@ -469,7 +798,29 @@ phd_ex001_sem_list$d
 #> [4,]  1  1 2
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
 ``` r
+
+phd_ex001_sem_alt <- extract_info(
+  assignment = "phd",
+  student_df = phd_students_ex001_sem,
+  p_mat = phd_prefmat_ex001,
+  d_mat = phd_demand_ex001,
+  e_mode = "rr",
+  C = c_sem
+)
+
+phd_ex001_sem_alt$d
+#>      TA GR E
+#> [1,]  1  1 2
+#> [2,]  1  1 2
+#> [3,]  1  1 2
+#> [4,]  1  1 2
+```
+
+``` r
+
 m_phd_ex001_sem <- prepare_model(
   phd_ex001_sem_list,
   assignment = "phd",
@@ -502,7 +853,44 @@ job_phd_ex001_sem
 #> 4      0      2
 ```
 
+Alternative workflow (wrapper + direct parameters):
+
 ``` r
+
+m_phd_ex001_sem_alt <- prepare_model(
+  phd_ex001_sem_alt,
+  assignment = "phd",
+  t_max_y1 = 1,
+  ta_min = 1, ta_max = 1,
+  gr_min = 1, gr_max = 1,
+  alpha = 2, beta = 1, phi = 1, rho = 10,
+  C = c_sem
+)
+
+result_phd_ex001_sem_alt <- solve_model(m_phd_ex001_sem_alt, with_ROI(solver = "glpk"))
+
+job_phd_ex001_sem_alt <- assign_job(
+  result_phd_ex001_sem_alt,
+  student_df = phd_students_ex001_sem,
+  course_codes = rownames(phd_demand_ex001),
+  name_col = "Name"
+)
+
+job_phd_ex001_sem_alt
+#>    Name C101-t C102-t C103-t C104-t C101-g C102-g C103-g C104-g C101-e C102-e
+#> 1   Ava      1      0      0      0      1      0      0      0      2      0
+#> 2   Ben      0      1      0      0      0      1      0      0      0      2
+#> 3 Chloe      0      0      1      0      0      0      1      0      0      0
+#> 4 Dylan      0      0      0      1      0      0      0      1      0      0
+#>   C103-e C104-e
+#> 1      0      0
+#> 2      0      0
+#> 3      2      0
+#> 4      0      2
+```
+
+``` r
+
 # quick summary of each student and worktype
 ta_cols <- grepl("-t$", names(job_phd_ex001_sem))
 gr_cols <- grepl("-g$", names(job_phd_ex001_sem))
