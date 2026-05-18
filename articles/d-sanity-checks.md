@@ -15,7 +15,7 @@ This vignette illustrates the use of the package on simple datasets, for
 which the optimal solutions are apparent from inspection.
 
 For each dataset below, we will use 2 workflows to run the optimisation.
-The first workflow do not make use of the wrapper function
+The first workflow does not make use of the wrapper function
 [`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md)
 and instead uses
 [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
