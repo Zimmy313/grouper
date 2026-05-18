@@ -6,12 +6,12 @@ or workload allocations.
 ## Installation
 
 You can install the development version of grouper from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/Zimmy313/grouper) with:
 
 ``` r
 
 # install.packages("pak")
-pak::pak("singator/grouper")
+pak::pak("Zimmy313/grouper")
 ```
 
 But to be honest, the package on CRAN is already the most up to date.
