@@ -1,17 +1,18 @@
 # grouper
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/Zimmy313/grouper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Zimmy313/grouper/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of grouper is to make it easier for an instructor to do student or workload allocations.
 
 ## Installation
 
-You can install the development version of grouper from [GitHub](https://github.com/) with:
+You can install the development version of grouper from [GitHub](https://github.com/Zimmy313/grouper) with:
 
 ``` r
 # install.packages("pak")
-pak::pak("singator/grouper")
+pak::pak("Zimmy313/grouper")
 ```
 
 But to be honest, the package on CRAN is already the most up to date.
