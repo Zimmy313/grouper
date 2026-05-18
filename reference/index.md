@@ -30,6 +30,10 @@
 
 - [`dba_gc_ex001`](https://Zimmy313.github.io/grouper/reference/dba_gc_ex001.md)
   : DBA Group Composition Data Example 001
+- [`dba_gc_ex003`](https://Zimmy313.github.io/grouper/reference/dba_gc_ex003.md)
+  : DBA Group Composition Data Example 003
+- [`dba_gc_ex004`](https://Zimmy313.github.io/grouper/reference/dba_gc_ex004.md)
+  : DBA Group Composition Data Example 004
 - [`pba_gc_ex002`](https://Zimmy313.github.io/grouper/reference/pba_gc_ex002.md)
   : PBA Group Composition Data Example 002
 - [`pba_prefmat_ex002`](https://Zimmy313.github.io/grouper/reference/pba_prefmat_ex002.md)
