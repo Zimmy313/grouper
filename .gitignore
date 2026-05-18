@@ -9,9 +9,7 @@ docs/
 .DS_Store
 check/
 
-# feature/mingyuan.
+# dev
 data/phdModel
-dba_gc_ex003.Rd
-dba_gc_ex004.Rd
 docs
 .positai
