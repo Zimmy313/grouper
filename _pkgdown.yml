@@ -23,16 +23,19 @@ navbar:
 reference:
 - title: Data preparation
   contents:
-  - prepare_diversity_model
-  - prepare_model
-  - prepare_phd_model
-  - prepare_preference_model
-  - extract_params_yaml
   - extract_info
   - extract_student_info
   - extract_phd_info
-- title: Optimization
+  - extract_params_yaml
+- title: Model preparation
   contents:
+  - prepare_model
+  - prepare_diversity_model
+  - prepare_phd_model
+  - prepare_preference_model
+- title: Solving and processing results
+  contents:
+  - solve_assignment
   - assign_groups
   - assign_job
 - title: Included data

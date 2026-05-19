@@ -438,12 +438,8 @@ to automatically generate E demand.
 phd_demand_ex001
 ```
 
-
-
-```{r}
+```{r, include = FALSE}
 c_sem <- 4
-c(capacity_units = nrow(phd_students_ex001) * c_sem,
-  ta_gr_demand = sum(phd_demand_ex001))
 ```
 
 The following chunk focuses on the three core PhD workflow functions:
