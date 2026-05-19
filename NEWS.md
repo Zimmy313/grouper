@@ -1,5 +1,6 @@
 # grouper 0.6.2
 * Unified all three shiny apps into a single app with 3 tabs.
+* Added warpper function for solving and post-processing in one step.
 
 # grouper 0.6.1
 * Added wrapper functions for extracting information.
