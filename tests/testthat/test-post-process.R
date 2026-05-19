@@ -75,3 +75,143 @@ test_that("assign_job converts PhD solver output to manual-style table", {
   expect_true(any(grepl("-e$", names(job))))
   expect_equal(nrow(job), nrow(phd_students_ex001))
 })
+
+test_that("solve_assignment wraps diversity solving and post-processing", {
+  skip_if_not_installed("ompr.roi")
+  skip_if_not_installed("ROI.plugin.glpk")
+
+  div_df <- extract_student_info(
+    dba_gc_ex001,
+    assignment = "diversity",
+    self_formed_groups = 4,
+    demographic_cols = 2,
+    skills = 3
+  )
+  div_params <- extract_params_yaml(
+    system.file("extdata", "dba_params_ex001.yml", package = "grouper"),
+    assignment = "diversity"
+  )
+  div_model <- prepare_model(div_df, div_params, assignment = "diversity", w1 = 1, w2 = 0)
+
+  wrapped <- solve_assignment(
+    model = div_model,
+    assignment = "diversity",
+    solver = "glpk",
+    dframe = dba_gc_ex001,
+    group_names = "groups",
+    verbose = FALSE
+  )
+  manual <- assign_groups(
+    model_result = wrapped$model_result,
+    assignment = "diversity",
+    dframe = dba_gc_ex001,
+    group_names = "groups"
+  )
+
+  expect_named(wrapped, c("model_result", "output"))
+  expect_equal(wrapped$output, manual)
+})
+
+test_that("solve_assignment wraps preference solving and post-processing", {
+  skip_if_not_installed("ompr.roi")
+  skip_if_not_installed("ROI.plugin.glpk")
+
+  pref_df <- extract_student_info(
+    pba_gc_ex002,
+    assignment = "preference",
+    self_formed_groups = 2,
+    pref_mat = pba_prefmat_ex002
+  )
+  pref_params <- extract_params_yaml(
+    system.file("extdata", "pba_params_ex002.yml", package = "grouper"),
+    assignment = "preference"
+  )
+  pref_model <- prepare_model(pref_df, pref_params, assignment = "preference")
+
+  wrapped <- solve_assignment(
+    model = pref_model,
+    assignment = "preference",
+    solver = "glpk",
+    dframe = pba_gc_ex002,
+    params_list = pref_params,
+    group_names = "grouping",
+    verbose = FALSE
+  )
+  manual <- assign_groups(
+    model_result = wrapped$model_result,
+    assignment = "preference",
+    dframe = pba_gc_ex002,
+    params_list = pref_params,
+    group_names = "grouping"
+  )
+
+  expect_named(wrapped, c("model_result", "output"))
+  expect_equal(wrapped$output, manual)
+})
+
+test_that("solve_assignment wraps PhD solving and post-processing", {
+  skip_if_not_installed("ompr.roi")
+  skip_if_not_installed("ROI.plugin.glpk")
+
+  phd_df <- extract_phd_info(
+    student_df = phd_students_ex001,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none",
+    C = 4
+  )
+  phd_model <- prepare_model(phd_df, assignment = "phd", t_max_y1 = 1, C = 4)
+
+  wrapped <- solve_assignment(
+    model = phd_model,
+    assignment = "phd",
+    solver = "glpk",
+    student_df = phd_students_ex001,
+    course_codes = rownames(phd_demand_ex001),
+    name_col = "Name",
+    verbose = FALSE
+  )
+  manual <- assign_job(
+    model_result = wrapped$model_result,
+    student_df = phd_students_ex001,
+    course_codes = rownames(phd_demand_ex001),
+    name_col = "Name"
+  )
+
+  expect_named(wrapped, c("model_result", "output"))
+  expect_equal(wrapped$output, manual)
+})
+
+test_that("solve_assignment validates wrapper inputs before solving", {
+  expect_error(
+    solve_assignment(model = NULL, assignment = "diversity"),
+    "Missing required argument\\(s\\).*dframe.*group_names"
+  )
+  expect_error(
+    solve_assignment(model = NULL, assignment = "preference", dframe = data.frame(), group_names = "grouping"),
+    "Missing required argument\\(s\\).*params_list"
+  )
+  expect_error(
+    solve_assignment(model = NULL, assignment = "phd"),
+    "Missing required argument\\(s\\).*student_df.*course_codes"
+  )
+  expect_error(
+    solve_assignment(
+      model = NULL,
+      solver = "cbc",
+      dframe = data.frame(groups = 1),
+      group_names = "groups"
+    ),
+    "should be one of"
+  )
+  expect_error(
+    solve_assignment(
+      model = NULL,
+      assignment = "diversity",
+      dframe = data.frame(groups = 1),
+      group_names = "groups",
+      solver_args = 1
+    ),
+    "solver_args must be a list"
+  )
+})
