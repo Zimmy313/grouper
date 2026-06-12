@@ -39,7 +39,9 @@ prepare_phd_model(
 
   - `d`: demand matrix `[j, r]` where `r = 1:3` for TA, GR, E
 
-  - `s`: seniority vector (offset form; e.g. year - 2)
+  - `s`: student-level E-allocation score vector
+
+  - `year`: year-of-study vector, with values from 1 to 4
 
   - `t1`: past TA workload vector
 
@@ -47,7 +49,7 @@ prepare_phd_model(
 
 - t_max_y1:
 
-  Maximum current-semester TA load for Year-1 students (`s == -1`)
+  Maximum current-semester TA load for Year-1 students (`year == 1`)
   before slack is used.
 
 - e_max:
@@ -78,7 +80,8 @@ prepare_phd_model(
 
 - phi:
 
-  Objective weight on seniority-weighted E term.
+  Objective weight on the score-weighted E term. When `phi > 0`, larger
+  values in `df_list$s` make E allocation more attractive.
 
 - rho:
 
@@ -97,5 +100,7 @@ An `ompr` model object ready for
 
 ## Details
 
-Index alignment is critical: `P[i, j]`, `d[j, ]`, `s[i]`, `t1[i]`, and
-`g1[i]` must refer to the same student/course ordering.
+Index alignment is critical: `P[i, j]`, `d[j, ]`, `s[i]`, `year[i]`,
+`t1[i]`, and `g1[i]` must refer to the same student/course ordering.
+Year-1 protection and TA fairness groups are based on `year`; `s` is
+used only in the E-allocation objective term.

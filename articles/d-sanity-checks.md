@@ -632,15 +632,6 @@ phd_demand_ex001
 #> C104  1  1
 ```
 
-``` r
-
-c_sem <- 4
-c(capacity_units = nrow(phd_students_ex001) * c_sem,
-  ta_gr_demand = sum(phd_demand_ex001))
-#> capacity_units   ta_gr_demand 
-#>             16              8
-```
-
 The following chunk focuses on the three core PhD workflow functions:
 
 1.  [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)

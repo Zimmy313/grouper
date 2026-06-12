@@ -83,6 +83,9 @@ Explicit argument guide by assignment:
   - `C`, which uses the default from
     [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
 
+  - `s`, which uses the default from
+    [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
+
 This wrapper does not parse YAML files. YAML-based parameter extraction
 remains available via
 [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).

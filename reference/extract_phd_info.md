@@ -6,7 +6,14 @@ Converts student-level data and input matrices into the list expected by
 ## Usage
 
 ``` r
-extract_phd_info(student_df, p_mat, d_mat, e_mode = c("rr", "none"), C = 4)
+extract_phd_info(
+  student_df,
+  p_mat,
+  d_mat,
+  e_mode = c("rr", "none"),
+  C = 4,
+  s = c(-1, 0, 1, 2)
+)
 ```
 
 ## Arguments
@@ -39,6 +46,14 @@ extract_phd_info(student_df, p_mat, d_mat, e_mode = c("rr", "none"), C = 4)
   Semester workload capacity per student. Used when `e_mode = "rr"` to
   compute total semester capacity as `Ns * C`.
 
+- s:
+
+  A finite numeric vector of length four containing the E-allocation
+  scores for Years 1, 2, 3, and 4, respectively. Larger scores make E
+  units more attractive for that year when `phi > 0` in
+  [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md).
+  Defaults to `c(-1, 0, 1, 2)`.
+
 ## Value
 
 A list containing:
@@ -51,7 +66,9 @@ A list containing:
 
 - `d`: demand matrix (`Nj x 3`) with columns `TA`, `GR`, `E`
 
-- `s`: seniority vector (`year - 2`)
+- `s`: student-level E-allocation score vector
+
+- `year`: capped year-of-study vector
 
 - `t1`: past TA workload vector
 
@@ -66,6 +83,30 @@ This function assumes input order is already aligned:
 
 - `d_mat` row `j` corresponds to `P[, j]`.
 
+`p_mat` is used as supplied, so users can choose any numeric preference
+scoring scheme during preprocessing.
+
 If E is computed (`e_mode = "rr"`), total E is set to:
 
 `Ns * C - sum(TA) - sum(GR)`.
+
+## Examples
+
+``` r
+default_scores <- extract_phd_info(
+  student_df = phd_students_ex001,
+  p_mat = phd_prefmat_ex001,
+  d_mat = phd_demand_ex001,
+  e_mode = "none"
+)
+
+custom_scores <- extract_phd_info(
+  student_df = phd_students_ex001,
+  p_mat = phd_prefmat_ex001,
+  d_mat = phd_demand_ex001,
+  e_mode = "none",
+  s = c(0, 1, 3, 6)
+)
+custom_scores$s
+#> [1] 0 1 3 6
+```

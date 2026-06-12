@@ -628,12 +628,6 @@ automatically generate E demand.</p>
 <span><span class="co">#&gt; C102  1  1</span></span>
 <span><span class="co">#&gt; C103  1  1</span></span>
 <span><span class="co">#&gt; C104  1  1</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">c_sem</span> <span class="op">&lt;-</span> <span class="fl">4</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>capacity_units <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">phd_students_ex001</span><span class="op">)</span> <span class="op">*</span> <span class="va">c_sem</span>,</span>
-<span>  ta_gr_demand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">phd_demand_ex001</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; capacity_units   ta_gr_demand </span></span>
-<span><span class="co">#&gt;             16              8</span></span></code></pre></div>
 <p>The following chunk focuses on the three core PhD workflow
 functions:</p>
 <ol style="list-style-type: decimal">
@@ -641,7 +635,7 @@ functions:</p>
 <li><code>prepare_model(..., assignment = "phd")</code></li>
 <li><code><a href="../reference/assign_job.html">assign_job()</a></code></li>
 </ol>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">phd_ex001_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_phd_info.html">extract_phd_info</a></span><span class="op">(</span></span>
 <span>  student_df <span class="op">=</span> <span class="va">phd_students_ex001</span>,</span>
 <span>  p_mat <span class="op">=</span> <span class="va">phd_prefmat_ex001</span>,</span>
@@ -658,7 +652,7 @@ functions:</p>
 <span><span class="co">#&gt; [3,]  1  1 2</span></span>
 <span><span class="co">#&gt; [4,]  1  1 2</span></span></code></pre></div>
 <p>Alternative workflow (wrapper + direct parameters):</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">phd_ex001_alt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_info.html">extract_info</a></span><span class="op">(</span></span>
 <span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
 <span>  student_df <span class="op">=</span> <span class="va">phd_students_ex001</span>,</span>
@@ -675,7 +669,7 @@ functions:</p>
 <span><span class="co">#&gt; [2,]  1  1 2</span></span>
 <span><span class="co">#&gt; [3,]  1  1 2</span></span>
 <span><span class="co">#&gt; [4,]  1  1 2</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m_phd_ex001</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">phd_ex001_list</span>,</span>
 <span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
@@ -685,7 +679,7 @@ functions:</p>
 <span>  alpha <span class="op">=</span> <span class="fl">2</span>, beta <span class="op">=</span> <span class="fl">1</span>, phi <span class="op">=</span> <span class="fl">1</span>, rho <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  C <span class="op">=</span> <span class="va">c_sem</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_phd_ex001</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ompr/man/solve_model.html" class="external-link">solve_model</a></span><span class="op">(</span><span class="va">m_phd_ex001</span>, <span class="fu"><a href="https://rdrr.io/pkg/ompr.roi/man/with_ROI.html" class="external-link">with_ROI</a></span><span class="op">(</span>solver <span class="op">=</span> <span class="st">"glpk"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/assign_job.html">assign_job</a></span><span class="op">(</span></span>
@@ -705,7 +699,7 @@ functions:</p>
 <span><span class="co">#&gt; 3      2      0</span></span>
 <span><span class="co">#&gt; 4      0      2</span></span></code></pre></div>
 <p>Alternative workflow (wrapper + direct parameters):</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m_phd_ex001_alt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">phd_ex001_alt</span>,</span>
 <span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
@@ -743,7 +737,7 @@ functions:</p>
 By doing so, past workload will not contribute to the Spread calculation
 in the objective function.</p>
 <p>We will reuse <code>phd_students_ex001</code>.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">phd_students_ex001_sem</span> <span class="op">&lt;-</span> <span class="va">phd_students_ex001</span></span>
 <span><span class="va">phd_students_ex001_sem</span><span class="op">$</span><span class="va">past_ta</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="va">phd_students_ex001_sem</span><span class="op">$</span><span class="va">past_gr</span> <span class="op">&lt;-</span> <span class="va">c_sem</span></span>
@@ -754,7 +748,7 @@ in the objective function.</p>
 <span><span class="co">#&gt; 2          2    2       0       4   Ben</span></span>
 <span><span class="co">#&gt; 3          3    3       0       4 Chloe</span></span>
 <span><span class="co">#&gt; 4          4    4       0       4 Dylan</span></span></code></pre></div>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">phd_ex001_sem_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_phd_info.html">extract_phd_info</a></span><span class="op">(</span></span>
 <span>  student_df <span class="op">=</span> <span class="va">phd_students_ex001_sem</span>,</span>
 <span>  p_mat <span class="op">=</span> <span class="va">phd_prefmat_ex001</span>,</span>
@@ -770,7 +764,7 @@ in the objective function.</p>
 <span><span class="co">#&gt; [3,]  1  1 2</span></span>
 <span><span class="co">#&gt; [4,]  1  1 2</span></span></code></pre></div>
 <p>Alternative workflow (wrapper + direct parameters):</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">phd_ex001_sem_alt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_info.html">extract_info</a></span><span class="op">(</span></span>
 <span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
 <span>  student_df <span class="op">=</span> <span class="va">phd_students_ex001_sem</span>,</span>
@@ -786,7 +780,7 @@ in the objective function.</p>
 <span><span class="co">#&gt; [2,]  1  1 2</span></span>
 <span><span class="co">#&gt; [3,]  1  1 2</span></span>
 <span><span class="co">#&gt; [4,]  1  1 2</span></span></code></pre></div>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m_phd_ex001_sem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">phd_ex001_sem_list</span>,</span>
 <span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
@@ -818,7 +812,7 @@ in the objective function.</p>
 <span><span class="co">#&gt; 3      2      0</span></span>
 <span><span class="co">#&gt; 4      0      2</span></span></code></pre></div>
 <p>Alternative workflow (wrapper + direct parameters):</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m_phd_ex001_sem_alt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">phd_ex001_sem_alt</span>,</span>
 <span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
@@ -849,7 +843,7 @@ in the objective function.</p>
 <span><span class="co">#&gt; 2      0      0</span></span>
 <span><span class="co">#&gt; 3      2      0</span></span>
 <span><span class="co">#&gt; 4      0      2</span></span></code></pre></div>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># quick summary of each student and worktype</span></span>
 <span><span class="va">ta_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-t$"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">job_phd_ex001_sem</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">gr_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-g$"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">job_phd_ex001_sem</span><span class="op">)</span><span class="op">)</span></span>

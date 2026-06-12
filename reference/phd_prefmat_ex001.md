@@ -19,7 +19,10 @@ Rows correspond to students in `phd_students_ex001`, and columns
 correspond to rows of `phd_demand_ex001`.
 
 Preference scores are encoded as 3 (first choice), 2 (second choice),
-and 1 (third choice). Unranked courses are encoded as -99.
+and 1 (third choice). Unranked courses are encoded as -99. These are
+example scores only;
+[`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
+accepts any numeric preference scores supplied by the user.
 
 ## Source
 

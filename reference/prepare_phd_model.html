@@ -80,7 +80,8 @@ Required elements are:</p><ul><li><p><code>Ns</code>: number of students</p></li
 <li><p><code>Nj</code>: number of courses</p></li>
 <li><p><code>P</code>: preference matrix <code>[i, j]</code></p></li>
 <li><p><code>d</code>: demand matrix <code>[j, r]</code> where <code>r = 1:3</code> for TA, GR, E</p></li>
-<li><p><code>s</code>: seniority vector (offset form; e.g. year - 2)</p></li>
+<li><p><code>s</code>: student-level E-allocation score vector</p></li>
+<li><p><code>year</code>: year-of-study vector, with values from 1 to 4</p></li>
 <li><p><code>t1</code>: past TA workload vector</p></li>
 <li><p><code>g1</code>: past GR workload vector</p></li>
 </ul></dd>
@@ -88,7 +89,7 @@ Required elements are:</p><ul><li><p><code>Ns</code>: number of students</p></li
 
 <dt id="arg-t-max-y-">t_max_y1<a class="anchor" aria-label="anchor" href="#arg-t-max-y-"></a></dt>
 <dd><p>Maximum current-semester TA load for Year-1 students
-(<code>s == -1</code>) before slack is used.</p></dd>
+(<code>year == 1</code>) before slack is used.</p></dd>
 
 
 <dt id="arg-e-max">e_max<a class="anchor" aria-label="anchor" href="#arg-e-max"></a></dt>
@@ -118,7 +119,8 @@ current semester.</p></dd>
 
 
 <dt id="arg-phi">phi<a class="anchor" aria-label="anchor" href="#arg-phi"></a></dt>
-<dd><p>Objective weight on seniority-weighted E term.</p></dd>
+<dd><p>Objective weight on the score-weighted E term. When <code>phi &gt; 0</code>,
+larger values in <code>df_list$s</code> make E allocation more attractive.</p></dd>
 
 
 <dt id="arg-rho">rho<a class="anchor" aria-label="anchor" href="#arg-rho"></a></dt>
@@ -138,7 +140,9 @@ Default is <code>4</code>.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Index alignment is critical: <code>P[i, j]</code>, <code>d[j, ]</code>, <code>s[i]</code>,
-<code>t1[i]</code>, and <code>g1[i]</code> must refer to the same student/course ordering.</p>
+<code>year[i]</code>, <code>t1[i]</code>, and <code>g1[i]</code> must refer to the same
+student/course ordering. Year-1 protection and TA fairness groups are based
+on <code>year</code>; <code>s</code> is used only in the E-allocation objective term.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
