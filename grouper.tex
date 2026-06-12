@@ -1,0 +1,1049 @@
+% !TeX root = RJwrapper.tex
+\title{Grouper: Optimal Assignment Workflows for Higher Education}
+
+
+\author{by Mingyuan Zhang, Kevin Lam, and Vik Gopal}
+
+\maketitle
+
+\abstract{%
+Grouper is an R package for formulating and solving allocation problems that arise in higher education. The package provides three mixed-integer optimization workflows. They cover diversity-based assignment of students to groups and topics, preference-based assignment of self-formed groups to topic slots, and multi-role workload allocation under fairness, preference, and priority constraints. Existing optimization tools in R provide powerful low-level modeling and solver interfaces, but instructors and administrators often need formulations that connect institutional rules to interpretable allocation outputs. Grouper addresses this gap through policy-aware mathematical models, structured input formats, configurable constraints and objective weights, and a stable API pattern across assignment settings. Users can adapt group-size limits, topic capacities, preference weights, workload caps, fairness terms, and priority rules without rewriting the underlying model code. This paper presents the models, package design, implementation, and a detailed workflow demonstration, illustrating how Grouper can support reproducible and transparent allocation decisions in higher-education institutions.
+}
+
+\section{Introduction}\label{introduction}
+
+Allocation problems are a recurring feature of higher education. Instructors and
+administrators routinely need to assign students to groups, topics, supervisors,
+teaching duties, or other limited resources while balancing preferences,
+capacity, fairness, and institutional rules. These decisions often involve
+several competing objectives. For example, a course may need diverse project
+groups, a program may need to match self-formed groups to topic slots, and a
+department may need to distribute teaching or support duties fairly across
+people.
+
+In many cases, the allocation policy is clear in principle but difficult to
+operationalize. Manual allocation can be time-consuming,
+difficult to reproduce, and hard to audit when multiple constraints and policy
+goals interact.
+
+The \texttt{grouper} package provides a high-level R workflow for optimization-based
+allocation in higher education. It currently supports three policy-aware workflows.
+These address diversity-based assignment of students to groups and topics,
+preference-based assignment of self-formed groups to topic slots, and multi-role
+workload allocation.
+
+The contribution of \texttt{grouper} is both mathematical and computational. Mathematically,
+it encodes recurring allocation priorities such as diversity, preference satisfaction,
+capacity control, workload fairness, and priority-aware assignment as explicit
+objectives and constraints. Computationally, it exposes these models through a
+common R workflow in which users prepare structured data, specify policy parameters,
+solve the model through existing R optimization infrastructure, and inspect allocation
+results. This design allows users to adapt allocation rules to different courses,
+cohorts, departments, or workload settings without rewriting the underlying model
+code, making the allocation process more reproducible and transparent than ad hoc
+manual assignment.
+
+This paper introduces the mathematical models, implementation, and main
+workflows of \texttt{grouper}. The next section reviews related work, including
+general-purpose R optimization tools and existing higher-education allocation
+approaches. We then present the three allocation models, describe how the package
+implements them, and use the multi-role workload workflow as the detailed
+reproducible demonstration on departmental planning data.
+
+\subsection{Related work}\label{related-work}
+
+Optimization-based allocation has a long history in higher-education planning.
+Student-project allocation, group formation, and workload distribution can often
+be expressed as mathematical programming problems in which assignment decisions
+are represented by binary or integer variables and institutional rules are
+encoded as constraints. Prior work has used integer programming approaches to
+assign students to projects or topics while accounting for preferences,
+capacities, and other institutional constraints
+\citep{anwar2003student, meyer2009optassign, ramotsisi2022optimization}.
+
+In R, users can access a rich ecosystem of general-purpose optimization tools.
+Packages such as \texttt{ompr} provide algebraic modeling interfaces for mixed-integer
+programming \citep{R-ompr}, while \texttt{ROI} provides a common interface to multiple
+solver plugins \citep{R-ROI, R-ompr-roi}.
+
+Solver backends such as \texttt{Gurobi}, \texttt{GLPK}, and \texttt{HiGHS} can then be used to solve the
+resulting optimization problems \citep{gurobi_manual, glpk_manual, highs_manual}.
+These tools are powerful and flexible, but they operate at a relatively low
+level of abstraction. Users must still define the decision variables,
+constraints, objective functions, data transformations, and post-processing
+steps for each allocation problem.
+
+Several tools are closer to higher-education assignment. Student-project allocation
+has been studied through integer programming, and web-based or standalone
+implementations exist for specific versions of the problem
+\citep{anwar2003student, meyer2009optassign}. On CRAN, \texttt{golfr} provides classroom
+group assignment functionality with a focus on minimizing repeated pairings
+across multiple rounds \citep{R-golfr}. These tools address important subproblems,
+but they are generally designed around a single assignment setting or
+algorithmic goal.
+
+\texttt{grouper} differs from these approaches by providing a higher-level package
+interface for multiple higher-education allocation workflows. The package does
+not replace lower-level optimization software; instead, it packages recurring
+models into documented workflows that combine structured input preparation,
+configurable policy parameters, mixed-integer model construction, solver
+execution, and interpretable output generation. To our knowledge, no existing R
+package provides a comparable orchestration layer for diversity-based student
+grouping, preference-based topic allocation, and multi-role workload allocation
+within one extensible framework.
+
+\section{Mathematical allocation models}\label{mathematical-allocation-models}
+
+Each \texttt{grouper} workflow is formulated as an integer or mixed-integer program.
+The objective describes the allocation goal, while the constraints define which
+allocations are feasible. The notation below follows the package vignettes so
+that the mathematical description can be compared directly with the detailed
+model documentation.
+
+\subsection{Diversity-based assignment}\label{diversity-based-assignment}
+
+\subsubsection{Purpose and inputs}\label{purpose-and-inputs}
+
+Consider \(N\) students arranged into \(G\) self-formed groups. Each group is
+assigned to one of \(T\) topics, and topic \(t\) may have \(R_t\) repetitions.
+The model is applicable to tutorial sections, lab teams, interdisciplinary
+discussion groups, and capstone teams where instructors want heterogeneous
+final groups.
+
+The user supplies the student data, the self-formed-group column, demographic
+information or a dissimilarity matrix, and optionally a numeric skill measure.
+The extractor constructs \(m_{ig}\), which equals one when student \(i\) belongs
+to self-formed group \(g\), the pairwise dissimilarity values \(d_{ij}\), and
+the optional skill values \(s_i\).
+
+\subsubsection{Objective}\label{objective}
+
+\[
+\max \quad w_1 \left(
+\sum_{i=1}^{N-1}\sum_{j=i+1}^{N}\sum_{t=1}^{T}
+\sum_{r=1}^{R_t}z_{ijtr}d_{ij}\right)
++w_2(s_{\min}-s_{\max}).
+\]
+
+Here \(z_{ijtr}\) indicates whether students \(i\) and \(j\) are assigned to
+the same repetition \(r\) of topic \(t\). The first term maximizes pairwise
+dissimilarity within the final groups. The second minimizes the difference
+between their maximum and minimum total skill. The non-negative weights \(w_1\)
+and \(w_2\) determine the relative priority of the two terms and are normally
+chosen to sum to one. If skill is not supplied, the second term is omitted.
+
+\subsubsection{Key constraints}\label{key-constraints}
+
+Let
+
+\[
+x_{gtr}=
+\begin{cases}
+1,&\text{if group \(g\) is assigned to repetition \(r\) of topic \(t\)},\\
+0,&\text{otherwise.}
+\end{cases}
+\]
+
+Each self-formed group must be assigned exactly once:
+
+\[
+\sum_{t=1}^{T}\sum_{r=1}^{R_t}x_{gtr}=1,\quad \forall g. \tag{1}
+\]
+
+This equality preserves every self-formed group as a unit. It rules out both
+leaving a group unassigned and assigning the same group to multiple
+topic-repetition combinations.
+
+The binary variable \(z_{ijtr}\) records whether students \(i\) and \(j\) are
+both assigned to the topic-repetition combination:
+
+\[
+\begin{aligned}
+z_{ijtr}&\leq\sum_{g=1}^{G}m_{ig}x_{gtr},\\
+z_{ijtr}&\leq\sum_{g=1}^{G}m_{jg}x_{gtr},\\
+z_{ijtr}&\geq\sum_{g=1}^{G}m_{ig}x_{gtr}
+             +\sum_{g=1}^{G}m_{jg}x_{gtr}-1,
+\end{aligned}
+\quad \forall i<j,t,r. \tag{2}
+\]
+
+The first two inequalities prevent \(z_{ijtr}\) from being one unless both
+students are in the slot. The third forces it to one when both are present.
+Consequently, \(d_{ij}\) contributes to the objective exactly when the student
+pair appears in the same final group.
+
+Let \(a_{tr}=1\) when repetition \(r\) of topic \(t\) is active. The following
+constraints link activation to assignment and bound the number of repetitions:
+
+\[
+\begin{aligned}
+a_{tr}&\geq x_{gtr},&&\quad \forall g,t,r,\\
+a_{tr}&\leq\sum_{g=1}^{G}x_{gtr},&&\quad \forall t,r,\\
+\sum_{r=1}^{R_t}a_{tr}&\geq r_{\min},&&\quad \forall t,\\
+\sum_{r=1}^{R_t}a_{tr}&\leq r_{\max},&&\quad \forall t.
+\end{aligned} \tag{3}
+\]
+
+The first two conditions make \(a_{tr}\) an indicator for whether the slot is
+used. The final two then count the used repetitions of each topic and keep that
+count between the instructor-specified limits \(r_{\min}\) and \(r_{\max}\).
+
+The number of students in each active topic-repetition combination is bounded:
+
+\[
+\begin{aligned}
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}
+&\geq a_{tr}n_{tr}^{\min},\\
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}
+&\leq a_{tr}n_{tr}^{\max},
+\end{aligned}
+\quad \forall t,r. \tag{4}
+\]
+
+Multiplication by \(a_{tr}\) switches the bounds off for an inactive slot. For
+an active slot, the total number of students contributed by its assigned
+self-formed groups must lie between \(n_{tr}^{\min}\) and \(n_{tr}^{\max}\).
+
+When skill balancing is used, \(s_{\min}\) and \(s_{\max}\) bound the total
+skill assigned to each active topic-repetition combination:
+
+\[
+\begin{aligned}
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}s_i&\geq s_{\min},\\
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}s_i&\leq s_{\max},
+\end{aligned}
+\quad \forall t,r\text{ with }a_{tr}=1. \tag{5}
+\]
+
+These bounds make \(s_{\min}\) and \(s_{\max}\) the lowest and highest total
+skill among active slots. Maximizing \(s_{\min}-s_{\max}\) therefore minimizes
+the skill spread. Inactive candidate repetitions are excluded from this
+comparison.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\caption{Parameter effect guide for the diversity-based assignment model
+(directional, holding other settings fixed).}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+if increased
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+trade-off
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+if increased
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+trade-off
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{w1} & places greater relative emphasis on pairwise diversity & may place less emphasis on skill balance \\
+\texttt{w2} & places greater relative emphasis on reducing skill differences & may accept lower pairwise diversity \\
+\texttt{nmin} & requires more students in each active topic-repetition combination & tightens feasibility \\
+\texttt{nmax} & permits more students in each topic-repetition combination & increases flexibility but may permit less even group sizes \\
+\texttt{rmin} & requires more active repetitions of every topic & tightens feasibility and spreads students across more repetitions \\
+\texttt{rmax} & permits more active repetitions of every topic & increases flexibility but may fragment the cohort \\
+\texttt{n\_topics} & requires assignments across more topics when \texttt{rmin} is positive & increases model size and may tighten feasibility \\
+\texttt{R} (\(R_t\)) & provides more candidate repetitions & increases model size and only adds flexibility when repetition bounds permit their use \\
+\end{longtable}
+
+\subsection{Preference-based assignment}\label{preference-based-assignment}
+
+\subsubsection{Purpose and inputs}\label{purpose-and-inputs-1}
+
+Unlike the diversity-based model, which assigns groups according to student
+attributes and the desired composition of the final slots, this model is used
+when groups have expressed preferences over the available destinations. The
+self-formed groups remain intact, and the main decision is where each group
+should be placed rather than which student profiles should be brought together.
+
+Consider \(N\) students arranged into \(G\) self-formed groups. Each group is
+assigned to a topic \(t\) from \(T\) base topics. A topic may contain \(B\)
+subgroups, giving \(BT\) topic-subgroup combinations, and each combination may
+be repeated \(R_t\) times. This setting arises in the allocation of project
+topics, case studies, supervisors, lab rotations, presentation themes, and
+tutorial or project streams.
+
+The user supplies the student data, self-formed-group column, and preference
+matrix. The extractor obtains \(m_{ig}\), group sizes \(n_g\), and preference
+scores \(p_{tg}\), where higher values indicate stronger preferences.
+
+\subsubsection{Objective}\label{objective-1}
+
+\[
+\max\sum_{g=1}^{G}\sum_{t=1}^{BT}\sum_{r=1}^{R_t}
+x_{gtr}n_gp_{tg}.
+\]
+
+Here \(x_{gtr}=1\) when group \(g\) is assigned to repetition \(r\) of
+topic-subgroup combination \(t\). Multiplication by \(n_g\) means that an
+assignment affecting a larger group contributes more to total student-level
+preference satisfaction.
+
+\subsubsection{Key constraints}\label{key-constraints-1}
+
+Every self-formed group must be assigned exactly once:
+
+\[
+\sum_{t=1}^{BT}\sum_{r=1}^{R_t}x_{gtr}=1,\quad \forall g. \tag{6}
+\]
+
+As in the diversity model, this equality keeps each self-formed group intact and
+assigns it to one, and only one, topic-subgroup repetition.
+
+Let \(a_{tr}=1\) when repetition \(r\) of topic-subgroup combination \(t\) is
+active. Activation is linked to the assignments by
+
+\[
+\begin{aligned}
+a_{tr}&\geq x_{gtr},&&\quad \forall g,t,r,\\
+a_{tr}&\leq\sum_{g=1}^{G}x_{gtr},&&\quad \forall t,r.
+\end{aligned} \tag{7}
+\]
+
+These conditions ensure that a repetition is marked active exactly when at
+least one self-formed group is assigned to it. This indicator is then used in
+the repetition and capacity constraints below.
+
+The number of repetitions of each base topic is bounded by
+
+\[
+\begin{aligned}
+\sum_{r=1}^{R_t}a_{tr}&\geq r_{\min},\\
+\sum_{r=1}^{R_t}a_{tr}&\leq r_{\max},
+\end{aligned}
+\quad \forall t\in\{1,\ldots,T\}. \tag{8}
+\]
+
+The constraints are written for the first subgroup of each base topic. They
+require every offered topic to have between \(r_{\min}\) and \(r_{\max}\)
+active repetitions.
+
+The number of active repetitions is kept equal across subgroups belonging to
+the same base topic:
+
+\[
+\sum_{r=1}^{R_t}a_{tr}
+=\sum_{r=1}^{R_t}a_{(bT+t)r},
+\quad \forall t\in\{1,\ldots,T\},\quad b=1,\ldots,B-1. \tag{9}
+\]
+
+With topic-subgroup columns ordered as \(T_1S_1,\ldots,T_TS_1,T_1S_2,\ldots\),
+this equality gives every subgroup of a base topic the same number of active
+repetitions. The limits in (8) therefore propagate to all \(B\) subgroups.
+
+Every active topic-subgroup repetition must satisfy its student-capacity bounds:
+
+\[
+\begin{aligned}
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}
+&\geq a_{tr}n_{tr}^{\min},\\
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}
+&\leq a_{tr}n_{tr}^{\max},
+\end{aligned}
+\quad \forall t\in\{1,\ldots,BT\},r. \tag{10}
+\]
+
+The membership matrix converts group-level assignments into student counts.
+Thus, every active repetition must contain at least \(n_{tr}^{\min}\) and at
+most \(n_{tr}^{\max}\) students, while inactive repetitions remain empty.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\caption{Parameter effect guide for the preference-based assignment model
+(directional, holding other settings fixed).}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+if increased
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+trade-off
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+if increased
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+trade-off
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{n\_topics} & provides more base topics, each subject to the repetition rules & increases model size and may tighten feasibility \\
+\texttt{B} & adds more subgroups to every topic & permits finer organization but adds balancing requirements \\
+\texttt{R} (\(R_t\)) & provides more candidate repetitions & increases model size and only adds flexibility when \texttt{rmax} permits \\
+\texttt{nmin} & requires more students in each active repetition & prevents underfilled groups but tightens feasibility \\
+\texttt{nmax} & permits more students in each repetition & increases flexibility but may permit crowded groups \\
+\texttt{rmin} & requires more repetitions of every topic and corresponding subgroup & tightens feasibility and may reduce achievable preference scores \\
+\texttt{rmax} & permits more repetitions & increases flexibility but may fragment allocations \\
+\end{longtable}
+
+\subsection{Multi-role workload allocation}\label{multi-role-workload-allocation}
+
+\subsubsection{Purpose and inputs}\label{purpose-and-inputs-2}
+
+The third model addresses a general multi-role workload allocation problem.
+Individuals receive discrete work units across several roles while the
+allocation satisfies task demand, annual workload requirements, and policy
+constraints. The implementation is motivated by PhD workload allocation, where
+students receive teaching assistantship, grading, and residual support duties.
+More generally, role \(A\) is preference-sensitive, role \(B\) is routine or
+demand-driven, and role \(C\) is allocated according to a priority score such as
+seniority, experience, or eligibility.
+
+The extractor aligns a student table, preference matrix, and role-demand matrix.
+The student table supplies cohort year and previous TA and grading workload,
+which become the priority score \(q_i\) and historical workload vectors
+\(t_i^{(1)}\) and \(g_i^{(1)}\). The preference matrix supplies \(P_{ij}\), and
+the demand matrix supplies \(d_{jr}\). Residual-role demand may either be
+provided or derived from total semester workload and submitted TA and grading
+demand.
+
+\subsubsection{Objective}\label{objective-2}
+
+Let \(X_{ijr}\) be the non-negative integer units of role \(r\) assigned to
+individual \(i\) for task \(j\). Let \(Y_1\) denote the protected subgroup and
+\(Y_0\) the individuals included in the role-\(A\) fairness calculation. The
+objective is
+
+\[
+\min\quad \alpha(L_{\max}-L_{\min})
+-\beta\sum_{i,j}P_{ij}X_{ij,A}
+-\phi\sum_{i,j}q_iX_{ij,C}
++\rho\sum_{i\in Y_1}w_i.
+\]
+
+The first term penalizes the spread in cumulative role-\(A\) workload among
+individuals in \(Y_0\). The second rewards preference fit for role \(A\), the
+third rewards assigning role \(C\) according to priority \(q_i\), and the final
+term penalizes violations of the protected subgroup's soft role-\(A\) limit.
+Role \(B\) is governed by demand and workload constraints rather than a direct
+objective reward.
+
+\subsubsection{Key constraints}\label{key-constraints-2}
+
+Every task-role demand must be met exactly:
+
+\[
+\sum_iX_{ijr}=d_{jr},\quad \forall j,r. \tag{11}
+\]
+
+Each individual's annual workload is fixed at \(2C\):
+
+\[
+\left(t_i^{(1)}+\sum_jX_{ij,A}\right)
++\left(g_i^{(1)}+\sum_jX_{ij,B}\right)
++\sum_jX_{ij,C}=2C,\quad \forall i. \tag{12}
+\]
+
+The fairness variables bound cumulative role-\(A\) workload only for the
+population included in the spread calculation:
+
+\[
+L_{\min}\leq t_i^{(1)}+\sum_jX_{ij,A}\leq L_{\max},
+\quad \forall i\in Y_0. \tag{13}
+\]
+
+For protected individuals, \(w_i\) permits but penalizes role-\(A\) workload
+above the soft threshold:
+
+\[
+\sum_jX_{ij,A}\leq t_{\max}^{(Y1)}+w_i,
+\quad \forall i\in Y_1. \tag{14}
+\]
+
+Optional role-wide lower and upper bounds are imposed only when supplied:
+
+\[
+\ell_r\leq\sum_jX_{ijr}\leq u_r,\quad \forall i,r. \tag{15}
+\]
+
+The variable domains are
+
+\[
+X_{ijr}\in\mathbb{Z}_{\geq0},\qquad
+L_{\min},L_{\max}\geq0,\qquad w_i\geq0\quad(i\in Y_1). \tag{16}
+\]
+
+In the PhD workload example, roles \(A\), \(B\), and \(C\) correspond to
+teaching assistantship, grading, and residual support. The score \(q_i\) is
+seniority, \(Y_1\) contains Year-1 students, and \(Y_0\) contains the remaining
+students. Historical workload allows the model to balance past and
+current-semester duties together. For a one-semester analysis, users can set
+\texttt{past\_ta\ =\ 0} and \texttt{past\_gr\ =\ C} before calling \texttt{extract\_info()}.
+
+Setting an objective weight to zero removes the corresponding policy component
+from the optimization criterion without removing any associated feasibility
+constraints.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\caption{Parameter effect guide for the multi-role workload allocation model
+(directional, holding other settings fixed).}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+if increased
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+trade-off
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+parameter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+if increased
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+trade-off
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{alpha} & increases the penalty on role-\(A\) workload spread within \(Y_0\) & can improve fairness at the expense of preference or priority terms \\
+\texttt{beta} & increases the reward for role-\(A\) preference scores & can improve preference attainment at the expense of workload spread or priority terms \\
+\texttt{phi} & increases the reward for assigning role \(C\) to higher-priority individuals & can improve priority alignment at the expense of the other objective terms \\
+\texttt{rho} & makes protected-group slack more expensive & discourages overload but does not alter feasibility because slack remains available \\
+\texttt{t\_max\_y1} & raises the protected subgroup's soft role-\(A\) threshold & weakens protection and can reduce the slack penalty; formal feasibility is unchanged \\
+\texttt{C} & raises every individual's required annual workload from \(2C\) & requires two additional workload units per person for each unit increase and may cause infeasibility if aggregate demand is incompatible \\
+\texttt{ta\_min}, \texttt{gr\_min}, \texttt{e\_min} & raises the required minimum for the corresponding role & tightens feasibility and forces more of that role onto every individual \\
+\texttt{ta\_max}, \texttt{gr\_max}, \texttt{e\_max} & raises the permitted maximum for the corresponding role & weakly enlarges the feasible set and may allow greater concentration \\
+\end{longtable}
+
+\section{\texorpdfstring{The \texttt{grouper} package}{The grouper package}}\label{the-grouper-package}
+
+Figure \ref{fig:fig-package-architecture} summarizes the architecture of
+\texttt{grouper} as a domain-specific implementation layer for the allocation models
+above. The pipeline accepts student information together with allocation
+attributes such as preferences, demand, capacities, and policy constraints.
+Inside the package, these inputs pass through data processing, model building,
+and solving. The final stage returns a raw solver result for diagnostics and
+reproducibility together with an allocation table for operational use.
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.92\linewidth,alt={Workflow diagram showing higher-education inputs flowing through data processing, model building, and solving stages, with outputs for solver diagnostics and allocation tables.}]{figures/workflow} 
+
+}
+
+\caption{High-level package architecture.}\label{fig:fig-package-architecture}
+\end{figure}
+
+\subsection{Wrapper contract}\label{wrapper-contract}
+
+Each stage in Figure \ref{fig:fig-package-architecture} is exposed through a
+high-level wrapper, with model-specific functions available underneath for
+advanced use. This contract is intentionally stable across the supported
+assignment settings. Users can run a concise end-to-end pipeline for routine
+use, while retaining granular control over input preparation, model
+construction, solver choice, and post-processing when a local policy requires
+it.
+
+\subsubsection{\texorpdfstring{\texttt{extract\_info()}}{extract\_info()}}\label{extract_info}
+
+The \texttt{extract\_info()} function standardizes raw inputs into the list structure
+used by the model builders. For \texttt{assignment\ =\ "diversity"}, it accepts the
+student or group data frame, the self-formed-group column, and either a
+precomputed dissimilarity matrix or demographic columns from which dissimilarity
+is computed. For \texttt{assignment\ =\ "preference"}, it accepts the same group
+structure together with the group-topic preference matrix. For the historical
+\texttt{assignment\ =\ "phd"} option, which invokes the multi-role workload workflow, it
+accepts the student table, preference matrix, and role-demand matrix. In all
+cases, the purpose of \texttt{extract\_info()} is to align user-supplied records with
+the mathematical objects used in the optimization model.
+
+The following illustrative calls use the historical \texttt{assignment\ =\ "phd"}
+argument to show the multi-role workload workflow, with \texttt{S}, \texttt{P}, \texttt{D}, and \texttt{J}
+denoting the student table, preference matrix, demand matrix, and course-code
+vector.
+
+\begin{verbatim}
+# "diversity": dframe + self_formed_groups + d_mat/demographic_cols
+# "preference": dframe + self_formed_groups + pref_mat
+# "phd": S, P, and D for multi-role workload allocation
+df <- extract_info(
+  "phd",
+  student_df = S,
+  p_mat = P,
+  d_mat = D
+)
+\end{verbatim}
+
+\subsubsection{\texorpdfstring{\texttt{prepare\_model()}}{prepare\_model()}}\label{prepare_model}
+
+The \texttt{prepare\_model()} function converts standardized inputs and policy
+parameters into an \texttt{ompr} mixed-integer optimization model. For diversity-based
+assignment, it combines the extracted membership and dissimilarity information
+with topic, repetition, size, and objective-weight parameters. For
+preference-based assignment, it builds the topic-slot assignment model from
+group sizes, preference scores, and slot-capacity parameters. For multi-role
+workload allocation, it passes the extracted workload inputs and policy weights
+to the role-allocation model. The returned object is a solver-ready model rather
+than an allocation table, which lets users inspect or modify the model before
+solving when needed.
+
+\begin{verbatim}
+# "diversity": add n_topics, R, nmin, nmax, rmin, rmax, w1, w2
+# "preference": add n_topics, B, R, nmin, nmax, rmin, rmax
+# "phd": alpha, beta, phi, rho, t_max_y1, e_max, and C
+m <- prepare_model(
+  df,
+  assignment = "phd",
+  alpha = a,
+  beta = b,
+  phi = p,
+  rho = r
+)
+\end{verbatim}
+
+\subsubsection{\texorpdfstring{\texttt{solve\_assignment()}}{solve\_assignment()}}\label{solve_assignment}
+
+The \texttt{solve\_assignment()} function solves a prepared model and converts the raw
+solver solution into an allocation output. The function uses \texttt{ompr.roi} to call
+an ROI-backed solver, with \texttt{solver\ =\ "glpk"}, \texttt{"highs"}, or \texttt{"gurobi"} selecting
+the backend when the corresponding plugin or solver is available. It returns a
+list with \texttt{model\_result}, the raw output from \texttt{ompr::solve\_model()} for
+diagnostics and reproducibility, and \texttt{output}, the post-processed assignment
+table. For the student-group workflows, the output maps groups back to selected
+topics or slots; for the multi-role workload workflow, the output is a wide
+individual-by-task-role allocation table.
+
+\begin{verbatim}
+# solver can be "glpk", "highs", or "gurobi" when available
+# group workflows pass dframe, params_list, and group_names
+# multi-role passes student_df and course_codes for post-processing
+out <- solve_assignment(
+  m,
+  "phd",
+  "glpk",
+  student_df = S,
+  course_codes = J
+)
+\end{verbatim}
+
+Conceptually, all supported workflows share the same pipeline contract.
+Institutional data are converted into standardized model inputs and policy
+choices are translated into constraints and objective terms. Solver results are
+converted into interpretable allocation outputs. This contract is the main
+software contribution of \texttt{grouper} relative to lower-level modeling toolkits
+such as \texttt{ompr}, \texttt{ROI}, and solver interfaces. Those tools provide flexible
+optimization infrastructure, whereas \texttt{grouper} provides a domain-specific layer
+that connects higher-education data, institutional policy, model construction,
+and decision-ready allocation outputs.
+
+\section{Multi-role workload allocation in practice}\label{multi-role-workload-allocation-in-practice}
+
+This section evaluates the multi-role workload workflow using institutional
+planning data from AY2420, AY2510, and AY2520. The notation
+follows the department's academic-year convention, where AY denotes academic
+year, the first two digits indicate the academic year, and the final two digits
+indicate the semester. For example, AY2510 refers to Semester 1 of Academic
+Year 2025--2026, while AY2520 refers to Semester 2 of the same academic year.
+Together, the three cases cover different cohort sizes, course offerings,
+and role-demand profiles, allowing us to assess the workflow across multiple
+operational settings and compare optimized schedules with the manual schedules
+used by the department. Student identifiers and course codes are anonymized
+throughout.
+
+Table \ref{tab:multi-role-dataset-summary} summarizes the size and
+structure of each semester instance. Students and Courses describe
+the scale of the assignment problem, while TA, GR, and E report the
+required units for teaching assistantship, grading, and residual support,
+respectively. In this use case, TA is the
+preference-sensitive role, GR is primarily demand-driven, and E is
+assigned according to seniority. The columns Y1--Y4 show the cohort
+composition by year. AY2510 is the largest instance by both student
+and course count, while role demand and cohort structure vary across
+the three semesters.
+
+\begin{table}[!h]
+
+\caption{\label{tab:multi-role-dataset-summary}Scale, role demand, and cohort composition of the three multi-role workload datasets.}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r}
+\hline
+Semester & Students & Courses & TA & GR & E & Y1 & Y2 & Y3 & Y4\\
+\hline
+AY2420 & 43 & 19 & 54 & 80 & 38 & 10 & 13 & 8 & 12\\
+\hline
+AY2510 & 48 & 25 & 50 & 104 & 38 & 15 & 12 & 11 & 10\\
+\hline
+AY2520 & 40 & 19 & 55 & 81 & 24 & 10 & 11 & 13 & 6\\
+\hline
+\end{tabular}
+\end{table}
+
+The same wrapper workflow is applied to all three semesters. To avoid repeating
+nearly identical code, AY2520 is used only to demonstrate the input,
+model-building, and solving steps and to show one student-level workload
+distribution.
+
+All three cases are formulated as two-semester workload problems. The current
+semester is optimized, while previous-semester TA and grading loads are supplied
+as \texttt{past\_ta} and \texttt{past\_gr}. This lets the model balance annual workload rather
+than treating each semester in isolation.
+
+The workflow begins by standardizing the inputs. In this example, \texttt{student\_df}
+records the anonymized student identifier, cohort year, and previous-semester
+TA/GR workload. The preference matrix \(P\) is student by course, and the demand
+matrix \(D\) is course by role. Residual support demand is already included as
+the third role column, so \texttt{e\_mode} is set to \texttt{"none"}.
+
+\begin{verbatim}
+df_phd <- extract_info(
+  assignment = "phd",
+  student_df = students_ay2520[, c("student_id", "year", "past_ta", "past_gr")],
+  p_mat = P_ay2520,
+  d_mat = D_ay2520,
+  e_mode = "none",
+  C = 4
+)
+\end{verbatim}
+
+The resulting \texttt{df\_phd} object is the standardized input contract used by the
+model-building stage. It contains the aligned preference matrix, role-demand
+matrix, seniority vector, and past workload vectors; downstream code no longer
+needs to know the original file layout.
+
+The second step constructs the mixed-integer model. In this example, the policy
+weights are set to \texttt{alpha\ =\ 2}, \texttt{beta\ =\ 1}, \texttt{phi\ =\ 1}, and \texttt{rho\ =\ 10}, encoding
+the trade-off between yearly TA fairness, TA preference fit, seniority-guided
+residual support work, and Year-1 TA overload protection. The bound
+\texttt{t\_max\_y1\ =\ 1} limits Year-1 teaching assistantship load before slack is used,
+and \texttt{e\_max\ =\ 1} keeps residual support duties from concentrating too heavily on
+any single student.
+
+\begin{verbatim}
+model_phd <- prepare_model(
+  df_list = df_phd,
+  assignment = "phd",
+  alpha = 2,
+  beta = 1,
+  phi = 1,
+  rho = 10,
+  t_max_y1 = 1,
+  e_max = 1,
+  C = 4
+)
+\end{verbatim}
+
+At this point, the optimization model is fully specified but not yet solved. The
+third step selects the solver and requests the operational output mapping. \texttt{GLPK}
+is used here because it is open-source and supports a reproducible example in a
+standard R environment.
+
+\begin{verbatim}
+phd_solution <- solve_assignment(
+  model = model_phd,
+  assignment = "phd",
+  solver = "glpk",
+  student_df = students_ay2520,
+  course_codes = demand_ay2520$course_code,
+  name_col = "student_id",
+  verbose = FALSE
+)
+\end{verbatim}
+
+The returned object contains \texttt{model\_result}, which keeps the raw solver result
+for diagnostics, and \texttt{output}, which stores the allocation in a wide
+student-by-course-role table. The results are first summarized across all three
+semesters by comparing the optimized schedules with the manual schedules used by
+the department. Both are evaluated with the same objective expression. Because
+the model minimizes a weighted objective with no single natural unit, values
+should be compared only between schedules evaluated with the same policy
+weights. Figure
+\ref{fig:fig-multi-role-objective-comparison} plots the absolute objective
+value for the model and manual schedules so that all bars share a common
+positive orientation. All six raw values are negative; therefore, a taller bar
+represents a more negative, and hence lower, raw objective.
+
+\begin{figure}[!htbp]
+
+{\centering \includegraphics[width=0.72\linewidth,alt={Grouped bar chart comparing the absolute objective values of model and manual schedules for AY2420, AY2510, and AY2520.}]{figures/multi_role_objective_comparison} 
+
+}
+
+\caption{Model and manual schedules compared by absolute objective value across three semesters.}\label{fig:fig-multi-role-objective-comparison}
+\end{figure}
+
+\FloatBarrier
+
+The model obtains a lower weighted objective in all three semesters. This should
+be interpreted as a policy-consistent comparison rather than a general judgment
+on the department's manual allocation. Both schedules are scored using the same
+objective function, so each difference reflects the combined treatment of
+workload fairness, preference fit, seniority steering, and Year-1 protection
+under the stated policy weights.
+
+Figure \ref{fig:fig-ay2520-distribution} then shows how an optimized schedule is
+allocated at student level. For AY2520, it displays annual workload by student
+and cohort year. The lower part of each stacked bar is the optimized
+current-semester allocation, while the upper part is previous-semester workload
+carried into the annual balance.
+
+\begin{figure}[!htbp]
+
+{\centering \includegraphics[width=0.8\linewidth,alt={Stacked bar chart faceted by year showing AY2520 current and past workload components for anonymized students.}]{figures/ay2520_distribution} 
+
+}
+
+\caption{AY2520 model workload distribution by anonymized student and cohort year.}\label{fig:fig-ay2520-distribution}
+\end{figure}
+
+\FloatBarrier
+
+The dashed horizontal line marks the four-unit semester capacity. Since each bar
+combines current and past workload, bars reaching eight units represent a full
+two-semester workload target. Faceting by cohort year makes the Year-1 protection
+and seniority-based residual-support pattern easier to inspect. Year-1 students
+receive at most one current-semester TA unit, while residual-support units are
+assigned only to students in Years 2--4. Among Years 2--4, annual TA workload
+ranges from one to four units, giving the three-unit spread reported for the
+baseline solution.
+
+Figure \ref{fig:fig-multi-role-objective-term-gap} examines the semester with
+the largest model--manual objective gap, AY2420, by decomposing the gap into
+weighted objective terms.
+
+\begin{figure}[!htbp]
+
+{\centering \includegraphics[width=0.78\linewidth,alt={Horizontal bar chart showing AY2420 manual-minus-model weighted differences for preference, fairness, seniority residual support, and Year-1 slack terms.}]{figures/multi_role_objective_term_gap} 
+
+}
+
+\caption{AY2420 weighted objective-term differences between manual and model schedules.}\label{fig:fig-multi-role-objective-term-gap}
+\end{figure}
+
+The decomposition makes the trade-offs explicit. In AY2420, the preference term
+accounts for 125 objective units of the 125-unit total gap. The fairness term
+adds 8 units to the manual objective, while the seniority-residual-support term
+offsets the gap by 8 units and the Year-1 slack term is unchanged. In this
+sense, \texttt{grouper} makes allocation rules explicit and searches the feasible
+assignment space more systematically than an operational manual process.
+
+\subsection{Hyperparameter effectiveness}\label{hyperparameter-effectiveness}
+
+A one-at-a-time AY2520 sensitivity check was used to examine whether local
+changes to the objective weights alter the operational conclusions. In this
+example, changing \texttt{alpha} has the clearest effect on TA workload fairness
+because it directly penalizes the annual TA spread. In the local check, the
+spread decreases from 5 units at \texttt{alpha\ =\ 1} to 3 units at the manuscript value
+\texttt{alpha\ =\ 2}, and remains 3 units at \texttt{alpha\ =\ 4}. Local changes to \texttt{beta}, \texttt{phi},
+and \texttt{rho} have smaller visible effects because the baseline solution already
+achieves high TA preference attainment, assigns residual support toward senior
+students, and uses no Year-1 TA-overload slack. The sensitivity check therefore
+supports interpreting these weights as local policy levers rather than universal
+tuning constants.
+
+The reproducible benchmark repeated the AY2520 solve 30 times for each
+open-source solver. \texttt{GLPK} returned the same objective value,
+\(-182\), in all 30 runs with a mean
+runtime of 0.190 seconds and an observed
+range from 0.184 to
+0.242 seconds. \texttt{HiGHS} also returned
+objective value \(-182\) in all 30
+runs, with a mean runtime of 0.201
+seconds and an observed range from 0.192
+to 0.248 seconds. These timings indicate
+that the example is small enough for either open-source backend to solve
+interactively.
+
+\section{Web frontend}\label{web-frontend}
+
+\texttt{grouper} also ships with a \texttt{shiny} \citep{R-shiny} frontend for users who prefer a
+browser-based workflow over direct R scripting. The unified application is stored
+under \texttt{inst/shiny/grouperWebApp/} and is built with \texttt{bslib} \citep{R-bslib} and
+interactive tables from \texttt{DT} \citep{R-DT}. It is intended for instructors and
+administrators who need to prepare allocation inputs, set policy parameters, run
+an optimization model, inspect outputs, and export reusable assignment files
+without writing the wrapper calls by hand.
+
+The following command launches the application locally.
+
+\begin{verbatim}
+library(shiny)
+runApp(system.file(file.path("shiny", "grouperWebApp", "app.R"),
+                   package = "grouper"))
+\end{verbatim}
+
+The same application can also be hosted as an internal website, for example on a
+Shiny Server or similar institutional platform. This allows educators to make the
+allocation interface available to course coordinators, administrators, or other
+staff without requiring each user to install R packages or run optimization code
+locally. The home tab acts as a model selector. From there, users can open one of the
+three allocation modules.
+
+The diversity-based assignment (DBA) module is intended for instructors who need
+to form balanced tutorial, lab, project, or discussion groups from student-level
+attributes. Users upload the student records, select the self-formed group
+column, choose demographic and skill variables, tune diversity and size
+parameters, and export the merged group assignment. The preference-based
+assignment (PBA) module supports courses where self-formed groups rank topics,
+supervisors, project streams, or other limited slots; it follows the same
+pattern of uploading data, setting policy parameters, solving the model, and
+exporting the resulting assignment.
+
+\begin{figure}[!htbp]
+
+{\centering \includegraphics[width=0.86\linewidth,alt={Screenshot of the grouper Shiny home page with three model cards.}]{figures/grouper_webapp_home} 
+
+}
+
+\caption{Home page of the web application.}\label{fig:fig-grouper-webapp-home}
+\end{figure}
+
+\FloatBarrier
+
+The multi-role workload tab validates uploaded files, normalizes prior
+workload, and then runs the same multi-role optimization model described in the
+workflow section. After a successful run, the app displays solver status,
+objective diagnostics, a workload-distribution plot, preference attainment, and
+the wide assignment table produced by \texttt{assign\_job()}.
+
+The assignment table can be downloaded as an XLSX file for further processing
+or record-keeping for all three workflows.
+
+\begin{figure}[!htbp]
+
+{\centering \includegraphics[width=0.86\linewidth,alt={Screenshot of the grouper Shiny multi-role workload results view after a successful optimization run.}]{figures/grouper_webapp_multirole_results} 
+
+}
+
+\caption{Multi-role workload results view.}\label{fig:fig-grouper-webapp-multirole-results}
+\end{figure}
+
+\FloatBarrier
+
+The frontend is a convenience layer over the same package functions rather than a
+separate model implementation. Solver availability still depends on installed
+\texttt{ROI} plugins, and \texttt{Gurobi}-specific time and iteration limits only apply when the
+\texttt{Gurobi} backend is selected. For deployed use, uploaded files may contain
+sensitive student information, so the application should be run in an
+institutionally controlled environment with appropriate access restrictions.
+
+\section{Discussion}\label{discussion}
+
+\texttt{grouper} is designed for higher-education allocation settings where policy
+rules are explicit, repeated across offerings, and difficult to manage reliably
+by hand. Its main advantage is that it combines three policy-aware mathematical
+models with a common workflow over general-purpose optimization tools. Compared
+with spreadsheet-based or ad hoc procedures, the package makes allocation rules
+explicit, records the chosen policy parameters, and returns outputs that can be
+mapped back to teaching and administrative records. Users nevertheless retain
+control over priorities such as diversity, preference satisfaction, workload
+balance, and protected-group constraints.
+
+This design also creates practical limitations. Because the package encodes
+policy choices explicitly, it requires clean and consistently aligned inputs.
+Student rows, preference matrices, demand matrices, group identifiers, and topic
+or course labels must refer to the same ordering before the model is built.
+Richer constraints and objective weights increase flexibility, but they also
+increase the input burden and the need for local calibration. In practice, the
+objective weights should be treated as policy parameters rather than universal
+defaults. Institutions should confirm that the resulting trade-offs reflect
+their own allocation policies before using a model operationally.
+
+Performance is governed primarily by the size and structure of the resulting
+mixed-integer program. The package itself is not internally parallelized.
+Instead, it delegates optimization to \texttt{ROI}-backed solvers through \texttt{ompr.roi};
+any parallel or threaded execution depends on the selected solver and its
+configuration. The diversity-based model grows strongly with the number of
+student pairs because it uses pairwise dissimilarity terms. The preference-based
+model grows with the number of self-formed groups, topic-subgroup slots, and
+repetitions. The multi-role workload model grows with the number of individuals,
+tasks or courses, and role types. The three-semester examples demonstrate
+interactive use for moderate departmental instances, but larger deployments
+should be benchmarked with local data, hardware, and solver settings.
+
+The package uses a functional interface rather than defining an S3, S4, or R6
+object hierarchy. Inputs are standardized as lists, matrices, and data frames,
+models are represented by \texttt{ompr} objects, and solved allocations are returned as
+data frames. This keeps intermediate objects inspectable, although it provides
+less formal encapsulation than a class-based design. The dependency structure
+follows the same principle of using established tools for specialized tasks.
+\texttt{ompr} supplies the algebraic modeling layer, while \texttt{ompr.roi} and \texttt{ROI} plugins
+provide access to solvers such as \texttt{GLPK}, \texttt{HiGHS}, and \texttt{Gurobi}. Packages
+including \texttt{cluster}, \texttt{dplyr}, and \texttt{yaml} support distance computation, data
+handling, and configuration parsing. This modular design avoids embedding a
+custom solver in \texttt{grouper}, but solver availability, installation, and licensing
+remain deployment considerations.
+
+\section{Conclusion}\label{conclusion}
+
+\texttt{grouper} provides three mathematical models and a consistent R workflow for
+recurring allocation problems in higher education. Diversity-based assignment
+supports balanced group composition, preference-based assignment allocates
+self-formed groups to requested destinations, and multi-role workload allocation
+combines demand, preference, fairness, and priority rules. Across these settings,
+the package translates institutional policies into explicit model terms exposed
+through documented R interfaces.
+
+The detailed multi-role application demonstrates this design on a departmental
+planning task across three semesters. The workflow combines prior workload,
+course demand, student preferences, seniority-based priority, and Year-1
+protection. Under the stated policy weights, the optimized schedules obtain
+lower objective values than the corresponding manual schedules. This comparison
+is specific to the encoded policy, while the first two workflows extend the same
+data-build-solve pattern to diversity balancing and preference-sensitive topic
+allocation.
+
+Overall, \texttt{grouper} fills a practical gap between low-level optimization toolkits
+and the allocation decisions routinely faced by instructors and administrators.
+Its scripted and Shiny interfaces support both reproducible analysis and
+operational use. Future development will focus on extending the supported
+allocation models, improving diagnostic summaries, and strengthening interfaces
+for institutional deployment while preserving the common workflow.
+
+\bibliography{grouper.bib}
+
+\address{%
+Mingyuan Zhang\\
+National University of Singapore\\%
+Department of Statistics and Data Science\\ Singapore\\
+%
+%
+\textit{ORCiD: \href{https://orcid.org/0009-0009-1814-4962}{0009-0009-1814-4962}}\\%
+\href{mailto:mingyuan.z@u.nus.edu}{\nolinkurl{mingyuan.z@u.nus.edu}}%
+}
+
+\address{%
+Kevin Lam\\
+National University of Singapore\\%
+Department of Computer Science\\ Singapore\\
+%
+%
+\textit{ORCiD: \href{https://orcid.org/0000-0002-1535-7059}{0000-0002-1535-7059}}\\%
+\href{mailto:lamfy@u.nus.edu}{\nolinkurl{lamfy@u.nus.edu}}%
+}
+
+\address{%
+Vik Gopal\\
+National University of Singapore\\%
+Department of Statistics and Data Science\\ Singapore\\
+%
+%
+\textit{ORCiD: \href{https://orcid.org/0000-0002-7232-2063}{0000-0002-7232-2063}}\\%
+\href{mailto:vik.gopal@u.nus.edu}{\nolinkurl{vik.gopal@u.nus.edu}}%
+}
