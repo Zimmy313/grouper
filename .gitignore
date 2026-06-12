@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+
+# LaTex build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.pdfsync
+*.bbl
+*.blg
+*.brf
+
+# Common temporary files
+*.tmp
+*.temp
+
+# Markdown/cache style artifacts
+.cache/
+**/.cache/
+
+*.html
+*.pdf
