@@ -65,6 +65,43 @@ test_that("extract_phd_info returns aligned PhD inputs and computes E in rr mode
   expect_equal(dim(x$d), c(4, 3))
   expect_equal(colnames(x$d), c("TA", "GR", "E"))
   expect_true(sum(x$d[, "E"]) >= 0)
+  expect_equal(x$s, c(-1, 0, 1, 2))
+  expect_equal(x$year, c(1L, 2L, 3L, 4L))
+  expect_equal(unname(x$P), unname(phd_prefmat_ex001))
+})
+
+test_that("extract_phd_info maps custom seniority scores by capped year", {
+  students <- phd_students_ex001
+  students$year <- c(0, 2, 3, 5)
+
+  x <- extract_phd_info(
+    student_df = students,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none",
+    s = c(0, 1, 3, 6)
+  )
+
+  expect_equal(x$year, c(1L, 2L, 3L, 4L))
+  expect_equal(x$s, c(0, 1, 3, 6))
+})
+
+test_that("extract_phd_info validates seniority score encoding", {
+  extract_with_s <- function(s) {
+    extract_phd_info(
+      student_df = phd_students_ex001,
+      p_mat = phd_prefmat_ex001,
+      d_mat = phd_demand_ex001,
+      e_mode = "none",
+      s = s
+    )
+  }
+
+  expect_error(extract_with_s(c(0, 1, 2)), "finite numeric vector of length 4")
+  expect_error(extract_with_s(c("0", "1", "2", "3")), "finite numeric vector of length 4")
+  expect_error(extract_with_s(c(0, 1, NA, 3)), "finite numeric vector of length 4")
+  expect_error(extract_with_s(c(0, 1, NaN, 3)), "finite numeric vector of length 4")
+  expect_error(extract_with_s(c(0, 1, Inf, 3)), "finite numeric vector of length 4")
 })
 
 test_that("extract_phd_info supports none mode and validates core schema", {
@@ -158,7 +195,7 @@ test_that("extract_info wrapper dispatches to phd extractor", {
     C = 4
   )
 
-  expect_true(all(c("Ns", "Nj", "P", "d", "s", "t1", "g1") %in% names(phd_wrap)))
+  expect_true(all(c("Ns", "Nj", "P", "d", "s", "year", "t1", "g1") %in% names(phd_wrap)))
   expect_equal(phd_wrap$Ns, nrow(phd_students_ex001))
   expect_equal(phd_wrap$Nj, ncol(phd_prefmat_ex001))
   expect_equal(dim(phd_wrap$P), c(4, 4))

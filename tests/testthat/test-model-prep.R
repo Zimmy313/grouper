@@ -142,3 +142,27 @@ test_that("prepare_phd_model validates optional bound consistency", {
     "e_min cannot be greater than e_max"
   )
 })
+
+test_that("custom seniority scores do not redefine year-based model groups", {
+  default_df <- extract_phd_info(
+    student_df = phd_students_ex001,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none"
+  )
+  custom_df <- extract_phd_info(
+    student_df = phd_students_ex001,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none",
+    s = c(100, -1, -2, -3)
+  )
+
+  default_model <- prepare_phd_model(default_df)
+  custom_model <- prepare_phd_model(custom_df)
+
+  expect_equal(ompr::variable_keys(custom_model), ompr::variable_keys(default_model))
+  expect_equal(ompr::nconstraints(custom_model), ompr::nconstraints(default_model))
+  expect_true("w[1]" %in% ompr::variable_keys(custom_model))
+  expect_false("w[2]" %in% ompr::variable_keys(custom_model))
+})

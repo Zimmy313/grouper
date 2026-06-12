@@ -201,7 +201,7 @@ home_ui <- function() {
     div(
       class = "hero-banner",
       h1("grouper"),
-      p("A single workspace for diversity-based, preference-based, and PhD workload allocation models.")
+      p("A single workspace for diversity-based, preference-based, and multi-role workload allocation models.")
     ),
     step_card(
       "Choose A Model",
@@ -224,10 +224,10 @@ home_ui <- function() {
         ),
         div(
           class = "model-card",
-          span(class = "model-chip", "PhD"),
-          h3("PhD Workload Allocation"),
-          p("Allocate TA/GR/E workload under demand and policy constraints with validation, diagnostics, and reusable outputs."),
-          actionButton("open_phd", "Open PhD", class = "btn btn-accent btn-open")
+          span(class = "model-chip", "Multi-role"),
+          h3("Multi-role Workload Allocation"),
+          p("Allocate TA/GR/E-style role workload under demand and policy constraints with validation, diagnostics, and reusable outputs."),
+          actionButton("open_phd", "Open Multi-role", class = "btn btn-accent btn-open")
         )
       )
     ),
@@ -235,7 +235,7 @@ home_ui <- function() {
       "Quick Notes",
       tags$ul(
         tags$li("Use Gurobi for best performance where available."),
-        tags$li("PhD tab includes a downloadable semester template."),
+        tags$li("Multi-role workload tab includes a downloadable semester template."),
         tags$li("All outputs remain compatible with existing downstream usage.")
       )
     )
@@ -741,8 +741,8 @@ phd_ui <- function(id) {
 
   tagList(
     compact_header(
-      "PhD Workload Allocation",
-      "Validate semester files, run the model with configurable constraints, and export assignment outputs."
+      "Multi-role Workload Allocation",
+      "Validate semester files, run the multi-role model with configurable constraints, and export assignment outputs."
     ),
     step_card(
       "Step 1: Upload And Validate",
@@ -1123,7 +1123,7 @@ ui <- page_navbar(
   nav_panel("Home", value = "home", home_ui()),
   nav_panel("DBA", value = "dba", dba_ui("dba")),
   nav_panel("PBA", value = "pba", pba_ui("pba")),
-  nav_panel("PhD", value = "phd", phd_ui("phd")),
+  nav_panel("Multi-role", value = "phd", phd_ui("phd")),
   id = "main_nav",
   selected = "home",
   title = "grouper",

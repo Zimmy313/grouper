@@ -1,6 +1,9 @@
 # grouper 0.6.2
 * Unified all three shiny apps into a single app with 3 tabs.
 * Added wrapper function for solving and post-processing in one step.
+* Added configurable four-value seniority scoring for the PhD model's
+  E-allocation objective while retaining year-based cohort constraints.
+* Clarified that PhD preference matrices may use user-defined numeric scores.
 
 # grouper 0.6.1
 * Added wrapper functions for extracting information.

@@ -4,7 +4,14 @@
 \alias{extract_phd_info}
 \title{Extract inputs for the PhD workload allocation model}
 \usage{
-extract_phd_info(student_df, p_mat, d_mat, e_mode = c("rr", "none"), C = 4)
+extract_phd_info(
+  student_df,
+  p_mat,
+  d_mat,
+  e_mode = c("rr", "none"),
+  C = 4,
+  s = c(-1, 0, 1, 2)
+)
 }
 \arguments{
 \item{student_df}{A data frame with one row per student. Required columns are:
@@ -24,6 +31,11 @@ demand; \code{"none"} leaves E at 0.}
 
 \item{C}{Semester workload capacity per student. Used when \code{e_mode = "rr"}
 to compute total semester capacity as \code{Ns * C}.}
+
+\item{s}{A finite numeric vector of length four containing the E-allocation
+scores for Years 1, 2, 3, and 4, respectively. Larger scores make E units
+more attractive for that year when \code{phi > 0} in \code{\link[=prepare_phd_model]{prepare_phd_model()}}.
+Defaults to \code{c(-1, 0, 1, 2)}.}
 }
 \value{
 A list containing:
@@ -32,7 +44,8 @@ A list containing:
 \item \code{Nj}: number of courses
 \item \code{P}: preference matrix (\verb{Ns x Nj})
 \item \code{d}: demand matrix (\verb{Nj x 3}) with columns \code{TA}, \code{GR}, \code{E}
-\item \code{s}: seniority vector (\code{year - 2})
+\item \code{s}: student-level E-allocation score vector
+\item \code{year}: capped year-of-study vector
 \item \code{t1}: past TA workload vector
 \item \code{g1}: past GR workload vector
 }
@@ -48,7 +61,28 @@ This function assumes input order is already aligned:
 \item \code{d_mat} row \code{j} corresponds to \code{P[, j]}.
 }
 
+\code{p_mat} is used as supplied, so users can choose any numeric preference
+scoring scheme during preprocessing.
+
 If E is computed (\code{e_mode = "rr"}), total E is set to:
 
 \code{Ns * C - sum(TA) - sum(GR)}.
+}
+\examples{
+default_scores <- extract_phd_info(
+  student_df = phd_students_ex001,
+  p_mat = phd_prefmat_ex001,
+  d_mat = phd_demand_ex001,
+  e_mode = "none"
+)
+
+custom_scores <- extract_phd_info(
+  student_df = phd_students_ex001,
+  p_mat = phd_prefmat_ex001,
+  d_mat = phd_demand_ex001,
+  e_mode = "none",
+  s = c(0, 1, 3, 6)
+)
+custom_scores$s
+
 }

@@ -140,12 +140,13 @@ prepare_preference_model <- function(df_list, yaml_list) {
 #'   \item \code{Nj}: number of courses
 #'   \item \code{P}: preference matrix \code{[i, j]}
 #'   \item \code{d}: demand matrix \code{[j, r]} where \code{r = 1:3} for TA, GR, E
-#'   \item \code{s}: seniority vector (offset form; e.g. year - 2)
+#'   \item \code{s}: student-level E-allocation score vector
+#'   \item \code{year}: year-of-study vector, with values from 1 to 4
 #'   \item \code{t1}: past TA workload vector
 #'   \item \code{g1}: past GR workload vector
 #'   }
 #' @param t_max_y1 Maximum current-semester TA load for Year-1 students
-#'   (\code{s == -1}) before slack is used.
+#'   (\code{year == 1}) before slack is used.
 #' @param e_max Optional upper bound on per-student E units in current semester.
 #' @param ta_min,ta_max Optional lower/upper bounds on per-student TA units in
 #'   current semester.
@@ -154,7 +155,8 @@ prepare_preference_model <- function(df_list, yaml_list) {
 #' @param e_min Optional lower bound on per-student E units in current semester.
 #' @param alpha Objective weight on TA spread \code{(Tmax - Tmin)}.
 #' @param beta Objective weight on TA preference term.
-#' @param phi Objective weight on seniority-weighted E term.
+#' @param phi Objective weight on the score-weighted E term. When `phi > 0`,
+#'   larger values in `df_list$s` make E allocation more attractive.
 #' @param rho Objective weight on Year-1 TA slack penalties.
 #' @param C Semester workload capacity per student. The model fixes annual
 #'   workload at \code{2 * C} via \code{T_i + G_i + e_i^(2) == 2 * C}.
@@ -162,7 +164,9 @@ prepare_preference_model <- function(df_list, yaml_list) {
 #'
 #' @details
 #' Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
-#' \code{t1[i]}, and \code{g1[i]} must refer to the same student/course ordering.
+#' \code{year[i]}, \code{t1[i]}, and \code{g1[i]} must refer to the same
+#' student/course ordering. Year-1 protection and TA fairness groups are based
+#' on `year`; `s` is used only in the E-allocation objective term.
 #'
 #' @return An \code{ompr} model object ready for \code{ompr::solve_model()}.
 #' @export
@@ -179,12 +183,13 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   Nj <- df_list$Nj
   P  <- df_list$P   # preference matrix [i, j]
   d  <- df_list$d   # demand matrix [j, r], r = 1:3 for TA, GR, E
-  s  <- df_list$s   # seniority
+  s  <- df_list$s   # E-allocation scores
+  year <- df_list$year
   t1 <- df_list$t1  # previous semester TA workload
   g1 <- df_list$g1  # previous semester GR workload
 
-  idx_y1     <- which(s == -1)
-  idx_non_y1 <- which(s >= 0)
+  idx_y1     <- which(year == 1)
+  idx_non_y1 <- which(year >= 2)
 
   # check optional workload bounds
   validate_optional_bound <- function(x, nm) {

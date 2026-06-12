@@ -166,12 +166,19 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #'   demand; `"none"` leaves E at 0.
 #' @param C Semester workload capacity per student. Used when `e_mode = "rr"`
 #'   to compute total semester capacity as `Ns * C`.
+#' @param s A finite numeric vector of length four containing the E-allocation
+#'   scores for Years 1, 2, 3, and 4, respectively. Larger scores make E units
+#'   more attractive for that year when `phi > 0` in [prepare_phd_model()].
+#'   Defaults to `c(-1, 0, 1, 2)`.
 #'
 #' @details
 #' This function assumes input order is already aligned:
 #'
 #' * `student_df` row `i` corresponds to `P[i, ]`, `s[i]`, `t1[i]`, and `g1[i]`.
 #' * `d_mat` row `j` corresponds to `P[, j]`.
+#'
+#' `p_mat` is used as supplied, so users can choose any numeric preference
+#' scoring scheme during preprocessing.
 #'
 #' If E is computed (`e_mode = "rr"`), total E is set to:
 #'
@@ -183,15 +190,21 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' * `Nj`: number of courses
 #' * `P`: preference matrix (`Ns x Nj`)
 #' * `d`: demand matrix (`Nj x 3`) with columns `TA`, `GR`, `E`
-#' * `s`: seniority vector (`year - 2`)
+#' * `s`: student-level E-allocation score vector
+#' * `year`: capped year-of-study vector
 #' * `t1`: past TA workload vector
 #' * `g1`: past GR workload vector
 #'
+#'
 #' @export
 extract_phd_info <- function(student_df, p_mat, d_mat,
-                             e_mode = c("rr", "none"), C = 4){
+                             e_mode = c("rr", "none"), C = 4,
+                             s = c(-1, 0, 1, 2)){
   e_mode <- match.arg(e_mode)
 
+  if (!is.numeric(s) || length(s) != 4 || any(!is.finite(s))) {
+    stop("s must be a finite numeric vector of length 4 for Years 1 to 4.")
+  }
 
   required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
   current_head_cols <- names(student_df)[seq_along(required_student_cols)]
@@ -245,7 +258,8 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 
   d_num <- cbind(TA = ta_units, GR = gr_units, E = e_units)
 
-  s <- as.integer(year_num) - 2
+  year <- as.integer(year_num)
+  student_s <- unname(s[year])
   t1 <- as.numeric(past_ta_num)
   g1 <- as.numeric(past_gr_num)
 
@@ -254,7 +268,8 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
     Nj = Nj,
     P = P,
     d = d_num,
-    s = s,
+    s = student_s,
+    year = year,
     t1 = t1,
     g1 = g1
   )
@@ -305,6 +320,7 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #'   Optional arguments:
 #'   - `e_mode`, which uses the default from [extract_phd_info()]
 #'   - `C`, which uses the default from [extract_phd_info()]
+#'   - `s`, which uses the default from [extract_phd_info()]
 #'
 #' This wrapper does not parse YAML files. YAML-based parameter extraction
 #' remains available via [extract_params_yaml()].

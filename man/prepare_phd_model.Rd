@@ -28,13 +28,14 @@ Required elements are:
 \item \code{Nj}: number of courses
 \item \code{P}: preference matrix \code{[i, j]}
 \item \code{d}: demand matrix \code{[j, r]} where \code{r = 1:3} for TA, GR, E
-\item \code{s}: seniority vector (offset form; e.g. year - 2)
+\item \code{s}: student-level E-allocation score vector
+\item \code{year}: year-of-study vector, with values from 1 to 4
 \item \code{t1}: past TA workload vector
 \item \code{g1}: past GR workload vector
 }}
 
 \item{t_max_y1}{Maximum current-semester TA load for Year-1 students
-(\code{s == -1}) before slack is used.}
+(\code{year == 1}) before slack is used.}
 
 \item{e_max}{Optional upper bound on per-student E units in current semester.}
 
@@ -50,7 +51,8 @@ current semester.}
 
 \item{beta}{Objective weight on TA preference term.}
 
-\item{phi}{Objective weight on seniority-weighted E term.}
+\item{phi}{Objective weight on the score-weighted E term. When \code{phi > 0},
+larger values in \code{df_list$s} make E allocation more attractive.}
 
 \item{rho}{Objective weight on Year-1 TA slack penalties.}
 
@@ -67,5 +69,7 @@ across students and courses.
 }
 \details{
 Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
-\code{t1[i]}, and \code{g1[i]} must refer to the same student/course ordering.
+\code{year[i]}, \code{t1[i]}, and \code{g1[i]} must refer to the same
+student/course ordering. Year-1 protection and TA fairness groups are based
+on \code{year}; \code{s} is used only in the E-allocation objective term.
 }

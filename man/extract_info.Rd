@@ -63,6 +63,7 @@ Optional arguments:
 \itemize{
 \item \code{e_mode}, which uses the default from \code{\link[=extract_phd_info]{extract_phd_info()}}
 \item \code{C}, which uses the default from \code{\link[=extract_phd_info]{extract_phd_info()}}
+\item \code{s}, which uses the default from \code{\link[=extract_phd_info]{extract_phd_info()}}
 }
 }
 

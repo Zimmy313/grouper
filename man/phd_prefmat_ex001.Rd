@@ -13,7 +13,9 @@ Rows correspond to students in \code{phd_students_ex001}, and columns correspond
 to rows of \code{phd_demand_ex001}.
 
 Preference scores are encoded as 3 (first choice), 2 (second choice),
-and 1 (third choice). Unranked courses are encoded as -99.
+and 1 (third choice). Unranked courses are encoded as -99. These are example
+scores only; \code{extract_phd_info()} accepts any numeric preference scores
+supplied by the user.
 }
 }
 \source{
