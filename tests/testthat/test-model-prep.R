@@ -93,6 +93,16 @@ test_that("prepare_model wrapper dispatches and validates arguments", {
   m_phd <- prepare_model(phd_df, assignment = "phd", t_max_y1 = 1, C = 4)
   expect_s3_class(m_phd, "linear_optimization_model")
 
+  m_phd_year_2 <- prepare_model(
+    phd_df,
+    assignment = "phd",
+    t_max_y1 = 1,
+    protected_year = 2,
+    C = 4
+  )
+  expect_s3_class(m_phd_year_2, "linear_optimization_model")
+  expect_equal(grep("^w\\[", ompr::variable_keys(m_phd_year_2), value = TRUE), "w[2]")
+
   expect_error(
     prepare_model(
       div_df,
@@ -165,4 +175,79 @@ test_that("custom seniority scores do not redefine year-based model groups", {
   expect_equal(ompr::nconstraints(custom_model), ompr::nconstraints(default_model))
   expect_true("w[1]" %in% ompr::variable_keys(custom_model))
   expect_false("w[2]" %in% ompr::variable_keys(custom_model))
+})
+
+test_that("prepare_phd_model defaults to Year 1 protection", {
+  phd_df <- extract_phd_info(
+    student_df = phd_students_ex001,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none"
+  )
+
+  default_model <- prepare_phd_model(phd_df)
+  explicit_model <- prepare_phd_model(phd_df, protected_year = 1)
+
+  expect_equal(ompr::variable_keys(default_model), ompr::variable_keys(explicit_model))
+  expect_equal(ompr::nconstraints(default_model), ompr::nconstraints(explicit_model))
+  expect_equal(grep("^w\\[", ompr::variable_keys(default_model), value = TRUE), "w[1]")
+})
+
+test_that("prepare_phd_model protects exactly the selected year", {
+  phd_df <- extract_phd_info(
+    student_df = phd_students_ex001,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none"
+  )
+
+  for (protected_year in 1:4) {
+    model <- prepare_phd_model(phd_df, protected_year = protected_year)
+    slack_keys <- grep("^w\\[", ompr::variable_keys(model), value = TRUE)
+
+    expect_equal(slack_keys, paste0("w[", protected_year, "]"))
+  }
+})
+
+test_that("prepare_phd_model includes every unprotected year in fairness", {
+  students <- phd_students_ex001
+  students$year <- c(1, 1, 3, 4)
+  phd_df <- extract_phd_info(
+    student_df = students,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none"
+  )
+
+  model <- prepare_phd_model(phd_df, protected_year = 3)
+
+  expect_equal(grep("^w\\[", ompr::variable_keys(model), value = TRUE), "w[3]")
+  expect_equal(ompr::nconstraints(model), 23)
+})
+
+test_that("prepare_phd_model validates protected_year", {
+  phd_df <- extract_phd_info(
+    student_df = phd_students_ex001,
+    p_mat = phd_prefmat_ex001,
+    d_mat = phd_demand_ex001,
+    e_mode = "none"
+  )
+
+  invalid_values <- list(
+    c(1, 2),
+    1.5,
+    "1",
+    NA_real_,
+    NaN,
+    Inf,
+    0,
+    5
+  )
+
+  for (protected_year in invalid_values) {
+    expect_error(
+      prepare_phd_model(phd_df, protected_year = protected_year),
+      "single whole number from 1 to 4"
+    )
+  }
 })

@@ -145,8 +145,9 @@ prepare_preference_model <- function(df_list, yaml_list) {
 #'   \item \code{t1}: past TA workload vector
 #'   \item \code{g1}: past GR workload vector
 #'   }
-#' @param t_max_y1 Maximum current-semester TA load for Year-1 students
-#'   (\code{year == 1}) before slack is used.
+#' @param t_max_y1 Maximum current-semester TA load for students in the
+#'   protected year before slack is used. The argument name is retained for
+#'   backward compatibility.
 #' @param e_max Optional upper bound on per-student E units in current semester.
 #' @param ta_min,ta_max Optional lower/upper bounds on per-student TA units in
 #'   current semester.
@@ -157,16 +158,20 @@ prepare_preference_model <- function(df_list, yaml_list) {
 #' @param beta Objective weight on TA preference term.
 #' @param phi Objective weight on the score-weighted E term. When `phi > 0`,
 #'   larger values in `df_list$s` make E allocation more attractive.
-#' @param rho Objective weight on Year-1 TA slack penalties.
+#' @param rho Objective weight on protected-cohort TA slack penalties.
 #' @param C Semester workload capacity per student. The model fixes annual
 #'   workload at \code{2 * C} via \code{T_i + G_i + e_i^(2) == 2 * C}.
 #'   Default is \code{4}.
+#' @param protected_year A single whole number from 1 to 4 identifying the
+#'   year-of-study cohort that receives the soft TA-load protection. Students
+#'   from all other years are included in the TA fairness spread. Defaults to
+#'   Year 1.
 #'
 #' @details
 #' Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
 #' \code{year[i]}, \code{t1[i]}, and \code{g1[i]} must refer to the same
-#' student/course ordering. Year-1 protection and TA fairness groups are based
-#' on `year`; `s` is used only in the E-allocation objective term.
+#' student/course ordering. Protection and TA fairness groups are based on
+#' `year`; `s` is used only in the E-allocation objective term.
 #'
 #' @return An \code{ompr} model object ready for \code{ompr::solve_model()}.
 #' @export
@@ -175,7 +180,7 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
                               gr_min = NULL, gr_max = NULL,
                               e_min = NULL,
                               alpha = 2, beta = 1, phi = 1, rho = 10,
-                              C = 4) {
+                              C = 4, protected_year = 1) {
   # keep role order fixed: 1 = TA, 2 = GR, 3 = E
 
   # extract inputs
@@ -188,8 +193,18 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   t1 <- df_list$t1  # previous semester TA workload
   g1 <- df_list$g1  # previous semester GR workload
 
-  idx_y1     <- which(year == 1)
-  idx_non_y1 <- which(year >= 2)
+  if (!is.numeric(protected_year) ||
+      length(protected_year) != 1 ||
+      !is.finite(protected_year) ||
+      protected_year %% 1 != 0 ||
+      protected_year < 1 ||
+      protected_year > 4) {
+    stop("protected_year must be a single whole number from 1 to 4.")
+  }
+  protected_year <- as.integer(protected_year)
+
+  idx_protected <- which(year == protected_year)
+  idx_fairness <- which(year != protected_year)
 
   # check optional workload bounds
   validate_optional_bound <- function(x, nm) {
@@ -215,47 +230,39 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   }
 
   model <- ompr::MIPModel() %>%
-
     # assignment vars
     ompr::add_variable(
       X[i, j, r],
       i = 1:Ns, j = 1:Nj, r = 1:3,
       type = "integer", lb = 0
     ) %>%
-
-    # spread vars for yearly TA among non-Y1 students
+    # spread vars for yearly TA among unprotected students
     ompr::add_variable(Tmax, type = "continuous", lb = 0) %>%
     ompr::add_variable(Tmin, type = "continuous", lb = 0) %>%
-
-    # slack for Y1 TA soft bound
-    ompr::add_variable(w[i], i = idx_y1, type = "continuous", lb = 0) %>%
-
-    # objective
+    # slack for the protected cohort's TA soft bound
+    ompr::add_variable(w[i], i = idx_protected, type = "continuous", lb = 0) %>%
     ompr::set_objective(
       alpha * (Tmax - Tmin) -
         beta * ompr::sum_over(P[i, j] * X[i, j, 1], i = 1:Ns, j = 1:Nj) -
         phi  * ompr::sum_over(s[i] * X[i, j, 3], i = 1:Ns, j = 1:Nj) +
-        rho  * ompr::sum_over(w[i], i = idx_y1),
+        rho  * ompr::sum_over(w[i], i = idx_protected),
       sense = "min"
     ) %>%
-
     # demand satisfaction for each job and role
     ompr::add_constraint(
       ompr::sum_over(X[i, j, r], i = 1:Ns) == d[j, r],
       j = 1:Nj, r = 1:3
     ) %>%
-
-    # yearly TA spread constraints for non-Year-1 students:
+    # yearly TA spread constraints for unprotected students:
     # T_i = t1[i] + sum_j X[i,j,TA]
     ompr::add_constraint(
       t1[i] + ompr::sum_over(X[i, j, 1], j = 1:Nj) <= Tmax,
-      i = idx_non_y1
+      i = idx_fairness
     ) %>%
     ompr::add_constraint(
       t1[i] + ompr::sum_over(X[i, j, 1], j = 1:Nj) >= Tmin,
-      i = idx_non_y1
+      i = idx_fairness
     ) %>%
-
     # annual workload cap from semester capacity C:
     # T_i + G_i + e_i^(2) == 2 * C
     ompr::add_constraint(
@@ -264,11 +271,10 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
                ompr::sum_over(X[i, j, 3], j = 1:Nj) == 2 * C,
       i = 1:Ns
     ) %>%
-
-    # Year 1 soft TA bound on current semester TA workload
+    # protected cohort soft TA bound on current semester TA workload
     ompr::add_constraint(
       ompr::sum_over(X[i, j, 1], j = 1:Nj) <= t_max_y1 + w[i],
-      i = idx_y1
+      i = idx_protected
     )
 
   # optional per-student lower/upper bound on TA units
@@ -408,7 +414,9 @@ prepare_model_params_from_dots <- function(assignment, dots) {
 #'     `n_topics`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
 #'   * For `assignment = "preference"` when `yaml_list` is `NULL`: supply
 #'     `n_topics`, `B`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
-#'   * For `assignment = "phd"`: passed to [prepare_phd_model()].
+#'   * For `assignment = "phd"`: passed to [prepare_phd_model()], including
+#'     `protected_year` when a cohort other than Year 1 should receive the soft
+#'     TA-load protection.
 #'
 #' @returns An ompr model.
 #' @export

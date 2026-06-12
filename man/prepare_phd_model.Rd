@@ -17,7 +17,8 @@ prepare_phd_model(
   beta = 1,
   phi = 1,
   rho = 10,
-  C = 4
+  C = 4,
+  protected_year = 1
 )
 }
 \arguments{
@@ -34,8 +35,9 @@ Required elements are:
 \item \code{g1}: past GR workload vector
 }}
 
-\item{t_max_y1}{Maximum current-semester TA load for Year-1 students
-(\code{year == 1}) before slack is used.}
+\item{t_max_y1}{Maximum current-semester TA load for students in the
+protected year before slack is used. The argument name is retained for
+backward compatibility.}
 
 \item{e_max}{Optional upper bound on per-student E units in current semester.}
 
@@ -54,11 +56,16 @@ current semester.}
 \item{phi}{Objective weight on the score-weighted E term. When \code{phi > 0},
 larger values in \code{df_list$s} make E allocation more attractive.}
 
-\item{rho}{Objective weight on Year-1 TA slack penalties.}
+\item{rho}{Objective weight on protected-cohort TA slack penalties.}
 
 \item{C}{Semester workload capacity per student. The model fixes annual
 workload at \code{2 * C} via \code{T_i + G_i + e_i^(2) == 2 * C}.
 Default is \code{4}.}
+
+\item{protected_year}{A single whole number from 1 to 4 identifying the
+year-of-study cohort that receives the soft TA-load protection. Students
+from all other years are included in the TA fairness spread. Defaults to
+Year 1.}
 }
 \value{
 An \code{ompr} model object ready for \code{ompr::solve_model()}.
@@ -70,6 +77,6 @@ across students and courses.
 \details{
 Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
 \code{year[i]}, \code{t1[i]}, and \code{g1[i]} must refer to the same
-student/course ordering. Year-1 protection and TA fairness groups are based
-on \code{year}; \code{s} is used only in the E-allocation objective term.
+student/course ordering. Protection and TA fairness groups are based on
+\code{year}; \code{s} is used only in the E-allocation objective term.
 }

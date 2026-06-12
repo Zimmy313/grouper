@@ -4,6 +4,8 @@
 * Added configurable four-value seniority scoring for the PhD model's
   E-allocation objective while retaining year-based cohort constraints.
 * Clarified that PhD preference matrices may use user-defined numeric scores.
+* Added `protected_year` to choose which Year 1-4 cohort receives the PhD
+  model's soft TA-load protection.
 
 # grouper 0.6.1
 * Added wrapper functions for extracting information.

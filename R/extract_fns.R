@@ -195,6 +195,22 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' * `t1`: past TA workload vector
 #' * `g1`: past GR workload vector
 #'
+#' @examples
+#' default_scores <- extract_phd_info(
+#'   student_df = phd_students_ex001,
+#'   p_mat = phd_prefmat_ex001,
+#'   d_mat = phd_demand_ex001,
+#'   e_mode = "none"
+#' )
+#'
+#' custom_scores <- extract_phd_info(
+#'   student_df = phd_students_ex001,
+#'   p_mat = phd_prefmat_ex001,
+#'   d_mat = phd_demand_ex001,
+#'   e_mode = "none",
+#'   s = c(0, 1, 3, 6)
+#' )
+#' custom_scores$s
 #'
 #' @export
 extract_phd_info <- function(student_df, p_mat, d_mat,
