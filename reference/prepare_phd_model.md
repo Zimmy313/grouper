@@ -19,7 +19,8 @@ prepare_phd_model(
   beta = 1,
   phi = 1,
   rho = 10,
-  C = 4
+  C = 4,
+  protected_year = 1
 )
 ```
 
@@ -49,8 +50,9 @@ prepare_phd_model(
 
 - t_max_y1:
 
-  Maximum current-semester TA load for Year-1 students (`year == 1`)
-  before slack is used.
+  Maximum current-semester TA load for students in the protected year
+  before slack is used. The argument name is retained for backward
+  compatibility.
 
 - e_max:
 
@@ -85,13 +87,19 @@ prepare_phd_model(
 
 - rho:
 
-  Objective weight on Year-1 TA slack penalties.
+  Objective weight on protected-cohort TA slack penalties.
 
 - C:
 
   Semester workload capacity per student. The model fixes annual
   workload at `2 * C` via `T_i + G_i + e_i^(2) == 2 * C`. Default is
   `4`.
+
+- protected_year:
+
+  A single whole number from 1 to 4 identifying the year-of-study cohort
+  that receives the soft TA-load protection. Students from all other
+  years are included in the TA fairness spread. Defaults to Year 1.
 
 ## Value
 
@@ -102,5 +110,5 @@ An `ompr` model object ready for
 
 Index alignment is critical: `P[i, j]`, `d[j, ]`, `s[i]`, `year[i]`,
 `t1[i]`, and `g1[i]` must refer to the same student/course ordering.
-Year-1 protection and TA fairness groups are based on `year`; `s` is
-used only in the E-allocation objective term.
+Protection and TA fairness groups are based on `year`; `s` is used only
+in the E-allocation objective term.

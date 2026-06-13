@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>PhD Workload Allocation • grouper</title>
+<title>Multi-role Workload Allocation • grouper</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="PhD Workload Allocation">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Multi-role Workload Allocation">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -39,7 +39,7 @@
     <li><a class="dropdown-item" href="../articles/a-related-work.html">Related work and grouper</a></li>
     <li><a class="dropdown-item" href="../articles/b-diversity-skill.html">Maximising Diversity and Balancing Skill</a></li>
     <li><a class="dropdown-item" href="../articles/c-subgroups-preference.html">Maximising Preference</a></li>
-    <li><a class="dropdown-item" href="../articles/e-phd-workload.html">PhD Workload Allocation</a></li>
+    <li><a class="dropdown-item" href="../articles/e-phd-workload.html">Multi-role Workload Allocation</a></li>
     <li><a class="dropdown-item" href="../articles/d-sanity-checks.html">Application to simple datasets</a></li>
   </ul>
 </li>
@@ -63,7 +63,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>PhD Workload Allocation</h1>
+      <h1>Multi-role Workload Allocation</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/Zimmy313/grouper/blob/main/vignettes/e-phd-workload.Rmd" class="external-link"><code>vignettes/e-phd-workload.Rmd</code></a></small>
@@ -75,77 +75,200 @@
 <div class="section level2">
 <h2 id="model-introduction">Model introduction<a class="anchor" aria-label="anchor" href="#model-introduction"></a>
 </h2>
-<p>Consider a situation where a department needs to allocate semester
-workload across PhD students. Let there be
+<p>Higher-education teaching teams often distribute several types of
+work across the same pool of staff or graduate students.
+Teaching-assistant work (TA) includes tutorials, laboratory sessions,
+and other direct teaching support. Grading work (GR) includes marking
+assignments, tests, and examinations. A third role, E, bundles lighter
+or more intermittent duties such as exam invigilation, consultation
+support, and routine administrative tasks.</p>
+<p>This model is useful when a department must meet exact role demand
+while also accounting for workload carried from a previous semester,
+different preferences for teaching and grading, priority rules for
+lighter duties, and protections for selected cohorts. The roles can be
+reinterpreted in other settings, but TA, GR, and E provide the
+motivating higher-education example.</p>
+<p>Let there be
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
-students indexed by
+individuals indexed by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>N</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">i \in \{1,\ldots,N_s\}</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>j</mi></msub><annotation encoding="application/x-tex">N_j</annotation></semantics></math>
-courses indexed by
+courses or tasks indexed by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>N</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">j \in \{1,\ldots,N_j\}</annotation></semantics></math>.
-For each course-role pair, where
+For each task-role pair, where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>,</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>,</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">r \in \{\mathrm{TA}, \mathrm{GR}, \mathrm{E}\}</annotation></semantics></math>,
 the required demand
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mrow><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub><annotation encoding="application/x-tex">d_{j,r}</annotation></semantics></math>
 must be fully assigned.</p>
-<p>For each student-course pair,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">P_{i,j}</annotation></semantics></math>
-denotes the user-supplied TA preference score. Student year of study is
-denoted by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>.
-The E-allocation score is represented by
+<p>For each individual-task pair,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msubsup><annotation encoding="application/x-tex">P^{\mathrm{TA}}_{i,j}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup><annotation encoding="application/x-tex">P^{\mathrm{GR}}_{i,j}</annotation></semantics></math>
+denote the user-supplied TA and grading preference scores. Higher values
+indicate stronger preferences. Year of study is denoted by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>,
+and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
-and defaults to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>1</mn><mo>,</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">-1,0,1,2</annotation></semantics></math>
-for Years 1, 2, 3 and 4, respectively. Users may replace this four-value
-encoding during extraction. We also track prior-semester TA and GR
-workload, denoted by
+is a user-configurable score that guides E allocation. The model also
+tracks previous-semester TA and GR workload, denoted by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_i^{(1)}</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">g_i^{(1)}</annotation></semantics></math>.</p>
-<p>This model allocates current-semester TA, GR and E units while
-balancing:</p>
+<p>TA and GR may protect different cohorts. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup><mo>,</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo>,</mo><mn>4</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">y^\ast_{\mathrm{TA}}, y^\ast_{\mathrm{GR}} \in \{1,2,3,4\}</annotation></semantics></math>
+denote the protected years for the two roles. Each role’s fairness
+spread excludes its own protected cohort.</p>
+<p>The generalized model balances:</p>
 <ol style="list-style-type: decimal">
-<li>TA fairness across non-Year-1 students,</li>
-<li>TA preference satisfaction,</li>
-<li>Seniority-aware E allocation, and</li>
-<li>protection of Year-1 students from excessive TA load.</li>
+<li>annual TA and GR workload fairness,</li>
+<li>role-specific TA and grading preferences,</li>
+<li>score-guided allocation of lighter E duties, and</li>
+<li>separate TA and GR workload protection for selected cohorts.</li>
 </ol>
 </div>
 <div class="section level2">
-<h2 id="objective-function">Objective function<a class="anchor" aria-label="anchor" href="#objective-function"></a>
+<h2 id="proposed-formulation">Proposed formulation<a class="anchor" aria-label="anchor" href="#proposed-formulation"></a>
 </h2>
-<p>The model minimises the weighted objective:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∈</mo><msub><mi>ℤ</mi><mrow><mo>≥</mo><mn>0</mn></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mrow><mtext mathvariant="normal">units of role </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> in course </mtext><mspace width="0.333em"></mspace></mrow><mi>j</mi><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> assigned to student </mtext><mspace width="0.333em"></mspace></mrow><mi>i</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">current-semester TA workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">current-semester GR workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>e</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi mathvariant="normal">E</mi></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">current-semester E workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">yearly TA workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>G</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">yearly GR workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>w</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">slack for Year-1 TA soft bound</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi mathvariant="normal">max</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mrow><mtext mathvariant="normal">maximum yearly TA workload among students with </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>y</mi><mi>i</mi></msub><mo>≥</mo><mn>2</mn></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi mathvariant="normal">min</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mrow><mtext mathvariant="normal">minimum yearly TA workload among students with </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>y</mi><mi>i</mi></msub><mo>≥</mo><mn>2</mn></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
+<p>The formulation in this section is the proposed generalized model.
+The executable package examples later in the vignette still use the
+historical <code>assignment = "phd"</code> interface until the
+implementation is updated.</p>
+<div class="section level3">
+<h3 id="objective-function">Objective function<a class="anchor" aria-label="anchor" href="#objective-function"></a>
+</h3>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∈</mo><msub><mi>ℤ</mi><mrow><mo>≥</mo><mn>0</mn></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mrow><mtext mathvariant="normal">units of role </mtext><mspace width="0.333em"></mspace></mrow><mi>r</mi><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> in course </mtext><mspace width="0.333em"></mspace></mrow><mi>j</mi><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> assigned to student </mtext><mspace width="0.333em"></mspace></mrow><mi>i</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">current-semester TA workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">current-semester GR workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>e</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi mathvariant="normal">E</mi></mrow></msub></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">current-semester E workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">yearly TA workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>G</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">yearly GR workload</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>w</mi><mi>i</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">slack for the protected cohort’s TA soft bound</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>w</mi><mi>i</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">slack for the protected cohort’s GR soft bound</mtext></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi mathvariant="normal">max</mi></msub><mo>,</mo><msub><mi>T</mi><mi mathvariant="normal">min</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mrow><mtext mathvariant="normal">TA workload bounds outside </mtext><mspace width="0.333em"></mspace></mrow><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>G</mi><mi mathvariant="normal">max</mi></msub><mo>,</mo><msub><mi>G</mi><mi mathvariant="normal">min</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><mn>0</mn></mtd><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mrow><mtext mathvariant="normal">GR workload bounds outside </mtext><mspace width="0.333em"></mspace></mrow><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
 X_{i,j,r} &amp;\in \mathbb{Z}_{\ge 0} &amp;&amp; \text{units of role } r \text{ in course } j \text{ assigned to student } i \\
 t_i^{(2)} &amp;= \sum_{j=1}^{N_j} X_{i,j,\mathrm{TA}} &amp;&amp; \text{current-semester TA workload} \\
 g_i^{(2)} &amp;= \sum_{j=1}^{N_j} X_{i,j,\mathrm{GR}} &amp;&amp; \text{current-semester GR workload} \\
 e_i^{(2)} &amp;= \sum_{j=1}^{N_j} X_{i,j,\mathrm{E}} &amp;&amp; \text{current-semester E workload} \\
 T_i &amp;= t_i^{(1)} + t_i^{(2)} &amp;&amp; \text{yearly TA workload} \\
 G_i &amp;= g_i^{(1)} + g_i^{(2)} &amp;&amp; \text{yearly GR workload} \\
-w_i &amp;\ge 0 &amp;&amp; \text{slack for Year-1 TA soft bound} \\
-T_{\max} &amp;\ge 0 &amp;&amp; \text{maximum yearly TA workload among students with } y_i \ge 2 \\
-T_{\min} &amp;\ge 0 &amp;&amp; \text{minimum yearly TA workload among students with } y_i \ge 2
+w_i^{\mathrm{TA}} &amp;\ge 0 &amp;&amp; \text{slack for the protected cohort's TA soft bound} \\
+w_i^{\mathrm{GR}} &amp;\ge 0 &amp;&amp; \text{slack for the protected cohort's GR soft bound} \\
+T_{\max},T_{\min} &amp;\ge 0 &amp;&amp; \text{TA workload bounds outside } y^\ast_{\mathrm{TA}} \\
+G_{\max},G_{\min} &amp;\ge 0 &amp;&amp; \text{GR workload bounds outside } y^\ast_{\mathrm{GR}}
 \end{align*}</annotation></semantics></math></p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mspace width="1.0em"></mspace><mi>α</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi mathvariant="normal">max</mi></msub><mo>−</mo><msub><mi>T</mi><mi mathvariant="normal">min</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>β</mi><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></mrow></msub><mo>−</mo><mi>ϕ</mi><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>s</mi><mi>i</mi></msub><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi mathvariant="normal">E</mi></mrow></msub><mo>+</mo><mi>ρ</mi><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow></munder><msub><mi>w</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">
-\min \quad
-\alpha (T_{\max} - T_{\min})
-- \beta \sum_{i=1}^{N_s} \sum_{j=1}^{N_j} P_{i,j} X_{i,j,\mathrm{TA}}
-- \phi \sum_{i=1}^{N_s} \sum_{j=1}^{N_j} s_i X_{i,j,\mathrm{E}}
-+ \rho \sum_{i:y_i=1} w_i
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><msub><mi>α</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi mathvariant="normal">max</mi></msub><mo>−</mo><msub><mi>T</mi><mi mathvariant="normal">min</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>α</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>G</mi><mi mathvariant="normal">max</mi></msub><mo>−</mo><msub><mi>G</mi><mi mathvariant="normal">min</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mi>−</mi><msub><mi>β</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msub><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msubsup><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msubsup><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mi>−</mi><msub><mi>β</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msub><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msubsup><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mi>−</mi><mi>ϕ</mi><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>j</mi></msub></munderover><msub><mi>s</mi><mi>i</mi></msub><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi mathvariant="normal">E</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mi>+</mi><msub><mi>ρ</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msub><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup></mrow></munder><msubsup><mi>w</mi><mi>i</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msubsup><mo>+</mo><msub><mi>ρ</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msub><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup></mrow></munder><msubsup><mi>w</mi><mi>i</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">
+\begin{aligned}
+\min\quad
+&amp;\alpha_{\mathrm{TA}}(T_{\max}-T_{\min})
++\alpha_{\mathrm{GR}}(G_{\max}-G_{\min})\\
+&amp;-\beta_{\mathrm{TA}}
+  \sum_{i=1}^{N_s}\sum_{j=1}^{N_j}
+  P^{\mathrm{TA}}_{i,j}X_{i,j,\mathrm{TA}}\\
+&amp;-\beta_{\mathrm{GR}}
+  \sum_{i=1}^{N_s}\sum_{j=1}^{N_j}
+  P^{\mathrm{GR}}_{i,j}X_{i,j,\mathrm{GR}}\\
+&amp;-\phi
+  \sum_{i=1}^{N_s}\sum_{j=1}^{N_j}
+  s_iX_{i,j,\mathrm{E}}\\
+&amp;+\rho_{\mathrm{TA}}
+  \sum_{i:y_i=y^\ast_{\mathrm{TA}}}w_i^{\mathrm{TA}}
++\rho_{\mathrm{GR}}
+  \sum_{i:y_i=y^\ast_{\mathrm{GR}}}w_i^{\mathrm{GR}}.
+\end{aligned}
 </annotation></semantics></math></p>
-<p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>,</mo><mi>β</mi><mo>,</mo><mi>ϕ</mi><mo>,</mo><mi>ρ</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\alpha,\beta,\phi,\rho \ge 0</annotation></semantics></math>
-are user-specified weights. When
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\phi &gt; 0</annotation></semantics></math>,
-larger values of
+<p>All objective weights are non-negative and user-specified.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msub><annotation encoding="application/x-tex">\alpha_{\mathrm{TA}}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msub><annotation encoding="application/x-tex">\alpha_{\mathrm{GR}}</annotation></semantics></math>
+control the importance of annual workload balance for the two main
+roles.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msub><annotation encoding="application/x-tex">\beta_{\mathrm{TA}}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msub><annotation encoding="application/x-tex">\beta_{\mathrm{GR}}</annotation></semantics></math>
+reward role-specific preference satisfaction. The E term rewards
+allocation to individuals with larger
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
-make E allocation more attractive.</p>
+when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\phi &gt; 0</annotation></semantics></math>.
+Finally,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{\mathrm{TA}}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ρ</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msub><annotation encoding="application/x-tex">\rho_{\mathrm{GR}}</annotation></semantics></math>
+penalize violations of the protected cohorts’ soft workload limits.</p>
+</div>
+<div class="section level3">
+<h3 id="demand-satisfaction">Demand satisfaction<a class="anchor" aria-label="anchor" href="#demand-satisfaction"></a>
+</h3>
+<p>For every task and role, assigned units must match demand:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub><mo>=</mo><msub><mi>d</mi><mrow><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>j</mi><mo>,</mo><mspace width="1.0em"></mspace><mi>r</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>,</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>,</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="postfix">}</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+\sum_{i=1}^{N_s}X_{i,j,r}=d_{j,r},
+\quad \forall j,\quad
+r\in\{\mathrm{TA},\mathrm{GR},\mathrm{E}\}.
+</annotation></semantics></math></p>
+</div>
+<div class="section level3">
+<h3 id="role-specific-workload-spread">Role-specific workload spread<a class="anchor" aria-label="anchor" href="#role-specific-workload-spread"></a>
+</h3>
+<p>Annual TA spread is measured outside the TA-protected cohort:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi mathvariant="normal">min</mi></msub><mo>≤</mo><msub><mi>T</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>T</mi><mi mathvariant="normal">max</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>≠</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+T_{\min}\le T_i\le T_{\max},
+\quad \forall i:y_i\ne y^\ast_{\mathrm{TA}}.
+</annotation></semantics></math></p>
+<p>Annual GR spread is measured outside the GR-protected cohort:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mi mathvariant="normal">min</mi></msub><mo>≤</mo><msub><mi>G</mi><mi>i</mi></msub><mo>≤</mo><msub><mi>G</mi><mi mathvariant="normal">max</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>≠</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+G_{\min}\le G_i\le G_{\max},
+\quad \forall i:y_i\ne y^\ast_{\mathrm{GR}}.
+</annotation></semantics></math></p>
+<p>The two protected years may be the same or different.</p>
+</div>
+<div class="section level3">
+<h3 id="annual-workload-equality">Annual workload equality<a class="anchor" aria-label="anchor" href="#annual-workload-equality"></a>
+</h3>
+<p>Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+denote semester workload capacity per individual. The model fixes each
+individual’s annual workload total at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>C</mi></mrow><annotation encoding="application/x-tex">2C</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>+</mo><msub><mi>G</mi><mi>i</mi></msub><mo>+</mo><msubsup><mi>e</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><mn>2</mn><mi>C</mi><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+T_i+G_i+e_i^{(2)}=2C,\quad \forall i.
+</annotation></semantics></math></p>
+</div>
+<div class="section level3">
+<h3 id="protected-cohort-soft-upper-bounds">Protected-cohort soft upper bounds<a class="anchor" aria-label="anchor" href="#protected-cohort-soft-upper-bounds"></a>
+</h3>
+<p>Current-semester TA workload is softly capped for the TA-protected
+cohort:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>t</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>P</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>w</mi><mi>i</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+t_i^{(2)}
+\le t_{\max}^{(P)}+w_i^{\mathrm{TA}},
+\quad \forall i:y_i=y^\ast_{\mathrm{TA}}.
+</annotation></semantics></math></p>
+<p>Current-semester grading workload is separately capped for the
+GR-protected cohort:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>g</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>P</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msubsup><mi>w</mi><mi>i</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup><mi>.</mi></mrow><annotation encoding="application/x-tex">
+g_i^{(2)}
+\le g_{\max}^{(P)}+w_i^{\mathrm{GR}},
+\quad \forall i:y_i=y^\ast_{\mathrm{GR}}.
+</annotation></semantics></math></p>
+<p>The slack variables preserve feasibility while making excess workload
+costly through the corresponding
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+terms.</p>
+</div>
+<div class="section level3">
+<h3 id="optional-current-semester-workload-bounds">Optional current-semester workload bounds<a class="anchor" aria-label="anchor" href="#optional-current-semester-workload-bounds"></a>
+</h3>
+<p>If supplied, role-wide lower and upper bounds are also imposed:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>t</mi><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>t</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∀</mo><mi>i</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>g</mi><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>g</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∀</mo><mi>i</mi><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msubsup><mi>e</mi><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>e</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>e</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∀</mo><mi>i</mi><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+t_{\min}^{(2)} \le t_i^{(2)} \le t_{\max}^{(2)}, \quad &amp;\forall i, \\
+g_{\min}^{(2)} \le g_i^{(2)} \le g_{\max}^{(2)}, \quad &amp;\forall i, \\
+e_{\min}^{(2)} \le e_i^{(2)} \le e_{\max}^{(2)}, \quad &amp;\forall i.
+\end{align}</annotation></semantics></math></p>
+<p>If a bound is omitted, its corresponding constraint is not added.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="input-scoring">Input scoring<a class="anchor" aria-label="anchor" href="#input-scoring"></a>
+<h2 id="current-package-examples">Current package examples<a class="anchor" aria-label="anchor" href="#current-package-examples"></a>
 </h2>
+<p>The following executable examples demonstrate the current package
+interface. They are retained so the vignette remains buildable while the
+generalized TA/GR formulation is reviewed.</p>
+<div class="section level3">
+<h3 id="e-allocation-scoring">E-allocation scoring<a class="anchor" aria-label="anchor" href="#e-allocation-scoring"></a>
+</h3>
 <p><code><a href="../reference/extract_phd_info.html">extract_phd_info()</a></code> accepts a four-value <code>s</code>
 vector ordered by Years 1 to 4. The default <code>c(-1, 0, 1, 2)</code>
 reproduces the original seniority scoring:</p>
@@ -172,64 +295,31 @@ objective:</p>
 <span></span>
 <span><span class="va">custom_inputs</span><span class="op">$</span><span class="va">s</span></span>
 <span><span class="co">#&gt; [1] 0 1 3 6</span></span></code></pre></div>
-<p>The score vector affects only the E objective. Year-1 protection and
-the TA fairness group continue to use <code>student_df$year</code>. The
-preference matrix is also used exactly as supplied, so users can choose
-their own numeric scoring during preprocessing rather than using the
-example <code>3/2/1/-99</code> encoding.</p>
-</div>
-<div class="section level2">
-<h2 id="constraints">Constraints<a class="anchor" aria-label="anchor" href="#constraints"></a>
-</h2>
-<div class="section level3">
-<h3 id="demand-satisfaction">Demand satisfaction<a class="anchor" aria-label="anchor" href="#demand-satisfaction"></a>
-</h3>
-<p>For every course and role, assigned units must match demand:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>N</mi><mi>s</mi></msub></munderover><msub><mi>X</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub><mo>=</mo><msub><mi>d</mi><mrow><mi>j</mi><mo>,</mo><mi>r</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>j</mi><mo>,</mo><mspace width="0.278em"></mspace><mi>r</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>,</mo><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>,</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">
-\sum_{i=1}^{N_s} X_{i,j,r} = d_{j,r},
-\quad \forall j,\; r \in \{\mathrm{TA}, \mathrm{GR}, \mathrm{E}\}
-</annotation></semantics></math></p>
+<p>The score vector affects only the E objective. Protection and TA
+fairness use <code>student_df$year</code>. The preference matrix is also
+used exactly as supplied, so users can choose their own numeric scoring
+during preprocessing rather than using the example
+<code>3/2/1/-99</code> encoding.</p>
 </div>
 <div class="section level3">
-<h3 id="ta-spread-among-non-year-1-students">TA spread among non-Year-1 students<a class="anchor" aria-label="anchor" href="#ta-spread-among-non-year-1-students"></a>
+<h3 id="protected-cohort">Protected cohort<a class="anchor" aria-label="anchor" href="#protected-cohort"></a>
 </h3>
-<p>The spread term applies only to students in Year 2 or above:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≤</mo><msub><mi>T</mi><mi mathvariant="normal">max</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>≥</mo><mn>2</mn></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>T</mi><mi>i</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>≥</mo><msub><mi>T</mi><mi mathvariant="normal">min</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>≥</mo><mn>2</mn></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
-T_i &amp;\le T_{\max}, \quad \forall i : y_i \ge 2 \\
-T_i &amp;\ge T_{\min}, \quad \forall i : y_i \ge 2
-\end{align}</annotation></semantics></math></p>
-</div>
-<div class="section level3">
-<h3 id="annual-workload-equality">Annual workload equality<a class="anchor" aria-label="anchor" href="#annual-workload-equality"></a>
-</h3>
-<p>Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
-denote semester workload capacity per student. The model fixes each
-student’s annual workload total at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>C</mi></mrow><annotation encoding="application/x-tex">2C</annotation></semantics></math>.</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>+</mo><msub><mi>G</mi><mi>i</mi></msub><mo>+</mo><msubsup><mi>e</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><mn>2</mn><mi>C</mi><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">
-T_i + G_i + e_i^{(2)} = 2C, \quad \forall i
-</annotation></semantics></math></p>
-</div>
-<div class="section level3">
-<h3 id="year-1-ta-soft-upper-bound">Year-1 TA soft upper bound<a class="anchor" aria-label="anchor" href="#year-1-ta-soft-upper-bound"></a>
-</h3>
-<p>For Year-1 students, current-semester TA load is softly capped:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>t</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>Y</mi><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msub><mi>w</mi><mi>i</mi></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi><mo>:</mo><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">
-t_i^{(2)} \le t_{\max}^{(Y1)} + w_i, \quad \forall i : y_i = 1
-</annotation></semantics></math></p>
-</div>
-<div class="section level3">
-<h3 id="optional-current-semester-workload-bounds">Optional current-semester workload bounds<a class="anchor" aria-label="anchor" href="#optional-current-semester-workload-bounds"></a>
-</h3>
-<p>If provided by the user, the following bounds are imposed:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>t</mi><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>t</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>g</mi><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>g</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>e</mi><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>e</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>≤</mo><msubsup><mi>e</mi><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
-t_{\min}^{(2)} \le t_i^{(2)} \le t_{\max}^{(2)}, \quad \forall i \\
-g_{\min}^{(2)} \le g_i^{(2)} \le g_{\max}^{(2)}, \quad \forall i \\
-e_{\min}^{(2)} \le e_i^{(2)} \le e_{\max}^{(2)}, \quad \forall i
-\end{align}</annotation></semantics></math></p>
-<p>If any bound parameter is omitted, the corresponding constraint is
-not added.</p>
+<p><code><a href="../reference/prepare_phd_model.html">prepare_phd_model()</a></code> and the <code><a href="../reference/prepare_model.html">prepare_model()</a></code>
+wrapper accept <code>protected_year</code>, which must be one value from
+1 to 4. It defaults to Year 1. For example, the following model protects
+Year 3:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">year_3_protected_model</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
+<span>  <span class="va">default_inputs</span>,</span>
+<span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
+<span>  protected_year <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  t_max_y1 <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The selected cohort receives the soft TA-load bound and its
+associated slack penalty. Students from all other years enter the TA
+fairness spread. The existing <code>t_max_y1</code> argument name is
+retained for backward compatibility, but its value applies to whichever
+cohort is selected by <code>protected_year</code>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

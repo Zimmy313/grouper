@@ -50,7 +50,9 @@ prepare_model(
     `n_topics`, `B`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
 
   - For `assignment = "phd"`: passed to
-    [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md).
+    [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md),
+    including `protected_year` when a cohort other than Year 1 should
+    receive the soft TA-load protection.
 
 ## Value
 

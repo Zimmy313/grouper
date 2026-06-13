@@ -26,7 +26,7 @@ across students and courses."></head><body>
     <li><a class="dropdown-item" href="../articles/a-related-work.html">Related work and grouper</a></li>
     <li><a class="dropdown-item" href="../articles/b-diversity-skill.html">Maximising Diversity and Balancing Skill</a></li>
     <li><a class="dropdown-item" href="../articles/c-subgroups-preference.html">Maximising Preference</a></li>
-    <li><a class="dropdown-item" href="../articles/e-phd-workload.html">PhD Workload Allocation</a></li>
+    <li><a class="dropdown-item" href="../articles/e-phd-workload.html">Multi-role Workload Allocation</a></li>
     <li><a class="dropdown-item" href="../articles/d-sanity-checks.html">Application to simple datasets</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -66,7 +66,8 @@ across students and courses.</p>
 <span>  beta <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  phi <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  rho <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  C <span class="op">=</span> <span class="fl">4</span></span>
+<span>  C <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  protected_year <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -88,8 +89,9 @@ Required elements are:</p><ul><li><p><code>Ns</code>: number of students</p></li
 
 
 <dt id="arg-t-max-y-">t_max_y1<a class="anchor" aria-label="anchor" href="#arg-t-max-y-"></a></dt>
-<dd><p>Maximum current-semester TA load for Year-1 students
-(<code>year == 1</code>) before slack is used.</p></dd>
+<dd><p>Maximum current-semester TA load for students in the
+protected year before slack is used. The argument name is retained for
+backward compatibility.</p></dd>
 
 
 <dt id="arg-e-max">e_max<a class="anchor" aria-label="anchor" href="#arg-e-max"></a></dt>
@@ -124,13 +126,20 @@ larger values in <code>df_list$s</code> make E allocation more attractive.</p></
 
 
 <dt id="arg-rho">rho<a class="anchor" aria-label="anchor" href="#arg-rho"></a></dt>
-<dd><p>Objective weight on Year-1 TA slack penalties.</p></dd>
+<dd><p>Objective weight on protected-cohort TA slack penalties.</p></dd>
 
 
 <dt id="arg-c">C<a class="anchor" aria-label="anchor" href="#arg-c"></a></dt>
 <dd><p>Semester workload capacity per student. The model fixes annual
 workload at <code>2 * C</code> via <code>T_i + G_i + e_i^(2) == 2 * C</code>.
 Default is <code>4</code>.</p></dd>
+
+
+<dt id="arg-protected-year">protected_year<a class="anchor" aria-label="anchor" href="#arg-protected-year"></a></dt>
+<dd><p>A single whole number from 1 to 4 identifying the
+year-of-study cohort that receives the soft TA-load protection. Students
+from all other years are included in the TA fairness spread. Defaults to
+Year 1.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -141,8 +150,8 @@ Default is <code>4</code>.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Index alignment is critical: <code>P[i, j]</code>, <code>d[j, ]</code>, <code>s[i]</code>,
 <code>year[i]</code>, <code>t1[i]</code>, and <code>g1[i]</code> must refer to the same
-student/course ordering. Year-1 protection and TA fairness groups are based
-on <code>year</code>; <code>s</code> is used only in the E-allocation objective term.</p>
+student/course ordering. Protection and TA fairness groups are based on
+<code>year</code>; <code>s</code> is used only in the E-allocation objective term.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

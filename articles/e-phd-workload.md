@@ -1,32 +1,55 @@
-# PhD Workload Allocation
+# Multi-role Workload Allocation
 
 ## Model introduction
 
-Consider a situation where a department needs to allocate semester
-workload across PhD students. Let there be $`N_s`$ students indexed by
-$`i \in \{1,\ldots,N_s\}`$ and $`N_j`$ courses indexed by
-$`j \in \{1,\ldots,N_j\}`$. For each course-role pair, where
+Higher-education teaching teams often distribute several types of work
+across the same pool of staff or graduate students. Teaching-assistant
+work (TA) includes tutorials, laboratory sessions, and other direct
+teaching support. Grading work (GR) includes marking assignments, tests,
+and examinations. A third role, E, bundles lighter or more intermittent
+duties such as exam invigilation, consultation support, and routine
+administrative tasks.
+
+This model is useful when a department must meet exact role demand while
+also accounting for workload carried from a previous semester, different
+preferences for teaching and grading, priority rules for lighter duties,
+and protections for selected cohorts. The roles can be reinterpreted in
+other settings, but TA, GR, and E provide the motivating
+higher-education example.
+
+Let there be $`N_s`$ individuals indexed by $`i \in \{1,\ldots,N_s\}`$
+and $`N_j`$ courses or tasks indexed by $`j \in \{1,\ldots,N_j\}`$. For
+each task-role pair, where
 $`r \in \{\mathrm{TA}, \mathrm{GR}, \mathrm{E}\}`$, the required demand
 $`d_{j,r}`$ must be fully assigned.
 
-For each student-course pair, $`P_{i,j}`$ denotes the user-supplied TA
-preference score. Student year of study is denoted by $`y_i`$. The
-E-allocation score is represented by $`s_i`$ and defaults to
-$`-1,0,1,2`$ for Years 1, 2, 3 and 4, respectively. Users may replace
-this four-value encoding during extraction. We also track prior-semester
-TA and GR workload, denoted by $`t_i^{(1)}`$ and $`g_i^{(1)}`$.
+For each individual-task pair, $`P^{\mathrm{TA}}_{i,j}`$ and
+$`P^{\mathrm{GR}}_{i,j}`$ denote the user-supplied TA and grading
+preference scores. Higher values indicate stronger preferences. Year of
+study is denoted by $`y_i`$, and $`s_i`$ is a user-configurable score
+that guides E allocation. The model also tracks previous-semester TA and
+GR workload, denoted by $`t_i^{(1)}`$ and $`g_i^{(1)}`$.
 
-This model allocates current-semester TA, GR and E units while
-balancing:
+TA and GR may protect different cohorts. Let
+$`y^\ast_{\mathrm{TA}}, y^\ast_{\mathrm{GR}} \in \{1,2,3,4\}`$ denote
+the protected years for the two roles. Each role’s fairness spread
+excludes its own protected cohort.
 
-1.  TA fairness across non-Year-1 students,
-2.  TA preference satisfaction,
-3.  Seniority-aware E allocation, and
-4.  protection of Year-1 students from excessive TA load.
+The generalized model balances:
 
-## Objective function
+1.  annual TA and GR workload fairness,
+2.  role-specific TA and grading preferences,
+3.  score-guided allocation of lighter E duties, and
+4.  separate TA and GR workload protection for selected cohorts.
 
-The model minimises the weighted objective:
+## Proposed formulation
+
+The formulation in this section is the proposed generalized model. The
+executable package examples later in the vignette still use the
+historical `assignment = "phd"` interface until the implementation is
+updated.
+
+### Objective function
 
 ``` math
 \begin{align*}
@@ -36,25 +59,124 @@ g_i^{(2)} &= \sum_{j=1}^{N_j} X_{i,j,\mathrm{GR}} && \text{current-semester GR w
 e_i^{(2)} &= \sum_{j=1}^{N_j} X_{i,j,\mathrm{E}} && \text{current-semester E workload} \\
 T_i &= t_i^{(1)} + t_i^{(2)} && \text{yearly TA workload} \\
 G_i &= g_i^{(1)} + g_i^{(2)} && \text{yearly GR workload} \\
-w_i &\ge 0 && \text{slack for Year-1 TA soft bound} \\
-T_{\max} &\ge 0 && \text{maximum yearly TA workload among students with } y_i \ge 2 \\
-T_{\min} &\ge 0 && \text{minimum yearly TA workload among students with } y_i \ge 2
+w_i^{\mathrm{TA}} &\ge 0 && \text{slack for the protected cohort's TA soft bound} \\
+w_i^{\mathrm{GR}} &\ge 0 && \text{slack for the protected cohort's GR soft bound} \\
+T_{\max},T_{\min} &\ge 0 && \text{TA workload bounds outside } y^\ast_{\mathrm{TA}} \\
+G_{\max},G_{\min} &\ge 0 && \text{GR workload bounds outside } y^\ast_{\mathrm{GR}}
 \end{align*}
 ```
 
 ``` math
-\min \quad
-\alpha (T_{\max} - T_{\min})
-- \beta \sum_{i=1}^{N_s} \sum_{j=1}^{N_j} P_{i,j} X_{i,j,\mathrm{TA}}
-- \phi \sum_{i=1}^{N_s} \sum_{j=1}^{N_j} s_i X_{i,j,\mathrm{E}}
-+ \rho \sum_{i:y_i=1} w_i
+\begin{aligned}
+\min\quad
+&\alpha_{\mathrm{TA}}(T_{\max}-T_{\min})
++\alpha_{\mathrm{GR}}(G_{\max}-G_{\min})\\
+&-\beta_{\mathrm{TA}}
+  \sum_{i=1}^{N_s}\sum_{j=1}^{N_j}
+  P^{\mathrm{TA}}_{i,j}X_{i,j,\mathrm{TA}}\\
+&-\beta_{\mathrm{GR}}
+  \sum_{i=1}^{N_s}\sum_{j=1}^{N_j}
+  P^{\mathrm{GR}}_{i,j}X_{i,j,\mathrm{GR}}\\
+&-\phi
+  \sum_{i=1}^{N_s}\sum_{j=1}^{N_j}
+  s_iX_{i,j,\mathrm{E}}\\
+&+\rho_{\mathrm{TA}}
+  \sum_{i:y_i=y^\ast_{\mathrm{TA}}}w_i^{\mathrm{TA}}
++\rho_{\mathrm{GR}}
+  \sum_{i:y_i=y^\ast_{\mathrm{GR}}}w_i^{\mathrm{GR}}.
+\end{aligned}
 ```
 
-where $`\alpha,\beta,\phi,\rho \ge 0`$ are user-specified weights. When
-$`\phi > 0`$, larger values of $`s_i`$ make E allocation more
-attractive.
+All objective weights are non-negative and user-specified.
+$`\alpha_{\mathrm{TA}}`$ and $`\alpha_{\mathrm{GR}}`$ control the
+importance of annual workload balance for the two main roles.
+$`\beta_{\mathrm{TA}}`$ and $`\beta_{\mathrm{GR}}`$ reward role-specific
+preference satisfaction. The E term rewards allocation to individuals
+with larger $`s_i`$ when $`\phi > 0`$. Finally, $`\rho_{\mathrm{TA}}`$
+and $`\rho_{\mathrm{GR}}`$ penalize violations of the protected cohorts’
+soft workload limits.
 
-## Input scoring
+### Demand satisfaction
+
+For every task and role, assigned units must match demand:
+
+``` math
+\sum_{i=1}^{N_s}X_{i,j,r}=d_{j,r},
+\quad \forall j,\quad
+r\in\{\mathrm{TA},\mathrm{GR},\mathrm{E}\}.
+```
+
+### Role-specific workload spread
+
+Annual TA spread is measured outside the TA-protected cohort:
+
+``` math
+T_{\min}\le T_i\le T_{\max},
+\quad \forall i:y_i\ne y^\ast_{\mathrm{TA}}.
+```
+
+Annual GR spread is measured outside the GR-protected cohort:
+
+``` math
+G_{\min}\le G_i\le G_{\max},
+\quad \forall i:y_i\ne y^\ast_{\mathrm{GR}}.
+```
+
+The two protected years may be the same or different.
+
+### Annual workload equality
+
+Let $`C`$ denote semester workload capacity per individual. The model
+fixes each individual’s annual workload total at $`2C`$:
+
+``` math
+T_i+G_i+e_i^{(2)}=2C,\quad \forall i.
+```
+
+### Protected-cohort soft upper bounds
+
+Current-semester TA workload is softly capped for the TA-protected
+cohort:
+
+``` math
+t_i^{(2)}
+\le t_{\max}^{(P)}+w_i^{\mathrm{TA}},
+\quad \forall i:y_i=y^\ast_{\mathrm{TA}}.
+```
+
+Current-semester grading workload is separately capped for the
+GR-protected cohort:
+
+``` math
+g_i^{(2)}
+\le g_{\max}^{(P)}+w_i^{\mathrm{GR}},
+\quad \forall i:y_i=y^\ast_{\mathrm{GR}}.
+```
+
+The slack variables preserve feasibility while making excess workload
+costly through the corresponding $`\rho`$ terms.
+
+### Optional current-semester workload bounds
+
+If supplied, role-wide lower and upper bounds are also imposed:
+
+``` math
+\begin{align}
+t_{\min}^{(2)} \le t_i^{(2)} \le t_{\max}^{(2)}, \quad &\forall i, \\
+g_{\min}^{(2)} \le g_i^{(2)} \le g_{\max}^{(2)}, \quad &\forall i, \\
+e_{\min}^{(2)} \le e_i^{(2)} \le e_{\max}^{(2)}, \quad &\forall i.
+\end{align}
+```
+
+If a bound is omitted, its corresponding constraint is not added.
+
+## Current package examples
+
+The following executable examples demonstrate the current package
+interface. They are retained so the vignette remains buildable while the
+generalized TA/GR formulation is reviewed.
+
+### E-allocation scoring
 
 [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
 accepts a four-value `s` vector ordered by Years 1 to 4. The default
@@ -90,62 +212,31 @@ custom_inputs$s
 #> [1] 0 1 3 6
 ```
 
-The score vector affects only the E objective. Year-1 protection and the
-TA fairness group continue to use `student_df$year`. The preference
-matrix is also used exactly as supplied, so users can choose their own
-numeric scoring during preprocessing rather than using the example
-`3/2/1/-99` encoding.
+The score vector affects only the E objective. Protection and TA
+fairness use `student_df$year`. The preference matrix is also used
+exactly as supplied, so users can choose their own numeric scoring
+during preprocessing rather than using the example `3/2/1/-99` encoding.
 
-## Constraints
+### Protected cohort
 
-### Demand satisfaction
+[`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md)
+and the
+[`prepare_model()`](https://Zimmy313.github.io/grouper/reference/prepare_model.md)
+wrapper accept `protected_year`, which must be one value from 1 to 4. It
+defaults to Year 1. For example, the following model protects Year 3:
 
-For every course and role, assigned units must match demand:
+``` r
 
-``` math
-\sum_{i=1}^{N_s} X_{i,j,r} = d_{j,r},
-\quad \forall j,\; r \in \{\mathrm{TA}, \mathrm{GR}, \mathrm{E}\}
+year_3_protected_model <- grouper::prepare_model(
+  default_inputs,
+  assignment = "phd",
+  protected_year = 3,
+  t_max_y1 = 1
+)
 ```
 
-### TA spread among non-Year-1 students
-
-The spread term applies only to students in Year 2 or above:
-
-``` math
-\begin{align}
-T_i &\le T_{\max}, \quad \forall i : y_i \ge 2 \\
-T_i &\ge T_{\min}, \quad \forall i : y_i \ge 2
-\end{align}
-```
-
-### Annual workload equality
-
-Let $`C`$ denote semester workload capacity per student. The model fixes
-each student’s annual workload total at $`2C`$.
-
-``` math
-T_i + G_i + e_i^{(2)} = 2C, \quad \forall i
-```
-
-### Year-1 TA soft upper bound
-
-For Year-1 students, current-semester TA load is softly capped:
-
-``` math
-t_i^{(2)} \le t_{\max}^{(Y1)} + w_i, \quad \forall i : y_i = 1
-```
-
-### Optional current-semester workload bounds
-
-If provided by the user, the following bounds are imposed:
-
-``` math
-\begin{align}
-t_{\min}^{(2)} \le t_i^{(2)} \le t_{\max}^{(2)}, \quad \forall i \\
-g_{\min}^{(2)} \le g_i^{(2)} \le g_{\max}^{(2)}, \quad \forall i \\
-e_{\min}^{(2)} \le e_i^{(2)} \le e_{\max}^{(2)}, \quad \forall i
-\end{align}
-```
-
-If any bound parameter is omitted, the corresponding constraint is not
-added.
+The selected cohort receives the soft TA-load bound and its associated
+slack penalty. Students from all other years enter the TA fairness
+spread. The existing `t_max_y1` argument name is retained for backward
+compatibility, but its value applies to whichever cohort is selected by
+`protected_year`.

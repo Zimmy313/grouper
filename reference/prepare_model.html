@@ -24,7 +24,7 @@
     <li><a class="dropdown-item" href="../articles/a-related-work.html">Related work and grouper</a></li>
     <li><a class="dropdown-item" href="../articles/b-diversity-skill.html">Maximising Diversity and Balancing Skill</a></li>
     <li><a class="dropdown-item" href="../articles/c-subgroups-preference.html">Maximising Preference</a></li>
-    <li><a class="dropdown-item" href="../articles/e-phd-workload.html">PhD Workload Allocation</a></li>
+    <li><a class="dropdown-item" href="../articles/e-phd-workload.html">Multi-role Workload Allocation</a></li>
     <li><a class="dropdown-item" href="../articles/d-sanity-checks.html">Application to simple datasets</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -90,7 +90,9 @@ compatibility. If supplied, this list is used directly. Ignored for
 <code>n_topics</code>, <code>R</code>, <code>nmin</code>, <code>nmax</code>, <code>rmin</code>, and <code>rmax</code>.</p></li>
 <li><p>For <code>assignment = "preference"</code> when <code>yaml_list</code> is <code>NULL</code>: supply
 <code>n_topics</code>, <code>B</code>, <code>R</code>, <code>nmin</code>, <code>nmax</code>, <code>rmin</code>, and <code>rmax</code>.</p></li>
-<li><p>For <code>assignment = "phd"</code>: passed to <code><a href="prepare_phd_model.html">prepare_phd_model()</a></code>.</p></li>
+<li><p>For <code>assignment = "phd"</code>: passed to <code><a href="prepare_phd_model.html">prepare_phd_model()</a></code>, including
+<code>protected_year</code> when a cohort other than Year 1 should receive the soft
+TA-load protection.</p></li>
 </ul></dd>
 
 </dl></div>
