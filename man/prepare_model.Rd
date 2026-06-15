@@ -7,7 +7,7 @@
 prepare_model(
   df_list,
   yaml_list = NULL,
-  assignment = c("diversity", "preference", "phd"),
+  assignment = c("diversity", "preference", "phd", "multirole"),
   w1 = 0.5,
   w2 = 0.5,
   ...
@@ -19,10 +19,10 @@ prepare_model(
 \item{yaml_list}{Parameter list from \code{\link[=extract_params_yaml]{extract_params_yaml()}}. Optional for
 \code{assignment = "diversity"} and \code{assignment = "preference"} for backward
 compatibility. If supplied, this list is used directly. Ignored for
-\code{assignment = "phd"}.}
+\code{assignment = "phd"} and \code{assignment = "multirole"}.}
 
 \item{assignment}{Character string indicating model type. Must be one of
-\code{"diversity"}, \code{"preference"}, or \code{"phd"}.}
+\code{"diversity"}, \code{"preference"}, \code{"phd"}, or \code{"multirole"}.}
 
 \item{w1, w2}{Numeric values between 0 and 1. Should sum to 1. Used only for
 \code{assignment = "diversity"}.}
@@ -36,6 +36,8 @@ compatibility. If supplied, this list is used directly. Ignored for
 \item For \code{assignment = "phd"}: passed to \code{\link[=prepare_phd_model]{prepare_phd_model()}}, including
 \code{protected_year} when a cohort other than Year 1 should receive the soft
 TA-load protection.
+\item For \code{assignment = "multirole"}: passed to
+\code{\link[=prepare_multirole_model]{prepare_multirole_model()}}.
 }}
 }
 \value{
