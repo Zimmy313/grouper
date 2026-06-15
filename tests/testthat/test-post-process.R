@@ -52,9 +52,9 @@ test_that("assign_job converts PhD solver output to manual-style table", {
   skip_if_not_installed("ROI.plugin.glpk")
 
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     C = 4
   )
@@ -64,8 +64,8 @@ test_that("assign_job converts PhD solver output to manual-style table", {
 
   job <- assign_job(
     model_result = phd_result,
-    student_df = phd_students_ex001,
-    course_codes = rownames(phd_demand_ex001),
+    student_df = multirole_students_ex001,
+    course_codes = rownames(multirole_demand_ex001),
     name_col = "Name"
   )
 
@@ -73,7 +73,7 @@ test_that("assign_job converts PhD solver output to manual-style table", {
   expect_true(any(grepl("-t$", names(job))))
   expect_true(any(grepl("-g$", names(job))))
   expect_true(any(grepl("-e$", names(job))))
-  expect_equal(nrow(job), nrow(phd_students_ex001))
+  expect_equal(nrow(job), nrow(multirole_students_ex001))
 })
 
 test_that("solve_assignment wraps diversity solving and post-processing", {
@@ -154,9 +154,9 @@ test_that("solve_assignment wraps PhD solving and post-processing", {
   skip_if_not_installed("ROI.plugin.glpk")
 
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     C = 4
   )
@@ -166,15 +166,15 @@ test_that("solve_assignment wraps PhD solving and post-processing", {
     model = phd_model,
     assignment = "phd",
     solver = "glpk",
-    student_df = phd_students_ex001,
-    course_codes = rownames(phd_demand_ex001),
+    student_df = multirole_students_ex001,
+    course_codes = rownames(multirole_demand_ex001),
     name_col = "Name",
     verbose = FALSE
   )
   manual <- assign_job(
     model_result = wrapped$model_result,
-    student_df = phd_students_ex001,
-    course_codes = rownames(phd_demand_ex001),
+    student_df = multirole_students_ex001,
+    course_codes = rownames(multirole_demand_ex001),
     name_col = "Name"
   )
 

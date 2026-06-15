@@ -83,9 +83,9 @@ test_that("prepare_model wrapper dispatches and validates arguments", {
   expect_s3_class(m_pref_no_yaml, "linear_optimization_model")
 
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     C = 4
   )
@@ -132,9 +132,9 @@ test_that("prepare_model wrapper dispatches and validates arguments", {
 
 test_that("prepare_phd_model validates optional bound consistency", {
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     C = 4
   )
@@ -155,15 +155,15 @@ test_that("prepare_phd_model validates optional bound consistency", {
 
 test_that("custom seniority scores do not redefine year-based model groups", {
   default_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none"
   )
   custom_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     s = c(100, -1, -2, -3)
   )
@@ -179,9 +179,9 @@ test_that("custom seniority scores do not redefine year-based model groups", {
 
 test_that("prepare_phd_model defaults to Year 1 protection", {
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none"
   )
 
@@ -195,9 +195,9 @@ test_that("prepare_phd_model defaults to Year 1 protection", {
 
 test_that("prepare_phd_model protects exactly the selected year", {
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none"
   )
 
@@ -210,12 +210,12 @@ test_that("prepare_phd_model protects exactly the selected year", {
 })
 
 test_that("prepare_phd_model includes every unprotected year in fairness", {
-  students <- phd_students_ex001
+  students <- multirole_students_ex001
   students$year <- c(1, 1, 3, 4)
   phd_df <- extract_phd_info(
     student_df = students,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none"
   )
 
@@ -227,9 +227,9 @@ test_that("prepare_phd_model includes every unprotected year in fairness", {
 
 test_that("prepare_phd_model validates protected_year", {
   phd_df <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none"
   )
 

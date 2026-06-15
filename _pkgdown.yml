@@ -45,7 +45,6 @@ reference:
   - starts_with("dba_")
   - starts_with("pba_")
   - starts_with("multirole_")
-  - starts_with("phd_")
 
 articles:
 - title: Vignettes

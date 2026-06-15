@@ -52,32 +52,32 @@ test_that("extract_student_info validates preference and dissimilarity inputs", 
 
 test_that("extract_phd_info returns aligned PhD inputs and computes E in rr mode", {
   x <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "rr",
     C = 4
   )
 
-  expect_equal(x$Ns, nrow(phd_students_ex001))
-  expect_equal(x$Nj, ncol(phd_prefmat_ex001))
+  expect_equal(x$Ns, nrow(multirole_students_ex001))
+  expect_equal(x$Nj, ncol(multirole_prefmat_ex001))
   expect_equal(dim(x$P), c(4, 4))
   expect_equal(dim(x$d), c(4, 3))
   expect_equal(colnames(x$d), c("TA", "GR", "E"))
   expect_true(sum(x$d[, "E"]) >= 0)
   expect_equal(x$s, c(-1, 0, 1, 2))
   expect_equal(x$year, c(1L, 2L, 3L, 4L))
-  expect_equal(unname(x$P), unname(phd_prefmat_ex001))
+  expect_equal(unname(x$P), unname(multirole_prefmat_ex001))
 })
 
 test_that("extract_phd_info maps custom seniority scores by capped year", {
-  students <- phd_students_ex001
+  students <- multirole_students_ex001
   students$year <- c(0, 2, 3, 5)
 
   x <- extract_phd_info(
     student_df = students,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     s = c(0, 1, 3, 6)
   )
@@ -89,9 +89,9 @@ test_that("extract_phd_info maps custom seniority scores by capped year", {
 test_that("extract_phd_info validates seniority score encoding", {
   extract_with_s <- function(s) {
     extract_phd_info(
-      student_df = phd_students_ex001,
-      p_mat = phd_prefmat_ex001,
-      d_mat = phd_demand_ex001,
+      student_df = multirole_students_ex001,
+      p_mat = multirole_prefmat_ex001,
+      d_mat = multirole_demand_ex001,
       e_mode = "none",
       s = s
     )
@@ -106,30 +106,30 @@ test_that("extract_phd_info validates seniority score encoding", {
 
 test_that("extract_phd_info supports none mode and validates core schema", {
   x_none <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     C = 4
   )
   expect_true(all(x_none$d[, "E"] == 0))
 
-  bad_students <- phd_students_ex001
+  bad_students <- multirole_students_ex001
   names(bad_students)[1] <- "student"
   expect_error(
     extract_phd_info(
       student_df = bad_students,
-      p_mat = phd_prefmat_ex001,
-      d_mat = phd_demand_ex001
+      p_mat = multirole_prefmat_ex001,
+      d_mat = multirole_demand_ex001
     ),
     "first 4 columns are exactly"
   )
 
   expect_error(
     extract_phd_info(
-      student_df = phd_students_ex001,
-      p_mat = phd_prefmat_ex001[1:3, , drop = FALSE],
-      d_mat = phd_demand_ex001
+      student_df = multirole_students_ex001,
+      p_mat = multirole_prefmat_ex001[1:3, , drop = FALSE],
+      d_mat = multirole_demand_ex001
     ),
     "nrow\\(p_mat\\) must match"
   )
@@ -188,16 +188,16 @@ test_that("extract_info wrapper dispatches to student extractors", {
 test_that("extract_info wrapper dispatches to phd extractor", {
   phd_wrap <- extract_info(
     assignment = "phd",
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    p_mat = multirole_prefmat_ex001,
+    d_mat = multirole_demand_ex001,
     e_mode = "none",
     C = 4
   )
 
   expect_true(all(c("Ns", "Nj", "P", "d", "s", "year", "t1", "g1") %in% names(phd_wrap)))
-  expect_equal(phd_wrap$Ns, nrow(phd_students_ex001))
-  expect_equal(phd_wrap$Nj, ncol(phd_prefmat_ex001))
+  expect_equal(phd_wrap$Ns, nrow(multirole_students_ex001))
+  expect_equal(phd_wrap$Nj, ncol(multirole_prefmat_ex001))
   expect_equal(dim(phd_wrap$P), c(4, 4))
   expect_equal(dim(phd_wrap$d), c(4, 3))
 })

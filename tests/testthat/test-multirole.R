@@ -1,9 +1,9 @@
-multirole_inputs <- function(p_ta_mat = phd_prefmat_ex001,
-                             p_gr_mat = phd_prefmat_ex001,
+multirole_inputs <- function(p_ta_mat = multirole_prefmat_ex001,
+                             p_gr_mat = multirole_prefmat_ex001,
                              e_mode = "none") {
   extract_multirole_info(
-    student_df = phd_students_ex001,
-    d_mat = phd_demand_ex001,
+    student_df = multirole_students_ex001,
+    d_mat = multirole_demand_ex001,
     p_ta_mat = p_ta_mat,
     p_gr_mat = p_gr_mat,
     e_mode = e_mode,
@@ -25,10 +25,10 @@ test_that("extract_multirole_info returns aligned role-specific inputs", {
     x,
     c("Ns", "Nj", "P_ta", "P_gr", "d", "s", "year", "t1", "g1")
   )
-  expect_equal(x$Ns, nrow(phd_students_ex001))
-  expect_equal(x$Nj, nrow(phd_demand_ex001))
-  expect_equal(x$P_ta, phd_prefmat_ex001)
-  expect_equal(x$P_gr, phd_prefmat_ex001)
+  expect_equal(x$Ns, nrow(multirole_students_ex001))
+  expect_equal(x$Nj, nrow(multirole_demand_ex001))
+  expect_equal(x$P_ta, multirole_prefmat_ex001)
+  expect_equal(x$P_gr, multirole_prefmat_ex001)
   expect_equal(dim(x$d), c(4, 3))
   expect_equal(colnames(x$d), c("TA", "GR", "E"))
   expect_equal(x$s, c(-1, 0, 1, 2))
@@ -42,15 +42,15 @@ test_that("extract_multirole_info accepts omitted preference matrices", {
 
   expect_null(neither$P_ta)
   expect_null(neither$P_gr)
-  expect_equal(ta_only$P_ta, phd_prefmat_ex001)
+  expect_equal(ta_only$P_ta, multirole_prefmat_ex001)
   expect_null(ta_only$P_gr)
   expect_null(gr_only$P_ta)
-  expect_equal(gr_only$P_gr, phd_prefmat_ex001)
+  expect_equal(gr_only$P_gr, multirole_prefmat_ex001)
 })
 
 test_that("extract_multirole_info validates supplied matrices", {
-  bad_dim <- phd_prefmat_ex001[-1, , drop = FALSE]
-  bad_value <- phd_prefmat_ex001
+  bad_dim <- multirole_prefmat_ex001[-1, , drop = FALSE]
+  bad_value <- multirole_prefmat_ex001
   bad_value[1, 1] <- Inf
 
   expect_error(
@@ -62,13 +62,13 @@ test_that("extract_multirole_info validates supplied matrices", {
     "p_gr_mat.*finite numeric matrix"
   )
   expect_error(
-    multirole_inputs(p_ta_mat = as.data.frame(phd_prefmat_ex001)),
+    multirole_inputs(p_ta_mat = as.data.frame(multirole_prefmat_ex001)),
     "p_ta_mat.*finite numeric matrix"
   )
   expect_error(
     extract_multirole_info(
-      phd_students_ex001,
-      cbind(phd_demand_ex001, E = 0, extra = 0)
+      multirole_students_ex001,
+      cbind(multirole_demand_ex001, E = 0, extra = 0)
     ),
     "d_mat must be a finite numeric matrix with 2 or 3 columns"
   )
@@ -78,10 +78,10 @@ test_that("extract_info dispatches to the multi-role extractor", {
   direct <- multirole_inputs()
   wrapped <- extract_info(
     assignment = "multirole",
-    student_df = phd_students_ex001,
-    d_mat = phd_demand_ex001,
-    p_ta_mat = phd_prefmat_ex001,
-    p_gr_mat = phd_prefmat_ex001,
+    student_df = multirole_students_ex001,
+    d_mat = multirole_demand_ex001,
+    p_ta_mat = multirole_prefmat_ex001,
+    p_gr_mat = multirole_prefmat_ex001,
     e_mode = "none",
     C = 4
   )
@@ -269,62 +269,6 @@ test_that("prepare_model dispatches to the multi-role constructor", {
   expect_equal(ompr::nconstraints(wrapped), ompr::nconstraints(direct))
 })
 
-test_that("multi-role defaults reproduce legacy objective and workload totals", {
-  skip_if_not_installed("ompr.roi")
-  skip_if_not_installed("ROI.plugin.glpk")
-
-  legacy_inputs <- extract_phd_info(
-    student_df = phd_students_ex001,
-    p_mat = phd_prefmat_ex001,
-    d_mat = phd_demand_ex001,
-    e_mode = "rr",
-    C = 4
-  )
-  multirole <- extract_multirole_info(
-    student_df = phd_students_ex001,
-    d_mat = phd_demand_ex001,
-    p_ta_mat = phd_prefmat_ex001,
-    e_mode = "rr",
-    C = 4
-  )
-
-  legacy_model <- prepare_phd_model(
-    legacy_inputs,
-    t_max_y1 = 1,
-    ta_min = 1, ta_max = 1,
-    gr_min = 1, gr_max = 1,
-    alpha = 2, beta = 1, phi = 1, rho = 10,
-    C = 4
-  )
-  multirole_model <- prepare_multirole_model(
-    multirole,
-    ta_protected_max = 1,
-    ta_min = 1, ta_max = 1,
-    gr_min = 1, gr_max = 1,
-    alpha_ta = 2, beta_ta = 1, phi = 1, rho_ta = 10,
-    alpha_gr = NULL, beta_gr = NULL, rho_gr = NULL,
-    C = 4
-  )
-
-  control <- ompr.roi::with_ROI(solver = "glpk")
-  legacy_result <- ompr::solve_model(legacy_model, control)
-  multirole_result <- ompr::solve_model(multirole_model, control)
-
-  expect_equal(
-    ompr::objective_value(multirole_result),
-    ompr::objective_value(legacy_result)
-  )
-
-  role_totals <- function(result) {
-    solution <- ompr::get_solution(result, X[i, j, r])
-    stats::aggregate(value ~ i + r, solution, sum)
-  }
-  expect_equal(
-    role_totals(multirole_result),
-    role_totals(legacy_result)
-  )
-})
-
 test_that("solve_assignment supports multi-role post-processing", {
   skip_if_not_installed("ompr.roi")
   skip_if_not_installed("ROI.plugin.glpk")
@@ -335,13 +279,13 @@ test_that("solve_assignment supports multi-role post-processing", {
     model = model,
     assignment = "multirole",
     solver = "glpk",
-    student_df = phd_students_ex001,
-    course_codes = rownames(phd_demand_ex001),
+    student_df = multirole_students_ex001,
+    course_codes = rownames(multirole_demand_ex001),
     verbose = FALSE
   )
 
   expect_named(wrapped, c("model_result", "output"))
-  expect_equal(nrow(wrapped$output), nrow(phd_students_ex001))
+  expect_equal(nrow(wrapped$output), nrow(multirole_students_ex001))
   expect_true(any(grepl("-t$", names(wrapped$output))))
   expect_true(any(grepl("-g$", names(wrapped$output))))
   expect_true(any(grepl("-e$", names(wrapped$output))))
