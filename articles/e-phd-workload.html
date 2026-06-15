@@ -111,8 +111,8 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup><annotation encoding="application/x-tex">P^{\mathrm{GR}}_{i,j}</annotation></semantics></math>
 denote the user-supplied TA and grading preference scores. Higher values
 indicate stronger preferences. Year of study is denoted by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>(capped
-within 1-4), and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>
+(capped within 1-4), and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
 is a user-configurable score that guides E allocation. The model also
 tracks past semester TA and GR workload, denoted by
@@ -122,7 +122,7 @@ and
 <p>TA and GR may protect different cohorts. Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup><mo>,</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo>,</mo><mn>4</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">y^\ast_{\mathrm{TA}}, y^\ast_{\mathrm{GR}} \in \{1,2,3,4\}</annotation></semantics></math>
 denote the protected years for the two roles. Each role’s fairness
-spread excludes its own protected cohort. The model only support one
+spread excludes its own protected cohort. The model supports one
 protected cohort per role, but the two roles may protect the same or
 different cohorts.</p>
 <p>The generalized model balances:</p>
@@ -134,12 +134,8 @@ different cohorts.</p>
 </ol>
 </div>
 <div class="section level2">
-<h2 id="proposed-formulation">Proposed formulation<a class="anchor" aria-label="anchor" href="#proposed-formulation"></a>
+<h2 id="model-formulation">Model formulation<a class="anchor" aria-label="anchor" href="#model-formulation"></a>
 </h2>
-<p>The formulation in this section is the proposed generalized model.
-The executable package examples later in the vignette still use the
-historical <code>assignment = "phd"</code> interface until the
-implementation is updated.</p>
 <div class="section level3">
 <h3 id="objective-function">Objective function<a class="anchor" aria-label="anchor" href="#objective-function"></a>
 </h3>
@@ -218,7 +214,9 @@ T_{\min}\le T_i\le T_{\max},
 G_{\min}\le G_i\le G_{\max},
 \quad \forall i:y_i\ne y^\ast_{\mathrm{GR}}.
 </annotation></semantics></math></p>
-<p>The two protected years may be the same or different.</p>
+<p>The two protected years may be the same or different. If a role’s
+protection penalty is disabled, no cohort is protected for that role and
+all individuals enter its fairness spread.</p>
 </div>
 <div class="section level3">
 <h3 id="annual-workload-equality">Annual workload equality<a class="anchor" aria-label="anchor" href="#annual-workload-equality"></a>
@@ -267,22 +265,38 @@ e_{\min}^{(2)} \le e_i^{(2)} \le e_{\max}^{(2)}, \quad &amp;\forall i.
 </div>
 </div>
 <div class="section level2">
-<h2 id="current-package-examples">Current package examples<a class="anchor" aria-label="anchor" href="#current-package-examples"></a>
+<h2 id="package-interface">Package interface<a class="anchor" aria-label="anchor" href="#package-interface"></a>
 </h2>
-<p>The following executable examples demonstrate the current package
-interface. They are retained so the vignette remains buildable while the
-generalized TA/GR formulation is reviewed.</p>
+<p>The multi-role workflow consists of:</p>
+<ol style="list-style-type: decimal">
+<li>
+<code><a href="../reference/extract_multirole_info.html">extract_multirole_info()</a></code> or
+<code>extract_info(assignment = "multirole")</code>,</li>
+<li>
+<code><a href="../reference/prepare_multirole_model.html">prepare_multirole_model()</a></code> or
+<code>prepare_model(assignment = "multirole")</code>,</li>
+<li>
+<code>solve_assignment(assignment = "multirole")</code> or the
+lower-level <code><a href="https://rdrr.io/pkg/ompr/man/solve_model.html" class="external-link">ompr::solve_model()</a></code> and
+<code><a href="../reference/assign_job.html">assign_job()</a></code> functions.</li>
+</ol>
+<p>The bundled multi-role example data demonstrate the generalized
+interface. Here the same matrix is supplied for TA and GR preferences
+only to keep the example compact. In practice, the matrices can contain
+different user-defined scores.</p>
 <div class="section level3">
 <h3 id="e-allocation-scoring">E-allocation scoring<a class="anchor" aria-label="anchor" href="#e-allocation-scoring"></a>
 </h3>
-<p><code><a href="../reference/extract_phd_info.html">extract_phd_info()</a></code> accepts a four-value <code>s</code>
-vector ordered by Years 1 to 4. The default <code>c(-1, 0, 1, 2)</code>
-reproduces the original seniority scoring:</p>
+<p><code><a href="../reference/extract_multirole_info.html">extract_multirole_info()</a></code> accepts a four-value
+<code>s</code> vector ordered by Years 1 to 4. The default is set to
+<code>c(-1, 0, 1, 2)</code>, which encourages E allocation to more
+senior students.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">default_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_phd_info.html">extract_phd_info</a></span><span class="op">(</span></span>
-<span>  student_df <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/phd_students_ex001.html">phd_students_ex001</a></span>,</span>
-<span>  p_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/phd_prefmat_ex001.html">phd_prefmat_ex001</a></span>,</span>
-<span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/phd_demand_ex001.html">phd_demand_ex001</a></span>,</span>
+<code class="sourceCode R"><span><span class="va">default_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_multirole_info.html">extract_multirole_info</a></span><span class="op">(</span></span>
+<span>  student_df <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_students_ex001.html">multirole_students_ex001</a></span>,</span>
+<span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_demand_ex001.html">multirole_demand_ex001</a></span>,</span>
+<span>  p_ta_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_prefmat_ex001.html">multirole_prefmat_ex001</a></span>,</span>
+<span>  p_gr_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_prefmat_ex001.html">multirole_prefmat_ex001</a></span>,</span>
 <span>  e_mode <span class="op">=</span> <span class="st">"none"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -291,10 +305,11 @@ reproduces the original seniority scoring:</p>
 <p>Users can provide a different encoding to control the E-allocation
 objective:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">custom_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_phd_info.html">extract_phd_info</a></span><span class="op">(</span></span>
-<span>  student_df <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/phd_students_ex001.html">phd_students_ex001</a></span>,</span>
-<span>  p_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/phd_prefmat_ex001.html">phd_prefmat_ex001</a></span>,</span>
-<span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/phd_demand_ex001.html">phd_demand_ex001</a></span>,</span>
+<code class="sourceCode R"><span><span class="va">custom_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_multirole_info.html">extract_multirole_info</a></span><span class="op">(</span></span>
+<span>  student_df <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_students_ex001.html">multirole_students_ex001</a></span>,</span>
+<span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_demand_ex001.html">multirole_demand_ex001</a></span>,</span>
+<span>  p_ta_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_prefmat_ex001.html">multirole_prefmat_ex001</a></span>,</span>
+<span>  p_gr_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_prefmat_ex001.html">multirole_prefmat_ex001</a></span>,</span>
 <span>  e_mode <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -302,30 +317,56 @@ objective:</p>
 <span><span class="va">custom_inputs</span><span class="op">$</span><span class="va">s</span></span>
 <span><span class="co">#&gt; [1] 0 1 3 6</span></span></code></pre></div>
 <p>The score vector affects only the E objective. Protection and TA
-fairness use <code>student_df$year</code>. The preference matrix is also
+fairness use <code>student_df$year</code>. Both preference matrices are
 used exactly as supplied, so users can choose their own numeric scoring
-during preprocessing rather than using the example
+schemes during preprocessing rather than using the example
 <code>3/2/1/-99</code> encoding.</p>
 </div>
 <div class="section level3">
-<h3 id="protected-cohort">Protected cohort<a class="anchor" aria-label="anchor" href="#protected-cohort"></a>
+<h3 id="role-specific-terms">Role-specific terms<a class="anchor" aria-label="anchor" href="#role-specific-terms"></a>
 </h3>
-<p><code><a href="../reference/prepare_phd_model.html">prepare_phd_model()</a></code> and the <code><a href="../reference/prepare_model.html">prepare_model()</a></code>
-wrapper accept <code>protected_year</code>, which must be one value from
-1 to 4. It defaults to Year 1. For example, the following model protects
-Year 3:</p>
+<p>The new GR terms are disabled by default. Set their weights to
+positive values to enable GR workload spread, grading preferences, and
+GR cohort protection:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">year_3_protected_model</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">multi_role_model</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">default_inputs</span>,</span>
-<span>  assignment <span class="op">=</span> <span class="st">"phd"</span>,</span>
-<span>  protected_year <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  t_max_y1 <span class="op">=</span> <span class="fl">1</span></span>
+<span>  assignment <span class="op">=</span> <span class="st">"multirole"</span>,</span>
+<span>  alpha_ta <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  alpha_gr <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  beta_ta <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beta_gr <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  phi <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  rho_ta <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  rho_gr <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  protected_year_ta <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  protected_year_gr <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  ta_protected_max <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  gr_protected_max <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The selected cohort receives the soft TA-load bound and its
-associated slack penalty. Students from all other years enter the TA
-fairness spread. The existing <code>t_max_y1</code> argument name is
-retained for backward compatibility, but its value applies to whichever
-cohort is selected by <code>protected_year</code>.</p>
+<p>The TA and GR protected years must each be one value from 1 to 4. The
+selected cohort receives that role’s soft upper bound and slack penalty,
+and is excluded from that role’s fairness spread.</p>
+</div>
+<div class="section level3">
+<h3 id="keeping-the-model-small">Keeping the model small<a class="anchor" aria-label="anchor" href="#keeping-the-model-small"></a>
+</h3>
+<p>An objective weight set to <code>NULL</code> or zero is disabled
+during model construction. The corresponding objective expression is not
+added. For spread and protection terms, their supporting variables and
+constraints are also omitted. For example:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ta_only_model</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_multirole_model.html">prepare_multirole_model</a></span><span class="op">(</span></span>
+<span>  <span class="va">default_inputs</span>,</span>
+<span>  alpha_gr <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  beta_gr <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  rho_gr <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>This conditional construction is useful for larger allocation
+problems because the solver receives only the variables and constraints
+needed for the selected formulation. When <code>rho_ta</code> or
+<code>rho_gr</code> is disabled, that role has no protected cohort and
+its fairness spread, if active, includes every individual.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

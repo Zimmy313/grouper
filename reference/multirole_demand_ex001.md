@@ -1,16 +1,16 @@
-# PhD Demand Matrix Example 001
+# Multi-role Demand Matrix Example 001
 
-An example demand matrix for the PhD and multi-role workload models.
+An example demand matrix for the multi-role workload allocation model.
 
 ## Usage
 
 ``` r
-phd_demand_ex001
+multirole_demand_ex001
 ```
 
 ## Format
 
-### `phd_demand_ex001`
+### `multirole_demand_ex001`
 
 A matrix with 4 rows and 2 columns.
 

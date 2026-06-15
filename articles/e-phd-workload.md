@@ -29,7 +29,7 @@ $`d_{j,r}`$ must be fully assigned.
 For each individual-task pair, $`P^{\mathrm{TA}}_{i,j}`$ and
 $`P^{\mathrm{GR}}_{i,j}`$ denote the user-supplied TA and grading
 preference scores. Higher values indicate stronger preferences. Year of
-study is denoted by $`y_i`$(capped within 1-4), and $`s_i`$ is a
+study is denoted by $`y_i`$ (capped within 1-4), and $`s_i`$ is a
 user-configurable score that guides E allocation. The model also tracks
 past semester TA and GR workload, denoted by $`t_i^{(1)}`$ and
 $`g_i^{(1)}`$.
@@ -37,7 +37,7 @@ $`g_i^{(1)}`$.
 TA and GR may protect different cohorts. Let
 $`y^\ast_{\mathrm{TA}}, y^\ast_{\mathrm{GR}} \in \{1,2,3,4\}`$ denote
 the protected years for the two roles. Each role’s fairness spread
-excludes its own protected cohort. The model only support one protected
+excludes its own protected cohort. The model supports one protected
 cohort per role, but the two roles may protect the same or different
 cohorts.
 
@@ -48,12 +48,7 @@ The generalized model balances:
 3.  score-guided allocation of lighter E duties, and
 4.  separate TA and GR workload protection for selected cohorts.
 
-## Proposed formulation
-
-The formulation in this section is the proposed generalized model. The
-executable package examples later in the vignette still use the
-historical `assignment = "phd"` interface until the implementation is
-updated.
+## Model formulation
 
 ### Objective function
 
@@ -128,7 +123,9 @@ G_{\min}\le G_i\le G_{\max},
 \quad \forall i:y_i\ne y^\ast_{\mathrm{GR}}.
 ```
 
-The two protected years may be the same or different.
+The two protected years may be the same or different. If a role’s
+protection penalty is disabled, no cohort is protected for that role and
+all individuals enter its fairness spread.
 
 ### Annual workload equality
 
@@ -176,24 +173,39 @@ e_{\min}^{(2)} \le e_i^{(2)} \le e_{\max}^{(2)}, \quad &\forall i.
 
 If a bound is omitted, its corresponding constraint is not added.
 
-## Current package examples
+## Package interface
 
-The following executable examples demonstrate the current package
-interface. They are retained so the vignette remains buildable while the
-generalized TA/GR formulation is reviewed.
+The multi-role workflow consists of:
+
+1.  [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
+    or `extract_info(assignment = "multirole")`,
+2.  [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md)
+    or `prepare_model(assignment = "multirole")`,
+3.  `solve_assignment(assignment = "multirole")` or the lower-level
+    [`ompr::solve_model()`](https://rdrr.io/pkg/ompr/man/solve_model.html)
+    and
+    [`assign_job()`](https://Zimmy313.github.io/grouper/reference/assign_job.md)
+    functions.
+
+The bundled multi-role example data demonstrate the generalized
+interface. Here the same matrix is supplied for TA and GR preferences
+only to keep the example compact. In practice, the matrices can contain
+different user-defined scores.
 
 ### E-allocation scoring
 
-[`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-accepts a four-value `s` vector ordered by Years 1 to 4. The default
-`c(-1, 0, 1, 2)` reproduces the original seniority scoring:
+[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
+accepts a four-value `s` vector ordered by Years 1 to 4. The default is
+set to `c(-1, 0, 1, 2)`, which encourages E allocation to more senior
+students.
 
 ``` r
 
-default_inputs <- grouper::extract_phd_info(
-  student_df = grouper::phd_students_ex001,
-  p_mat = grouper::phd_prefmat_ex001,
-  d_mat = grouper::phd_demand_ex001,
+default_inputs <- grouper::extract_multirole_info(
+  student_df = grouper::multirole_students_ex001,
+  d_mat = grouper::multirole_demand_ex001,
+  p_ta_mat = grouper::multirole_prefmat_ex001,
+  p_gr_mat = grouper::multirole_prefmat_ex001,
   e_mode = "none"
 )
 
@@ -206,10 +218,11 @@ objective:
 
 ``` r
 
-custom_inputs <- grouper::extract_phd_info(
-  student_df = grouper::phd_students_ex001,
-  p_mat = grouper::phd_prefmat_ex001,
-  d_mat = grouper::phd_demand_ex001,
+custom_inputs <- grouper::extract_multirole_info(
+  student_df = grouper::multirole_students_ex001,
+  d_mat = grouper::multirole_demand_ex001,
+  p_ta_mat = grouper::multirole_prefmat_ex001,
+  p_gr_mat = grouper::multirole_prefmat_ex001,
   e_mode = "none",
   s = c(0, 1, 3, 6)
 )
@@ -219,30 +232,59 @@ custom_inputs$s
 ```
 
 The score vector affects only the E objective. Protection and TA
-fairness use `student_df$year`. The preference matrix is also used
+fairness use `student_df$year`. Both preference matrices are used
 exactly as supplied, so users can choose their own numeric scoring
-during preprocessing rather than using the example `3/2/1/-99` encoding.
+schemes during preprocessing rather than using the example `3/2/1/-99`
+encoding.
 
-### Protected cohort
+### Role-specific terms
 
-[`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md)
-and the
-[`prepare_model()`](https://Zimmy313.github.io/grouper/reference/prepare_model.md)
-wrapper accept `protected_year`, which must be one value from 1 to 4. It
-defaults to Year 1. For example, the following model protects Year 3:
+The new GR terms are disabled by default. Set their weights to positive
+values to enable GR workload spread, grading preferences, and GR cohort
+protection:
 
 ``` r
 
-year_3_protected_model <- grouper::prepare_model(
+multi_role_model <- grouper::prepare_model(
   default_inputs,
-  assignment = "phd",
-  protected_year = 3,
-  t_max_y1 = 1
+  assignment = "multirole",
+  alpha_ta = 2,
+  alpha_gr = 2,
+  beta_ta = 1,
+  beta_gr = 1,
+  phi = 1,
+  rho_ta = 10,
+  rho_gr = 10,
+  protected_year_ta = 1,
+  protected_year_gr = 3,
+  ta_protected_max = 1,
+  gr_protected_max = 1
 )
 ```
 
-The selected cohort receives the soft TA-load bound and its associated
-slack penalty. Students from all other years enter the TA fairness
-spread. The existing `t_max_y1` argument name is retained for backward
-compatibility, but its value applies to whichever cohort is selected by
-`protected_year`.
+The TA and GR protected years must each be one value from 1 to 4. The
+selected cohort receives that role’s soft upper bound and slack penalty,
+and is excluded from that role’s fairness spread.
+
+### Keeping the model small
+
+An objective weight set to `NULL` or zero is disabled during model
+construction. The corresponding objective expression is not added. For
+spread and protection terms, their supporting variables and constraints
+are also omitted. For example:
+
+``` r
+
+ta_only_model <- grouper::prepare_multirole_model(
+  default_inputs,
+  alpha_gr = NULL,
+  beta_gr = NULL,
+  rho_gr = NULL
+)
+```
+
+This conditional construction is useful for larger allocation problems
+because the solver receives only the variables and constraints needed
+for the selected formulation. When `rho_ta` or `rho_gr` is disabled,
+that role has no protected cohort and its fairness spread, if active,
+includes every individual.

@@ -47,9 +47,9 @@
   : PBA Group Composition Data Example 002
 - [`pba_prefmat_ex002`](https://Zimmy313.github.io/grouper/reference/pba_prefmat_ex002.md)
   : PBA Group Preference Data Example 002
-- [`phd_demand_ex001`](https://Zimmy313.github.io/grouper/reference/phd_demand_ex001.md)
-  : PhD Demand Matrix Example 001
-- [`phd_prefmat_ex001`](https://Zimmy313.github.io/grouper/reference/phd_prefmat_ex001.md)
-  : PhD Preference Matrix Example 001
-- [`phd_students_ex001`](https://Zimmy313.github.io/grouper/reference/phd_students_ex001.md)
-  : PhD Student Data Example 001
+- [`multirole_demand_ex001`](https://Zimmy313.github.io/grouper/reference/multirole_demand_ex001.md)
+  : Multi-role Demand Matrix Example 001
+- [`multirole_prefmat_ex001`](https://Zimmy313.github.io/grouper/reference/multirole_prefmat_ex001.md)
+  : Multi-role Preference Matrix Example 001
+- [`multirole_students_ex001`](https://Zimmy313.github.io/grouper/reference/multirole_students_ex001.md)
+  : Multi-role Individual Data Example 001

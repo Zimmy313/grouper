@@ -584,47 +584,26 @@ assign_groups(
 #> 4      2        2   1     4    2
 ```
 
-## PhD Workload Assignment
+## Multi-role Workload Assignment
 
-In the following walk through, we demonstrate how the PhD work
-allocation model can be used on a simple dataset.
-
-### Dataset 001(Year-long)
-
-This example dataset has 4 students and 4 courses. Each student has
-non-zero past workload with `past_ta + past_gr = 4`
+This example has four individuals and four courses, with
+`past_ta + past_gr = 4` for each individual.
 
 ``` r
 
-phd_students_ex001
+multirole_students_ex001
 #>   student_id year past_ta past_gr  Name
 #> 1          1    1       2       2   Ava
 #> 2          2    2       1       3   Ben
 #> 3          3    3       3       1 Chloe
 #> 4          4    4       0       4 Dylan
-```
-
-Each row in the preference matrix encodes first/second/third choices as
-`3/2/1`, while all other courses are set to `-99`. Note that different
-numbering can be used.
-
-``` r
-
-phd_prefmat_ex001
+multirole_prefmat_ex001
 #>      C101 C102 C103 C104
 #> [1,]    3    2    1  -99
 #> [2,]  -99    3    2    1
 #> [3,]    2  -99    3    1
 #> [4,]    2    1  -99    3
-```
-
-The demand table includes only `TA` and `GR`, and intentionally excludes
-`E`. Since TA+GR demand is below total student capacity, we can use
-`e_mode = "rr"` to automatically generate E demand.
-
-``` r
-
-phd_demand_ex001
+multirole_demand_ex001
 #>      TA GR
 #> C101  1  1
 #> C102  1  1
@@ -632,74 +611,55 @@ phd_demand_ex001
 #> C104  1  1
 ```
 
-The following chunk focuses on the three core PhD workflow functions:
+The demand matrix intentionally excludes E. Because TA and GR demand are
+below total capacity, `e_mode = "rr"` generates the remaining E demand.
 
-1.  [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-2.  `prepare_model(..., assignment = "phd")`
-3.  [`assign_job()`](https://Zimmy313.github.io/grouper/reference/assign_job.md)
+The direct workflow uses
+[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
+and
+[`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md).
+The example preference matrix is used for TA; the GR terms are disabled
+in this first example.
 
 ``` r
 
-phd_ex001_list <- extract_phd_info(
-  student_df = phd_students_ex001,
-  p_mat = phd_prefmat_ex001,
-  d_mat = phd_demand_ex001,
+multirole_ex001 <- extract_multirole_info(
+  student_df = multirole_students_ex001,
+  d_mat = multirole_demand_ex001,
+  p_ta_mat = multirole_prefmat_ex001,
   e_mode = "rr",
   C = c_sem
 )
 
-# show generated demand matrix with E appended by round-robin
-phd_ex001_list$d
+multirole_ex001$d
 #>      TA GR E
-#> [1,]  1  1 2
-#> [2,]  1  1 2
-#> [3,]  1  1 2
-#> [4,]  1  1 2
-```
-
-Alternative workflow (wrapper + direct parameters):
-
-``` r
-
-phd_ex001_alt <- extract_info(
-  assignment = "phd",
-  student_df = phd_students_ex001,
-  p_mat = phd_prefmat_ex001,
-  d_mat = phd_demand_ex001,
-  e_mode = "rr",
-  C = c_sem
-)
-
-# show generated demand matrix with E appended by round-robin
-phd_ex001_alt$d
-#>      TA GR E
-#> [1,]  1  1 2
-#> [2,]  1  1 2
-#> [3,]  1  1 2
-#> [4,]  1  1 2
+#> C101  1  1 2
+#> C102  1  1 2
+#> C103  1  1 2
+#> C104  1  1 2
 ```
 
 ``` r
 
-m_phd_ex001 <- prepare_model(
-  phd_ex001_list,
-  assignment = "phd",
-  t_max_y1 = 1,
+m_multirole_ex001 <- prepare_multirole_model(
+  multirole_ex001,
+  ta_protected_max = 1,
   ta_min = 1, ta_max = 1,
   gr_min = 1, gr_max = 1,
-  alpha = 2, beta = 1, phi = 1, rho = 10,
+  alpha_ta = 2, beta_ta = 1, phi = 1, rho_ta = 10,
+  alpha_gr = NULL, beta_gr = NULL, rho_gr = NULL,
   C = c_sem
 )
-```
 
-``` r
-
-result_phd_ex001 <- solve_model(m_phd_ex001, with_ROI(solver = "glpk"))
+result_multirole_ex001 <- solve_model(
+  m_multirole_ex001,
+  with_ROI(solver = "glpk")
+)
 
 assign_job(
-  result_phd_ex001,
-  student_df = phd_students_ex001,
-  course_codes = rownames(phd_demand_ex001),
+  result_multirole_ex001,
+  student_df = multirole_students_ex001,
+  course_codes = rownames(multirole_demand_ex001),
   name_col = "Name"
 )
 #>    Name C101-t C102-t C103-t C104-t C101-g C102-g C103-g C104-g C101-e C102-e
@@ -714,160 +674,136 @@ assign_job(
 #> 4      0      2
 ```
 
-Alternative workflow (wrapper + direct parameters):
+### Full TA and GR workflow
+
+The following wrapper workflow activates every objective component. For
+simplicity, the same example preference matrix is used for TA and GR,
+although the two matrices can be different in practice. Year 1 receives
+TA protection, while Year 2 receives GR protection.
 
 ``` r
 
-m_phd_ex001_alt <- prepare_model(
-  phd_ex001_alt,
-  assignment = "phd",
-  t_max_y1 = 1,
-  ta_min = 1, ta_max = 1,
-  gr_min = 1, gr_max = 1,
-  alpha = 2, beta = 1, phi = 1, rho = 10,
+full_multirole_inputs <- extract_info(
+  assignment = "multirole",
+  student_df = multirole_students_ex001,
+  d_mat = multirole_demand_ex001,
+  p_ta_mat = multirole_prefmat_ex001,
+  p_gr_mat = multirole_prefmat_ex001,
+  e_mode = "rr",
   C = c_sem
 )
 
-result_phd_ex001_alt <- solve_model(m_phd_ex001_alt, with_ROI(solver = "glpk"))
-
-assign_job(
-  result_phd_ex001_alt,
-  student_df = phd_students_ex001,
-  course_codes = rownames(phd_demand_ex001),
-  name_col = "Name"
+full_multirole_model <- prepare_model(
+  full_multirole_inputs,
+  assignment = "multirole",
+  protected_year_ta = 1,
+  protected_year_gr = 2,
+  ta_protected_max = 1,
+  gr_protected_max = 1,
+  alpha_ta = 2,
+  alpha_gr = 2,
+  beta_ta = 1,
+  beta_gr = 1,
+  phi = 1,
+  rho_ta = 10,
+  rho_gr = 10,
+  C = c_sem
 )
+
+full_multirole_result <- solve_assignment(
+  model = full_multirole_model,
+  assignment = "multirole",
+  solver = "glpk",
+  student_df = multirole_students_ex001,
+  course_codes = rownames(multirole_demand_ex001),
+  name_col = "Name",
+  verbose = FALSE
+)
+
+full_multirole_result$output
 #>    Name C101-t C102-t C103-t C104-t C101-g C102-g C103-g C104-g C101-e C102-e
-#> 1   Ava      1      0      0      0      1      0      0      0      2      0
-#> 2   Ben      0      1      0      0      0      1      0      0      0      2
-#> 3 Chloe      0      0      1      0      0      0      1      0      0      0
-#> 4 Dylan      0      0      0      1      0      0      0      1      0      0
+#> 1   Ava      1      0      0      0      1      1      0      0      1      0
+#> 2   Ben      0      1      1      0      0      0      0      0      0      0
+#> 3 Chloe      0      0      0      0      0      0      1      1      0      2
+#> 4 Dylan      0      0      0      1      0      0      0      0      1      0
 #>   C103-e C104-e
 #> 1      0      0
-#> 2      0      0
-#> 3      2      0
+#> 2      2      0
+#> 3      0      0
 #> 4      0      2
+```
+
+The resulting current-semester workload totals confirm that TA, GR, and
+E are all allocated:
+
+``` r
+
+full_assignment <- full_multirole_result$output
+full_ta_cols <- grepl("-t$", names(full_assignment))
+full_gr_cols <- grepl("-g$", names(full_assignment))
+full_e_cols <- grepl("-e$", names(full_assignment))
+
+data.frame(
+  Name = full_assignment$Name,
+  TA = rowSums(full_assignment[, full_ta_cols, drop = FALSE]),
+  GR = rowSums(full_assignment[, full_gr_cols, drop = FALSE]),
+  E = rowSums(full_assignment[, full_e_cols, drop = FALSE]),
+  current_total = rowSums(
+    full_assignment[
+      , full_ta_cols | full_gr_cols | full_e_cols,
+      drop = FALSE
+    ]
+  )
+)
+#>    Name TA GR E current_total
+#> 1   Ava  1  2 1             4
+#> 2   Ben  2  0 2             4
+#> 3 Chloe  0  2 2             4
+#> 4 Dylan  1  0 3             4
 ```
 
 ### Dataset 001 (Single-semester)
 
-The model can be used to allocate a single semester if we set
-`past_ta = 0` and `past_gr = C` for every student. By doing so, past
-workload will not contribute to the Spread calculation in the objective
-function.
-
-We will reuse `phd_students_ex001`.
+For a single-semester allocation, set `past_ta = 0` and `past_gr = C`
+for every individual so past workload does not contribute to role
+spread.
 
 ``` r
 
-phd_students_ex001_sem <- phd_students_ex001
-phd_students_ex001_sem$past_ta <- 0
-phd_students_ex001_sem$past_gr <- c_sem
+multirole_students_ex001_sem <- multirole_students_ex001
+multirole_students_ex001_sem$past_ta <- 0
+multirole_students_ex001_sem$past_gr <- c_sem
 
-phd_students_ex001_sem
-#>   student_id year past_ta past_gr  Name
-#> 1          1    1       0       4   Ava
-#> 2          2    2       0       4   Ben
-#> 3          3    3       0       4 Chloe
-#> 4          4    4       0       4 Dylan
-```
-
-``` r
-
-phd_ex001_sem_list <- extract_phd_info(
-  student_df = phd_students_ex001_sem,
-  p_mat = phd_prefmat_ex001,
-  d_mat = phd_demand_ex001,
+multirole_ex001_sem <- extract_multirole_info(
+  student_df = multirole_students_ex001_sem,
+  d_mat = multirole_demand_ex001,
+  p_ta_mat = multirole_prefmat_ex001,
   e_mode = "rr",
   C = c_sem
 )
 
-phd_ex001_sem_list$d
-#>      TA GR E
-#> [1,]  1  1 2
-#> [2,]  1  1 2
-#> [3,]  1  1 2
-#> [4,]  1  1 2
-```
-
-Alternative workflow (wrapper + direct parameters):
-
-``` r
-
-phd_ex001_sem_alt <- extract_info(
-  assignment = "phd",
-  student_df = phd_students_ex001_sem,
-  p_mat = phd_prefmat_ex001,
-  d_mat = phd_demand_ex001,
-  e_mode = "rr",
-  C = c_sem
-)
-
-phd_ex001_sem_alt$d
-#>      TA GR E
-#> [1,]  1  1 2
-#> [2,]  1  1 2
-#> [3,]  1  1 2
-#> [4,]  1  1 2
-```
-
-``` r
-
-m_phd_ex001_sem <- prepare_model(
-  phd_ex001_sem_list,
-  assignment = "phd",
-  t_max_y1 = 1,
+m_multirole_ex001_sem <- prepare_model(
+  multirole_ex001_sem,
+  assignment = "multirole",
+  ta_protected_max = 1,
   ta_min = 1, ta_max = 1,
   gr_min = 1, gr_max = 1,
-  alpha = 2, beta = 1, phi = 1, rho = 10,
   C = c_sem
 )
 
-result_phd_ex001_sem <- solve_model(m_phd_ex001_sem, with_ROI(solver = "glpk"))
+result_multirole_ex001_sem <- solve_model(
+  m_multirole_ex001_sem,
+  with_ROI(solver = "glpk")
+)
 
-job_phd_ex001_sem <- assign_job(
-  result_phd_ex001_sem,
-  student_df = phd_students_ex001_sem,
-  course_codes = rownames(phd_demand_ex001),
+job_multirole_ex001_sem <- assign_job(
+  result_multirole_ex001_sem,
+  student_df = multirole_students_ex001_sem,
+  course_codes = rownames(multirole_demand_ex001),
   name_col = "Name"
 )
 
-job_phd_ex001_sem
-#>    Name C101-t C102-t C103-t C104-t C101-g C102-g C103-g C104-g C101-e C102-e
-#> 1   Ava      1      0      0      0      1      0      0      0      2      0
-#> 2   Ben      0      1      0      0      0      1      0      0      0      2
-#> 3 Chloe      0      0      1      0      0      0      1      0      0      0
-#> 4 Dylan      0      0      0      1      0      0      0      1      0      0
-#>   C103-e C104-e
-#> 1      0      0
-#> 2      0      0
-#> 3      2      0
-#> 4      0      2
-```
-
-Alternative workflow (wrapper + direct parameters):
-
-``` r
-
-m_phd_ex001_sem_alt <- prepare_model(
-  phd_ex001_sem_alt,
-  assignment = "phd",
-  t_max_y1 = 1,
-  ta_min = 1, ta_max = 1,
-  gr_min = 1, gr_max = 1,
-  alpha = 2, beta = 1, phi = 1, rho = 10,
-  C = c_sem
-)
-
-result_phd_ex001_sem_alt <- solve_model(m_phd_ex001_sem_alt, with_ROI(solver = "glpk"))
-
-job_phd_ex001_sem_alt <- assign_job(
-  result_phd_ex001_sem_alt,
-  student_df = phd_students_ex001_sem,
-  course_codes = rownames(phd_demand_ex001),
-  name_col = "Name"
-)
-
-job_phd_ex001_sem_alt
+job_multirole_ex001_sem
 #>    Name C101-t C102-t C103-t C104-t C101-g C102-g C103-g C104-g C101-e C102-e
 #> 1   Ava      1      0      0      0      1      0      0      0      2      0
 #> 2   Ben      0      1      0      0      0      1      0      0      0      2
@@ -882,17 +818,18 @@ job_phd_ex001_sem_alt
 
 ``` r
 
-# quick summary of each student and worktype
-ta_cols <- grepl("-t$", names(job_phd_ex001_sem))
-gr_cols <- grepl("-g$", names(job_phd_ex001_sem))
-e_cols <- grepl("-e$", names(job_phd_ex001_sem))
+ta_cols <- grepl("-t$", names(job_multirole_ex001_sem))
+gr_cols <- grepl("-g$", names(job_multirole_ex001_sem))
+e_cols <- grepl("-e$", names(job_multirole_ex001_sem))
 
 data.frame(
-  Name = job_phd_ex001_sem$Name,
-  TA = rowSums(job_phd_ex001_sem[, ta_cols, drop = FALSE]),
-  GR = rowSums(job_phd_ex001_sem[, gr_cols, drop = FALSE]),
-  E = rowSums(job_phd_ex001_sem[, e_cols, drop = FALSE]),
-  current_total = rowSums(job_phd_ex001_sem[, ta_cols | gr_cols | e_cols, drop = FALSE])
+  Name = job_multirole_ex001_sem$Name,
+  TA = rowSums(job_multirole_ex001_sem[, ta_cols, drop = FALSE]),
+  GR = rowSums(job_multirole_ex001_sem[, gr_cols, drop = FALSE]),
+  E = rowSums(job_multirole_ex001_sem[, e_cols, drop = FALSE]),
+  current_total = rowSums(
+    job_multirole_ex001_sem[, ta_cols | gr_cols | e_cols, drop = FALSE]
+  )
 )
 #>    Name TA GR E current_total
 #> 1   Ava  1  1 2             4
@@ -901,14 +838,13 @@ data.frame(
 #> 4 Dylan  1  1 2             4
 ```
 
-Note that this is done to showcase the functionality of the model and in
-this simple test data, the result is the same.
+Each objective weight can be disabled with `NULL` or zero. Its objective
+expression is omitted, and spread or protection variables and
+constraints are also omitted when their corresponding weights are
+disabled.
 
-The four hyperparameter inside the objective function can be turned off
-by setting the value to be 0.
-
-Note: Standalone constructors are also available:
+Standalone constructors include
 [`prepare_diversity_model()`](https://Zimmy313.github.io/grouper/reference/prepare_diversity_model.md),
 [`prepare_preference_model()`](https://Zimmy313.github.io/grouper/reference/prepare_preference_model.md),
 and
-[`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md).
+[`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md).
