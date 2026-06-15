@@ -4,20 +4,23 @@
 \alias{extract_info}
 \title{Extract model inputs (wrapper)}
 \usage{
-extract_info(assignment = c("diversity", "preference", "phd"), ...)
+extract_info(
+  assignment = c("diversity", "preference", "phd", "multirole"),
+  ...
+)
 }
 \arguments{
 \item{assignment}{Character string indicating model type. Must be one of
-\code{"diversity"}, \code{"preference"}, or \code{"phd"}.}
+\code{"diversity"}, \code{"preference"}, \code{"phd"}, or \code{"multirole"}.}
 
 \item{...}{Additional arguments for the underlying extraction functions. See Details.}
 }
 \value{
-A model input list from \code{\link[=extract_student_info]{extract_student_info()}} or
-\code{\link[=extract_phd_info]{extract_phd_info()}}.
+A model input list from the corresponding extraction function.
 }
 \description{
-Wrapper around \code{\link[=extract_student_info]{extract_student_info()}} and \code{\link[=extract_phd_info]{extract_phd_info()}}.
+Wrapper around \code{\link[=extract_student_info]{extract_student_info()}}, \code{\link[=extract_phd_info]{extract_phd_info()}}, and
+\code{\link[=extract_multirole_info]{extract_multirole_info()}}.
 }
 \details{
 Explicit argument guide by assignment:
@@ -64,6 +67,20 @@ Optional arguments:
 \item \code{e_mode}, which uses the default from \code{\link[=extract_phd_info]{extract_phd_info()}}
 \item \code{C}, which uses the default from \code{\link[=extract_phd_info]{extract_phd_info()}}
 \item \code{s}, which uses the default from \code{\link[=extract_phd_info]{extract_phd_info()}}
+}
+\item For \code{assignment = "multirole"}, \code{extract_info()} forwards \code{...} to
+\code{\link[=extract_multirole_info]{extract_multirole_info()}}.
+
+Required arguments:
+\itemize{
+\item \code{student_df}
+\item \code{d_mat}
+}
+
+Optional arguments:
+\itemize{
+\item \code{p_ta_mat} and \code{p_gr_mat}
+\item \code{e_mode}, \code{C}, and \code{s}
 }
 }
 

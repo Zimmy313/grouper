@@ -292,13 +292,137 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 }
 
 
+#' Extract inputs for the multi-role workload allocation model
+#'
+#' Converts individual-level data, role-specific preference matrices, and role
+#' demand into the list expected by [prepare_multirole_model()].
+#'
+#' @param student_df A data frame with one row per individual. Its first four
+#'   columns must be named `student_id`, `year`, `past_ta`, and `past_gr`, in
+#'   that order. `year` is capped to the range 1-4.
+#' @param d_mat A finite numeric demand matrix with `Nj` rows and two or three
+#'   columns. Columns are interpreted as TA, GR, and optional E.
+#' @param p_ta_mat Optional finite numeric TA preference matrix with dimensions
+#'   `Ns x Nj`.
+#' @param p_gr_mat Optional finite numeric GR preference matrix with dimensions
+#'   `Ns x Nj`.
+#' @param e_mode How to handle E demand when `d_mat` has no E column. `"rr"`
+#'   computes E demand by round-robin allocation from highest to lowest GR
+#'   demand; `"none"` sets E demand to zero.
+#' @param C Semester workload capacity per individual. Used when
+#'   `e_mode = "rr"` to compute total semester capacity as `Ns * C`.
+#' @param s A finite numeric vector of length four containing E-allocation
+#'   scores for Years 1, 2, 3, and 4. Larger values make E allocation more
+#'   attractive when the `phi` term is active.
+#'
+#' @details
+#' Preference matrices are optional during extraction because their objective
+#' terms can be disabled in [prepare_multirole_model()]. When `beta_ta` or
+#' `beta_gr` is active, the corresponding matrix must be present.
+#'
+#' Input order must already be aligned: row `i` in each preference matrix must
+#' correspond to row `i` in `student_df`, and demand row `j` must correspond to
+#' preference column `j`.
+#'
+#' @returns A list containing `Ns`, `Nj`, `P_ta`, `P_gr`, `d`, `s`, `year`,
+#'   `t1`, and `g1`.
+#'
+#' @examples
+#' inputs <- extract_multirole_info(
+#'   student_df = phd_students_ex001,
+#'   d_mat = phd_demand_ex001,
+#'   p_ta_mat = phd_prefmat_ex001,
+#'   p_gr_mat = phd_prefmat_ex001,
+#'   e_mode = "none"
+#' )
+#'
+#' @export
+extract_multirole_info <- function(student_df, d_mat,
+                                   p_ta_mat = NULL, p_gr_mat = NULL,
+                                   e_mode = c("rr", "none"), C = 4,
+                                   s = c(-1, 0, 1, 2)) {
+  e_mode <- match.arg(e_mode)
+
+  if (!is.numeric(s) || length(s) != 4 || any(!is.finite(s))) {
+    stop("s must be a finite numeric vector of length 4 for Years 1 to 4.")
+  }
+
+  required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
+  current_head_cols <- names(student_df)[seq_along(required_student_cols)]
+  if (!identical(current_head_cols, required_student_cols)) {
+    stop(
+      "Please ensure student_df first 4 columns are exactly: ",
+      paste(required_student_cols, collapse = ", ")
+    )
+  }
+
+  if (!is.matrix(d_mat) || !is.numeric(d_mat) ||
+      ncol(d_mat) < 2 || ncol(d_mat) > 3 ||
+      any(!is.finite(d_mat))) {
+    stop("d_mat must be a finite numeric matrix with 2 or 3 columns.")
+  }
+
+  Ns <- nrow(student_df)
+  Nj <- nrow(d_mat)
+
+  validate_preference_matrix <- function(x, nm) {
+    if (is.null(x)) {
+      return(NULL)
+    }
+    if (!is.matrix(x) || !is.numeric(x) ||
+        !identical(dim(x), c(Ns, Nj)) ||
+        any(!is.finite(x))) {
+      stop(nm, " must be NULL or a finite numeric matrix with dimensions Ns x Nj.")
+    }
+    x
+  }
+
+  P_ta <- validate_preference_matrix(p_ta_mat, "p_ta_mat")
+  P_gr <- validate_preference_matrix(p_gr_mat, "p_gr_mat")
+
+  year_num <- as.numeric(student_df$year)
+  year_num <- pmin(4, pmax(1, year_num))
+  year <- as.integer(year_num)
+
+  ta_units <- d_mat[, 1]
+  gr_units <- d_mat[, 2]
+  e_units <- if (ncol(d_mat) == 3) d_mat[, 3] else rep(0, Nj)
+
+  if (ncol(d_mat) == 2 && e_mode == "rr") {
+    total_E <- Ns * C - sum(ta_units) - sum(gr_units)
+
+    if (total_E > 0) {
+      eligible <- which(gr_units > 0)
+      if (length(eligible) > 0) {
+        ranked <- eligible[order(gr_units[eligible], decreasing = TRUE)]
+        rr_idx <- ranked[((seq_len(total_E) - 1) %% length(ranked)) + 1]
+        e_units <- tabulate(rr_idx, nbins = Nj)
+      }
+    }
+  }
+
+  list(
+    Ns = Ns,
+    Nj = Nj,
+    P_ta = P_ta,
+    P_gr = P_gr,
+    d = cbind(TA = ta_units, GR = gr_units, E = e_units),
+    s = unname(s[year]),
+    year = year,
+    t1 = as.numeric(student_df$past_ta),
+    g1 = as.numeric(student_df$past_gr)
+  )
+}
+
+
 
 #' Extract model inputs (wrapper)
 #'
-#' Wrapper around [extract_student_info()] and [extract_phd_info()].
+#' Wrapper around [extract_student_info()], [extract_phd_info()], and
+#' [extract_multirole_info()].
 #'
 #' @param assignment Character string indicating model type. Must be one of
-#'   `"diversity"`, `"preference"`, or `"phd"`.
+#'   `"diversity"`, `"preference"`, `"phd"`, or `"multirole"`.
 #' @param ... Additional arguments for the underlying extraction functions. See Details.
 #'
 #' @details
@@ -338,19 +462,34 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #'   - `C`, which uses the default from [extract_phd_info()]
 #'   - `s`, which uses the default from [extract_phd_info()]
 #'
+#' - For `assignment = "multirole"`, `extract_info()` forwards `...` to
+#'   [extract_multirole_info()].
+#'
+#'   Required arguments:
+#'   - `student_df`
+#'   - `d_mat`
+#'
+#'   Optional arguments:
+#'   - `p_ta_mat` and `p_gr_mat`
+#'   - `e_mode`, `C`, and `s`
+#'
 #' This wrapper does not parse YAML files. YAML-based parameter extraction
 #' remains available via [extract_params_yaml()].
 #'
-#' @returns A model input list from [extract_student_info()] or
-#'   [extract_phd_info()].
+#' @returns A model input list from the corresponding extraction function.
 #' @export
-extract_info <- function(assignment = c("diversity", "preference", "phd"), ...) {
+extract_info <- function(
+    assignment = c("diversity", "preference", "phd", "multirole"), ...) {
   assignment <- match.arg(assignment)
   args <- list(...)
 
   if (assignment %in% c("diversity", "preference")) {
     args$assignment <- assignment
     return(do.call(extract_student_info, args))
+  }
+
+  if (assignment == "multirole") {
+    return(do.call(extract_multirole_info, args))
   }
 
   do.call(extract_phd_info, args)
