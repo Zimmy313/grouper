@@ -517,7 +517,7 @@ full_multirole_result$output
 The resulting current-semester workload totals confirm that TA, GR, and E are
 all allocated:
 
-```{r}
+```{r, echo = FALSE}
 full_assignment <- full_multirole_result$output
 full_ta_cols <- grepl("-t$", names(full_assignment))
 full_gr_cols <- grepl("-g$", names(full_assignment))
@@ -537,10 +537,20 @@ data.frame(
 )
 ```
 
-## Dataset 001 (Single-semester)
+## Single-semester
 
-For a single-semester allocation, set `past_ta = 0` and `past_gr = C` for every
-individual so past workload does not contribute to role spread.
+The model normally uses two semesters of workload and enforces an annual total
+of `2 * C` for every individual. To use it for a single-semester allocation,
+the unused semester can be represented by a uniform synthetic workload of `C`.
+For example, set `past_ta = 0` and `past_gr = C` for every individual. By doing 
+so does not affect the TA and GR spread objectives, which depend on the relative
+differences between individuals rather than their absolute values.
+
+The synthetic workload could instead be assigned uniformly to `past_ta`, with
+`past_ta = C` and `past_gr = 0`; the same argument applies to the TA spread.
+The important requirements are that every individual receives the same
+synthetic value and that `past_ta + past_gr = C`. This leaves exactly `C` units
+per individual for the current-semester TA, GR, and E allocation.
 
 ```{r}
 multirole_students_ex001_sem <- multirole_students_ex001

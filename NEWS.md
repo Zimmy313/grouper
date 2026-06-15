@@ -1,4 +1,19 @@
+# grouper 0.7.1
+
+* Renamed the bundled workload data to `multirole_*`.
+* Expanded the workload examples with a complete TA/GR workflow.
+* Documented the single-semester synthetic prior-workload convention.
+
+# grouper 0.7.0
+
+* Added the multi-role workload allocation engine and wrapper support.
+* Added independent TA/GR preferences, fairness, and cohort protection.
+* Omitted objective components and supporting model structure when their
+  weights are `NULL` or zero.
+* Retained the existing PhD workflow and Shiny applications.
+
 # grouper 0.6.2
+
 * Unified all three shiny apps into a single app with 3 tabs.
 * Added wrapper function for solving and post-processing in one step.
 * Added configurable four-value seniority scoring for the PhD model's
