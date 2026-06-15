@@ -67,16 +67,17 @@ assign_groups <- function(model_result,
 }
 
 
-#' Convert PhD solver allocation to manual-style wide table
+#' Convert workload allocation to a manual-style wide table
 #'
 #' Creates one row per student and one column per course-role pair, with units
 #' allocated by the solver.
 #'
-#' @param model_result Result object from `ompr::solve_model()` for the PhD model.
+#' @param model_result Result object from `ompr::solve_model()` for a PhD or
+#'   multi-role workload model.
 #' @param student_df A data frame that contains student name information. Every
 #'   row is a unique student.
 #' @param course_codes Character vector of course codes in the same order as
-#'   `p_mat` columns (and `d_mat` rows).
+#'   preference-matrix columns and `d_mat` rows.
 #' @param name_col Student name column name in `student_df`.
 #'
 #' @returns A data frame with columns:
@@ -169,7 +170,8 @@ validate_required_args <- function(assignment, args) {
     assignment,
     diversity = c("dframe", "group_names"),
     preference = c("dframe", "params_list", "group_names"),
-    phd = c("student_df", "course_codes")
+    phd = c("student_df", "course_codes"),
+    multirole = c("student_df", "course_codes")
   )
 
   missing_args <- required[vapply(
@@ -232,7 +234,7 @@ build_roi_args <- function(solver, verbose, time_limit, iteration_limit,
 #'
 #' @param model A prepared `ompr` model, usually from [prepare_model()].
 #' @param assignment Character string indicating model type. Must be one of
-#'   `"diversity"`, `"preference"`, or `"phd"`.
+#'   `"diversity"`, `"preference"`, `"phd"`, or `"multirole"`.
 #' @param solver Solver to use through `ompr.roi`. Must be one of `"glpk"`,
 #'   `"highs"`, or `"gurobi"`.
 #' @param dframe The original dataframe used in [extract_student_info()]. Required
@@ -242,10 +244,10 @@ build_roi_args <- function(solver, verbose, time_limit, iteration_limit,
 #' @param group_names A character string denoting the self-formed group column in
 #'   `dframe`. Required for `assignment = "diversity"` and
 #'   `assignment = "preference"`.
-#' @param student_df A data frame that contains PhD student name information.
-#'   Required for `assignment = "phd"`.
-#' @param course_codes Character vector of PhD course codes in model order.
-#'   Required for `assignment = "phd"`.
+#' @param student_df A data frame that contains individual name information.
+#'   Required for `assignment = "phd"` and `assignment = "multirole"`.
+#' @param course_codes Character vector of course or task codes in model order.
+#'   Required for `assignment = "phd"` and `assignment = "multirole"`.
 #' @param name_col Student name column name in `student_df`.
 #' @param verbose Logical value passed to `ompr.roi::with_ROI()`.
 #' @param time_limit,iteration_limit Optional Gurobi controls. These are applied
@@ -261,7 +263,9 @@ build_roi_args <- function(solver, verbose, time_limit, iteration_limit,
 #'
 #' @export
 solve_assignment <- function(model,
-                             assignment = c("diversity", "preference", "phd"),
+                             assignment = c(
+                               "diversity", "preference", "phd", "multirole"
+                             ),
                              solver = c("glpk", "highs", "gurobi"),
                              dframe = NULL,
                              params_list = NULL,
@@ -299,7 +303,7 @@ solve_assignment <- function(model,
   roi_control <- do.call(ompr.roi::with_ROI, roi_args)
   model_result <- ompr::solve_model(model, roi_control)
 
-  output <- if (assignment == "phd") {
+  output <- if (assignment %in% c("phd", "multirole")) {
     assign_job(
       model_result = model_result,
       student_df = student_df,

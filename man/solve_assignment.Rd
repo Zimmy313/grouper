@@ -6,7 +6,7 @@
 \usage{
 solve_assignment(
   model,
-  assignment = c("diversity", "preference", "phd"),
+  assignment = c("diversity", "preference", "phd", "multirole"),
   solver = c("glpk", "highs", "gurobi"),
   dframe = NULL,
   params_list = NULL,
@@ -24,7 +24,7 @@ solve_assignment(
 \item{model}{A prepared \code{ompr} model, usually from \code{\link[=prepare_model]{prepare_model()}}.}
 
 \item{assignment}{Character string indicating model type. Must be one of
-\code{"diversity"}, \code{"preference"}, or \code{"phd"}.}
+\code{"diversity"}, \code{"preference"}, \code{"phd"}, or \code{"multirole"}.}
 
 \item{solver}{Solver to use through \code{ompr.roi}. Must be one of \code{"glpk"},
 \code{"highs"}, or \code{"gurobi"}.}
@@ -39,11 +39,11 @@ Required for \code{assignment = "preference"}.}
 \code{dframe}. Required for \code{assignment = "diversity"} and
 \code{assignment = "preference"}.}
 
-\item{student_df}{A data frame that contains PhD student name information.
-Required for \code{assignment = "phd"}.}
+\item{student_df}{A data frame that contains individual name information.
+Required for \code{assignment = "phd"} and \code{assignment = "multirole"}.}
 
-\item{course_codes}{Character vector of PhD course codes in model order.
-Required for \code{assignment = "phd"}.}
+\item{course_codes}{Character vector of course or task codes in model order.
+Required for \code{assignment = "phd"} and \code{assignment = "multirole"}.}
 
 \item{name_col}{Student name column name in \code{student_df}.}
 

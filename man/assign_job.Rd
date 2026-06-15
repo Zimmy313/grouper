@@ -2,18 +2,19 @@
 % Please edit documentation in R/post_process.R
 \name{assign_job}
 \alias{assign_job}
-\title{Convert PhD solver allocation to manual-style wide table}
+\title{Convert workload allocation to a manual-style wide table}
 \usage{
 assign_job(model_result, student_df, course_codes, name_col = "Name")
 }
 \arguments{
-\item{model_result}{Result object from \code{ompr::solve_model()} for the PhD model.}
+\item{model_result}{Result object from \code{ompr::solve_model()} for a PhD or
+multi-role workload model.}
 
 \item{student_df}{A data frame that contains student name information. Every
 row is a unique student.}
 
 \item{course_codes}{Character vector of course codes in the same order as
-\code{p_mat} columns (and \code{d_mat} rows).}
+preference-matrix columns and \code{d_mat} rows.}
 
 \item{name_col}{Student name column name in \code{student_df}.}
 }
