@@ -1,7 +1,7 @@
 Package: grouper
 Type: Package
-Title: Optimal Assignment of Students to Groups
-Version: 0.6.2
+Title: Optimal Group Assignment and Workload Allocation
+Version: 0.7.0
 Authors@R: c(
     person("Vik", "Gopal", , "vik.gopal@nus.edu.sg", role = "aut"),
     person("Kevin", "Lam", , "lamfy@nus.edu.sg", role = "aut"),
@@ -9,8 +9,9 @@ Authors@R: c(
     person("Mingyuan", "Zhang", , "mingyuan.z@nus.edu.sg", role = c("aut", "cre")),
     person("National University of Singapore", role = "cph")
   )
-Description: Integer programming models to assign students to groups by maximising 
-    diversity within groups, or by maximising preference scores for topics. 
+Description: Integer programming models to assign students to groups by maximising
+    diversity or topic preferences, and to allocate multi-role teaching workloads
+    while balancing role demand, preferences, fairness, and cohort protection.
 License: MIT + file LICENSE
 URL: https://Zimmy313.github.io/grouper/, https://github.com/Zimmy313/grouper
 BugReports: https://github.com/Zimmy313/grouper/issues

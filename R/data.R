@@ -74,7 +74,7 @@
 
 #' PhD Student Data Example 001
 #'
-#' An example student table to use with the PhD workload allocation model.
+#' An example student table for the PhD and multi-role workload models.
 #'
 #' @format ## `phd_students_ex001`
 #' A data frame with 4 rows and 5 columns.
@@ -95,7 +95,7 @@
 
 #' PhD Preference Matrix Example 001
 #'
-#' An example preference matrix to use with the PhD workload allocation model.
+#' An example preference matrix for the PhD and multi-role workload models.
 #'
 #' @format ## `phd_prefmat_ex001`
 #' A matrix with 4 rows and 4 columns.
@@ -105,15 +105,15 @@
 #'
 #' Preference scores are encoded as 3 (first choice), 2 (second choice),
 #' and 1 (third choice). Unranked courses are encoded as -99. These are example
-#' scores only; `extract_phd_info()` accepts any numeric preference scores
-#' supplied by the user.
+#' scores only; `extract_phd_info()` and `extract_multirole_info()` accept
+#' numeric preference scores supplied by the user.
 #'
 #' @source This dataset was constructed by hand.
 "phd_prefmat_ex001"
 
 #' PhD Demand Matrix Example 001
 #'
-#' An example demand matrix to use with the PhD workload allocation model.
+#' An example demand matrix for the PhD and multi-role workload models.
 #'
 #' @format ## `phd_demand_ex001`
 #' A matrix with 4 rows and 2 columns.

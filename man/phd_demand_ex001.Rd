@@ -19,6 +19,6 @@ This dataset was constructed by hand.
 phd_demand_ex001
 }
 \description{
-An example demand matrix to use with the PhD workload allocation model.
+An example demand matrix for the PhD and multi-role workload models.
 }
 \keyword{datasets}

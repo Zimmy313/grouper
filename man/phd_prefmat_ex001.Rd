@@ -14,8 +14,8 @@ to rows of \code{phd_demand_ex001}.
 
 Preference scores are encoded as 3 (first choice), 2 (second choice),
 and 1 (third choice). Unranked courses are encoded as -99. These are example
-scores only; \code{extract_phd_info()} accepts any numeric preference scores
-supplied by the user.
+scores only; \code{extract_phd_info()} and \code{extract_multirole_info()} accept
+numeric preference scores supplied by the user.
 }
 }
 \source{
@@ -25,6 +25,6 @@ This dataset was constructed by hand.
 phd_prefmat_ex001
 }
 \description{
-An example preference matrix to use with the PhD workload allocation model.
+An example preference matrix for the PhD and multi-role workload models.
 }
 \keyword{datasets}

@@ -5,7 +5,7 @@ template:
 
 home:
   title: grouper
-  description: Optimal assignment of students to groups
+  description: Optimal group assignment and multi-role workload allocation
 
 navbar:
   structure:
@@ -25,12 +25,14 @@ reference:
   contents:
   - extract_info
   - extract_student_info
+  - extract_multirole_info
   - extract_phd_info
   - extract_params_yaml
 - title: Model preparation
   contents:
   - prepare_model
   - prepare_diversity_model
+  - prepare_multirole_model
   - prepare_phd_model
   - prepare_preference_model
 - title: Solving and processing results
