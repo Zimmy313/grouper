@@ -18,6 +18,7 @@ format:
 
 This document details the various example datasets that are available on this 
 repository. They can be used to test out the `grouper` package functions.
+Testing R!
 
 In all the following code, set your working directory to be `mytesting`, and 
 make sure the `grouper` package is loaded. It is not recommended that you knit 
@@ -75,7 +76,7 @@ df_list <- extract_student_info(cur_df, "preference",   self_formed_groups = 2,
                                 pref_mat = cur_pref)
 yaml_list <- extract_params_yaml("mdl02_input01.yml", "preference")
 cur_mdl <- prepare_model(df_list, yaml_list, "preference")
-result <- solve_model(cur_mdl, with_ROI(solver="gurobi"))
+result <- solve_model(cur_mdl, with_ROI(solver="gurobi", verbose=TRUE))
 cur_assigned <- assign_groups(result, assignment = "preference",   
                               dframe=cur_df, yaml_list,  
                               group_names="grouping")
@@ -106,7 +107,7 @@ df_list <- extract_student_info(cur_df, "preference",   self_formed_groups = 2,
                                 pref_mat = cur_pref)
 yaml_list <- extract_params_yaml("mdl02_input04.yml", "preference")
 cur_mdl <- prepare_model(df_list, yaml_list, "preference")
-result <- solve_model(cur_mdl, with_ROI(solver="gurobi"))
+result <- solve_model(cur_mdl, with_ROI(solver="gurobi", verbose=TRUE))
 cur_assigned <- assign_groups(result, assignment = "preference",   
                               dframe=cur_df, yaml_list,  
                               group_names="grouping")
