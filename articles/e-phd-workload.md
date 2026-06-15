@@ -2,20 +2,23 @@
 
 ## Model introduction
 
-Higher-education teaching teams often distribute several types of work
-across the same pool of staff or graduate students. Teaching-assistant
-work (TA) includes tutorials, laboratory sessions, and other direct
-teaching support. Grading work (GR) includes marking assignments, tests,
-and examinations. A third role, E, bundles lighter or more intermittent
-duties such as exam invigilation, consultation support, and routine
-administrative tasks.
+Higher-education teaching teams often need to allocate multiple types of
+work across the same pool of staff or graduate students. A common
+setting involves three roles:
 
-This model is useful when a department must meet exact role demand while
-also accounting for workload carried from a previous semester, different
-preferences for teaching and grading, priority rules for lighter duties,
-and protections for selected cohorts. The roles can be reinterpreted in
-other settings, but TA, GR, and E provide the motivating
-higher-education example.
+1.  Teaching-assistant work (TA), such as tutorials, laboratory
+    sessions, and other forms of direct teaching support.
+2.  Grading work (GR), such as marking assignments, tests, and
+    examinations.
+3.  A third role, E, which captures lighter or more intermittent duties
+    such as exam invigilation, consultation support, and routine
+    administrative tasks.
+
+This model is useful when a department must satisfy exact demand for
+each role while also accounting for role-specific preferences, priority
+rules for lighter duties, and protections for selected cohorts. It can
+also incorporate previous workload and balance total workload over a
+longer planning horizon.
 
 Let there be $`N_s`$ individuals indexed by $`i \in \{1,\ldots,N_s\}`$
 and $`N_j`$ courses or tasks indexed by $`j \in \{1,\ldots,N_j\}`$. For
@@ -26,14 +29,17 @@ $`d_{j,r}`$ must be fully assigned.
 For each individual-task pair, $`P^{\mathrm{TA}}_{i,j}`$ and
 $`P^{\mathrm{GR}}_{i,j}`$ denote the user-supplied TA and grading
 preference scores. Higher values indicate stronger preferences. Year of
-study is denoted by $`y_i`$, and $`s_i`$ is a user-configurable score
-that guides E allocation. The model also tracks previous-semester TA and
-GR workload, denoted by $`t_i^{(1)}`$ and $`g_i^{(1)}`$.
+study is denoted by $`y_i`$(capped within 1-4), and $`s_i`$ is a
+user-configurable score that guides E allocation. The model also tracks
+past semester TA and GR workload, denoted by $`t_i^{(1)}`$ and
+$`g_i^{(1)}`$.
 
 TA and GR may protect different cohorts. Let
 $`y^\ast_{\mathrm{TA}}, y^\ast_{\mathrm{GR}} \in \{1,2,3,4\}`$ denote
 the protected years for the two roles. Each role’s fairness spread
-excludes its own protected cohort.
+excludes its own protected cohort. The model only support one protected
+cohort per role, but the two roles may protect the same or different
+cohorts.
 
 The generalized model balances:
 

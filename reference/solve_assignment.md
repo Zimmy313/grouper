@@ -12,7 +12,7 @@ depending on the assignment type.
 ``` r
 solve_assignment(
   model,
-  assignment = c("diversity", "preference", "phd"),
+  assignment = c("diversity", "preference", "phd", "multirole"),
   solver = c("glpk", "highs", "gurobi"),
   dframe = NULL,
   params_list = NULL,
@@ -37,7 +37,7 @@ solve_assignment(
 - assignment:
 
   Character string indicating model type. Must be one of `"diversity"`,
-  `"preference"`, or `"phd"`.
+  `"preference"`, `"phd"`, or `"multirole"`.
 
 - solver:
 
@@ -65,13 +65,13 @@ solve_assignment(
 
 - student_df:
 
-  A data frame that contains PhD student name information. Required for
-  `assignment = "phd"`.
+  A data frame that contains individual name information. Required for
+  `assignment = "phd"` and `assignment = "multirole"`.
 
 - course_codes:
 
-  Character vector of PhD course codes in model order. Required for
-  `assignment = "phd"`.
+  Character vector of course or task codes in model order. Required for
+  `assignment = "phd"` and `assignment = "multirole"`.
 
 - name_col:
 

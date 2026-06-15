@@ -17,14 +17,14 @@
 Source:
 [`DESCRIPTION`](https://github.com/Zimmy313/grouper/blob/main/DESCRIPTION)
 
-Gopal V, Lam K, Zhang M (2026). *grouper: Optimal Assignment of Students
-to Groups*. R package version 0.6.2,
+Gopal V, Lam K, Zhang M (2026). *grouper: Optimal Group Assignment and
+Workload Allocation*. R package version 0.7.0,
 <https://Zimmy313.github.io/grouper/>.
 
     @Manual{,
-      title = {grouper: Optimal Assignment of Students to Groups},
+      title = {grouper: Optimal Group Assignment and Workload Allocation},
       author = {Vik Gopal and Kevin Lam and Mingyuan Zhang},
       year = {2026},
-      note = {R package version 0.6.2},
+      note = {R package version 0.7.0},
       url = {https://Zimmy313.github.io/grouper/},
     }

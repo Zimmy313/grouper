@@ -1,4 +1,4 @@
-# Convert PhD solver allocation to manual-style wide table
+# Convert workload allocation to a manual-style wide table
 
 Creates one row per student and one column per course-role pair, with
 units allocated by the solver.
@@ -15,7 +15,7 @@ assign_job(model_result, student_df, course_codes, name_col = "Name")
 
   Result object from
   [`ompr::solve_model()`](https://rdrr.io/pkg/ompr/man/solve_model.html)
-  for the PhD model.
+  for a PhD or multi-role workload model.
 
 - student_df:
 
@@ -24,8 +24,8 @@ assign_job(model_result, student_df, course_codes, name_col = "Name")
 
 - course_codes:
 
-  Character vector of course codes in the same order as `p_mat` columns
-  (and `d_mat` rows).
+  Character vector of course codes in the same order as
+  preference-matrix columns and `d_mat` rows.
 
 - name_col:
 

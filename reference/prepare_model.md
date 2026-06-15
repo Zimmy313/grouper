@@ -8,7 +8,7 @@ Initialise optimisation model (wrapper)
 prepare_model(
   df_list,
   yaml_list = NULL,
-  assignment = c("diversity", "preference", "phd"),
+  assignment = c("diversity", "preference", "phd", "multirole"),
   w1 = 0.5,
   w2 = 0.5,
   ...
@@ -27,12 +27,13 @@ prepare_model(
   [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).
   Optional for `assignment = "diversity"` and
   `assignment = "preference"` for backward compatibility. If supplied,
-  this list is used directly. Ignored for `assignment = "phd"`.
+  this list is used directly. Ignored for `assignment = "phd"` and
+  `assignment = "multirole"`.
 
 - assignment:
 
   Character string indicating model type. Must be one of `"diversity"`,
-  `"preference"`, or `"phd"`.
+  `"preference"`, `"phd"`, or `"multirole"`.
 
 - w1, w2:
 
@@ -53,6 +54,9 @@ prepare_model(
     [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md),
     including `protected_year` when a cohort other than Year 1 should
     receive the soft TA-load protection.
+
+  - For `assignment = "multirole"`: passed to
+    [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md).
 
 ## Value
 

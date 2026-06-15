@@ -1,7 +1,6 @@
 # PhD Preference Matrix Example 001
 
-An example preference matrix to use with the PhD workload allocation
-model.
+An example preference matrix for the PhD and multi-role workload models.
 
 ## Usage
 
@@ -22,7 +21,9 @@ Preference scores are encoded as 3 (first choice), 2 (second choice),
 and 1 (third choice). Unranked courses are encoded as -99. These are
 example scores only;
 [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-accepts any numeric preference scores supplied by the user.
+and
+[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
+accept numeric preference scores supplied by the user.
 
 ## Source
 

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,19 +75,23 @@
 <div class="section level2">
 <h2 id="model-introduction">Model introduction<a class="anchor" aria-label="anchor" href="#model-introduction"></a>
 </h2>
-<p>Higher-education teaching teams often distribute several types of
-work across the same pool of staff or graduate students.
-Teaching-assistant work (TA) includes tutorials, laboratory sessions,
-and other direct teaching support. Grading work (GR) includes marking
-assignments, tests, and examinations. A third role, E, bundles lighter
-or more intermittent duties such as exam invigilation, consultation
-support, and routine administrative tasks.</p>
-<p>This model is useful when a department must meet exact role demand
-while also accounting for workload carried from a previous semester,
-different preferences for teaching and grading, priority rules for
-lighter duties, and protections for selected cohorts. The roles can be
-reinterpreted in other settings, but TA, GR, and E provide the
-motivating higher-education example.</p>
+<p>Higher-education teaching teams often need to allocate multiple types
+of work across the same pool of staff or graduate students. A common
+setting involves three roles:</p>
+<ol style="list-style-type: decimal">
+<li>Teaching-assistant work (TA), such as tutorials, laboratory
+sessions, and other forms of direct teaching support.</li>
+<li>Grading work (GR), such as marking assignments, tests, and
+examinations.</li>
+<li>A third role, E, which captures lighter or more intermittent duties
+such as exam invigilation, consultation support, and routine
+administrative tasks.</li>
+</ol>
+<p>This model is useful when a department must satisfy exact demand for
+each role while also accounting for role-specific preferences, priority
+rules for lighter duties, and protections for selected cohorts. It can
+also incorporate previous workload and balance total workload over a
+longer planning horizon.</p>
 <p>Let there be
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
 individuals indexed by
@@ -107,18 +111,20 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>P</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow></msubsup><annotation encoding="application/x-tex">P^{\mathrm{GR}}_{i,j}</annotation></semantics></math>
 denote the user-supplied TA and grading preference scores. Higher values
 indicate stronger preferences. Year of study is denoted by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>,
-and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>(capped
+within 1-4), and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>i</mi></msub><annotation encoding="application/x-tex">s_i</annotation></semantics></math>
 is a user-configurable score that guides E allocation. The model also
-tracks previous-semester TA and GR workload, denoted by
+tracks past semester TA and GR workload, denoted by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>t</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">t_i^{(1)}</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>g</mi><mi>i</mi><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><annotation encoding="application/x-tex">g_i^{(1)}</annotation></semantics></math>.</p>
 <p>TA and GR may protect different cohorts. Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>y</mi><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">A</mi></mrow><mo>*</mo></msubsup><mo>,</mo><msubsup><mi>y</mi><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">R</mi></mrow><mo>*</mo></msubsup><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo>,</mo><mn>4</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">y^\ast_{\mathrm{TA}}, y^\ast_{\mathrm{GR}} \in \{1,2,3,4\}</annotation></semantics></math>
 denote the protected years for the two roles. Each role’s fairness
-spread excludes its own protected cohort.</p>
+spread excludes its own protected cohort. The model only support one
+protected cohort per role, but the two roles may protect the same or
+different cohorts.</p>
 <p>The generalized model balances:</p>
 <ol style="list-style-type: decimal">
 <li>annual TA and GR workload fairness,</li>

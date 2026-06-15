@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,7 +53,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">prepare_model</span><span class="op">(</span></span>
 <span>  <span class="va">df_list</span>,</span>
 <span>  yaml_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  assignment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"diversity"</span>, <span class="st">"preference"</span>, <span class="st">"phd"</span><span class="op">)</span>,</span>
+<span>  assignment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"diversity"</span>, <span class="st">"preference"</span>, <span class="st">"phd"</span>, <span class="st">"multirole"</span><span class="op">)</span>,</span>
 <span>  w1 <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  w2 <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -72,12 +72,12 @@
 <dd><p>Parameter list from <code><a href="extract_params_yaml.html">extract_params_yaml()</a></code>. Optional for
 <code>assignment = "diversity"</code> and <code>assignment = "preference"</code> for backward
 compatibility. If supplied, this list is used directly. Ignored for
-<code>assignment = "phd"</code>.</p></dd>
+<code>assignment = "phd"</code> and <code>assignment = "multirole"</code>.</p></dd>
 
 
 <dt id="arg-assignment">assignment<a class="anchor" aria-label="anchor" href="#arg-assignment"></a></dt>
 <dd><p>Character string indicating model type. Must be one of
-<code>"diversity"</code>, <code>"preference"</code>, or <code>"phd"</code>.</p></dd>
+<code>"diversity"</code>, <code>"preference"</code>, <code>"phd"</code>, or <code>"multirole"</code>.</p></dd>
 
 
 <dt id="arg-w-w-">w1, w2<a class="anchor" aria-label="anchor" href="#arg-w-w-"></a></dt>
@@ -93,6 +93,8 @@ compatibility. If supplied, this list is used directly. Ignored for
 <li><p>For <code>assignment = "phd"</code>: passed to <code><a href="prepare_phd_model.html">prepare_phd_model()</a></code>, including
 <code>protected_year</code> when a cohort other than Year 1 should receive the soft
 TA-load protection.</p></li>
+<li><p>For <code>assignment = "multirole"</code>: passed to
+<code><a href="prepare_multirole_model.html">prepare_multirole_model()</a></code>.</p></li>
 </ul></dd>
 
 </dl></div>

@@ -6,6 +6,8 @@
   : Extract model inputs (wrapper)
 - [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
   : Extract student information
+- [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
+  : Extract inputs for the multi-role workload allocation model
 - [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
   : Extract inputs for the PhD workload allocation model
 - [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
@@ -17,6 +19,8 @@
   : Initialise optimisation model (wrapper)
 - [`prepare_diversity_model()`](https://Zimmy313.github.io/grouper/reference/prepare_diversity_model.md)
   : Prepare the diversity-based assignment model
+- [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md)
+  : Prepare the multi-role workload allocation model
 - [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md)
   : Prepare the PhD workload allocation model
 - [`prepare_preference_model()`](https://Zimmy313.github.io/grouper/reference/prepare_preference_model.md)
@@ -29,7 +33,7 @@
 - [`assign_groups()`](https://Zimmy313.github.io/grouper/reference/assign_groups.md)
   : Assigns model result to the original data frame.
 - [`assign_job()`](https://Zimmy313.github.io/grouper/reference/assign_job.md)
-  : Convert PhD solver allocation to manual-style wide table
+  : Convert workload allocation to a manual-style wide table
 
 ## Included data
 

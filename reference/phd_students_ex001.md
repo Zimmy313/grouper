@@ -1,6 +1,6 @@
 # PhD Student Data Example 001
 
-An example student table to use with the PhD workload allocation model.
+An example student table for the PhD and multi-role workload models.
 
 ## Usage
 

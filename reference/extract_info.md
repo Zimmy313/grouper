@@ -1,14 +1,18 @@
 # Extract model inputs (wrapper)
 
 Wrapper around
-[`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
+[`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md),
+[`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md),
 and
-[`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md).
+[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
 
 ## Usage
 
 ``` r
-extract_info(assignment = c("diversity", "preference", "phd"), ...)
+extract_info(
+  assignment = c("diversity", "preference", "phd", "multirole"),
+  ...
+)
 ```
 
 ## Arguments
@@ -16,7 +20,7 @@ extract_info(assignment = c("diversity", "preference", "phd"), ...)
 - assignment:
 
   Character string indicating model type. Must be one of `"diversity"`,
-  `"preference"`, or `"phd"`.
+  `"preference"`, `"phd"`, or `"multirole"`.
 
 - ...:
 
@@ -25,10 +29,7 @@ extract_info(assignment = c("diversity", "preference", "phd"), ...)
 
 ## Value
 
-A model input list from
-[`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
-or
-[`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md).
+A model input list from the corresponding extraction function.
 
 ## Details
 
@@ -85,6 +86,21 @@ Explicit argument guide by assignment:
 
   - `s`, which uses the default from
     [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
+
+- For `assignment = "multirole"`, `extract_info()` forwards `...` to
+  [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
+
+  Required arguments:
+
+  - `student_df`
+
+  - `d_mat`
+
+  Optional arguments:
+
+  - `p_ta_mat` and `p_gr_mat`
+
+  - `e_mode`, `C`, and `s`
 
 This wrapper does not parse YAML files. YAML-based parameter extraction
 remains available via
