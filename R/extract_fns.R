@@ -329,10 +329,10 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #'
 #' @examples
 #' inputs <- extract_multirole_info(
-#'   student_df = phd_students_ex001,
-#'   d_mat = phd_demand_ex001,
-#'   p_ta_mat = phd_prefmat_ex001,
-#'   p_gr_mat = phd_prefmat_ex001,
+#'   student_df = multirole_students_ex001,
+#'   d_mat = multirole_demand_ex001,
+#'   p_ta_mat = multirole_prefmat_ex001,
+#'   p_gr_mat = multirole_prefmat_ex001,
 #'   e_mode = "none"
 #' )
 #'

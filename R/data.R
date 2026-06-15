@@ -122,3 +122,50 @@
 #'
 #' @source This dataset was constructed by hand.
 "phd_demand_ex001"
+
+#' Multi-role Individual Data Example 001
+#'
+#' An example individual table for the multi-role workload allocation model.
+#'
+#' @format ## `multirole_students_ex001`
+#' A data frame with 4 rows and 5 columns.
+#'
+#' * student_id: unique individual id.
+#' * year: cohort or year, encoded from 1 to 4.
+#' * past_ta: previous-semester TA workload units.
+#' * past_gr: previous-semester GR workload units.
+#' * Name: individual name.
+#'
+#' In this toy dataset, `past_ta + past_gr = 4` for every individual.
+#'
+#' @source This dataset was constructed by hand.
+"multirole_students_ex001"
+
+#' Multi-role Preference Matrix Example 001
+#'
+#' An example preference matrix for the multi-role workload allocation model.
+#' It can be used for either TA or GR preferences.
+#'
+#' @format ## `multirole_prefmat_ex001`
+#' A matrix with 4 rows and 4 columns.
+#'
+#' Rows correspond to individuals in `multirole_students_ex001`, and columns
+#' correspond to rows of `multirole_demand_ex001`.
+#'
+#' Preference scores are encoded as 3 (first choice), 2 (second choice), and 1
+#' (third choice). Unranked courses are encoded as -99.
+#'
+#' @source This dataset was constructed by hand.
+"multirole_prefmat_ex001"
+
+#' Multi-role Demand Matrix Example 001
+#'
+#' An example demand matrix for the multi-role workload allocation model.
+#'
+#' @format ## `multirole_demand_ex001`
+#' A matrix with 4 rows and 2 columns.
+#'
+#' Columns are in the order `TA`, `GR`. Row names store the course codes.
+#'
+#' @source This dataset was constructed by hand.
+"multirole_demand_ex001"

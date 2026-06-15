@@ -184,10 +184,10 @@ The multi-role workflow consists of:
 3. `solve_assignment(assignment = "multirole")` or the lower-level
    `ompr::solve_model()` and `assign_job()` functions.
 
-The PhD example data is used for demonstrating the generalized
-interface. Here the same matrix is supplied for TA and GR preferences only to
-keep the example compact. In practice, the matrices can contain different
-user-defined scores.
+The bundled multi-role example data demonstrate the generalized interface.
+Here the same matrix is supplied for TA and GR preferences only to keep the
+example compact. In practice, the matrices can contain different user-defined
+scores.
 
 ## E-allocation scoring
 
@@ -197,10 +197,10 @@ The default is set to `c(-1, 0, 1, 2)`, which encourages E allocation to more se
 
 ```{r}
 default_inputs <- grouper::extract_multirole_info(
-  student_df = grouper::phd_students_ex001,
-  d_mat = grouper::phd_demand_ex001,
-  p_ta_mat = grouper::phd_prefmat_ex001,
-  p_gr_mat = grouper::phd_prefmat_ex001,
+  student_df = grouper::multirole_students_ex001,
+  d_mat = grouper::multirole_demand_ex001,
+  p_ta_mat = grouper::multirole_prefmat_ex001,
+  p_gr_mat = grouper::multirole_prefmat_ex001,
   e_mode = "none"
 )
 
@@ -211,10 +211,10 @@ Users can provide a different encoding to control the E-allocation objective:
 
 ```{r}
 custom_inputs <- grouper::extract_multirole_info(
-  student_df = grouper::phd_students_ex001,
-  d_mat = grouper::phd_demand_ex001,
-  p_ta_mat = grouper::phd_prefmat_ex001,
-  p_gr_mat = grouper::phd_prefmat_ex001,
+  student_df = grouper::multirole_students_ex001,
+  d_mat = grouper::multirole_demand_ex001,
+  p_ta_mat = grouper::multirole_prefmat_ex001,
+  p_gr_mat = grouper::multirole_prefmat_ex001,
   e_mode = "none",
   s = c(0, 1, 3, 6)
 )
