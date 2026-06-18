@@ -80,3 +80,4 @@ Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
 student/course ordering. Protection and TA fairness groups are based on
 \code{year}; \code{s} is used only in the E-allocation objective term.
 }
+\keyword{internal}

@@ -174,6 +174,7 @@ prepare_preference_model <- function(df_list, yaml_list) {
 #' `year`; `s` is used only in the E-allocation objective term.
 #'
 #' @return An \code{ompr} model object ready for \code{ompr::solve_model()}.
+#' @keywords internal
 #' @export
 prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
                               ta_min = NULL, ta_max = NULL,

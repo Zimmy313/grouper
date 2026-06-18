@@ -212,6 +212,7 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #' )
 #' custom_scores$s
 #'
+#' @keywords internal
 #' @export
 extract_phd_info <- function(student_df, p_mat, d_mat,
                              e_mode = c("rr", "none"), C = 4,

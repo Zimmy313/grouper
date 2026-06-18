@@ -86,3 +86,4 @@ custom_scores <- extract_phd_info(
 custom_scores$s
 
 }
+\keyword{internal}
