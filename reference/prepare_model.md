@@ -57,6 +57,8 @@ prepare_model(
 
   - For `assignment = "multirole"`: passed to
     [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md).
+    Multi-role semester capacity is supplied during extraction and read
+    from `df_list$C`.
 
 ## Value
 

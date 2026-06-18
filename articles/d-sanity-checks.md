@@ -647,8 +647,7 @@ m_multirole_ex001 <- prepare_multirole_model(
   ta_min = 1, ta_max = 1,
   gr_min = 1, gr_max = 1,
   alpha_ta = 2, beta_ta = 1, phi = 1, rho_ta = 10,
-  alpha_gr = NULL, beta_gr = NULL, rho_gr = NULL,
-  C = c_sem
+  alpha_gr = NULL, beta_gr = NULL, rho_gr = NULL
 )
 
 result_multirole_ex001 <- solve_model(
@@ -706,8 +705,7 @@ full_multirole_model <- prepare_model(
   beta_gr = 1,
   phi = 1,
   rho_ta = 10,
-  rho_gr = 10,
-  C = c_sem
+  rho_gr = 10
 )
 
 full_multirole_result <- solve_assignment(
@@ -736,50 +734,40 @@ full_multirole_result$output
 The resulting current-semester workload totals confirm that TA, GR, and
 E are all allocated:
 
-``` r
+    #>    Name TA GR E current_total
+    #> 1   Ava  1  2 1             4
+    #> 2   Ben  2  0 2             4
+    #> 3 Chloe  0  2 2             4
+    #> 4 Dylan  1  0 3             4
 
-full_assignment <- full_multirole_result$output
-full_ta_cols <- grepl("-t$", names(full_assignment))
-full_gr_cols <- grepl("-g$", names(full_assignment))
-full_e_cols <- grepl("-e$", names(full_assignment))
+### Single-semester
 
-data.frame(
-  Name = full_assignment$Name,
-  TA = rowSums(full_assignment[, full_ta_cols, drop = FALSE]),
-  GR = rowSums(full_assignment[, full_gr_cols, drop = FALSE]),
-  E = rowSums(full_assignment[, full_e_cols, drop = FALSE]),
-  current_total = rowSums(
-    full_assignment[
-      , full_ta_cols | full_gr_cols | full_e_cols,
-      drop = FALSE
-    ]
-  )
-)
-#>    Name TA GR E current_total
-#> 1   Ava  1  2 1             4
-#> 2   Ben  2  0 2             4
-#> 3 Chloe  0  2 2             4
-#> 4 Dylan  1  0 3             4
-```
+The model enforces an annual total of `2 * C` for every individual. For
+a single-semester allocation, set `single_semester = TRUE` during
+extraction. Only `student_id` and `year` are then required as the first
+two columns. Extraction ignores any supplied `past_ta` and `past_gr`
+columns and generates `t1 = 0` and `g1 = C` for every individual.
 
-### Dataset 001 (Single-semester)
-
-For a single-semester allocation, set `past_ta = 0` and `past_gr = C`
-for every individual so past workload does not contribute to role
-spread.
+The synthetic `g1 = C` values are uniform, so they shift every annual GR
+workload by the same amount and do not change the GR spread. They fill
+one semester of the annual equality and leave exactly `C` units per
+individual for the current TA, GR, and E allocation. Capacity is
+supplied once during extraction and is stored in the resulting input
+list for model preparation.
 
 ``` r
 
-multirole_students_ex001_sem <- multirole_students_ex001
-multirole_students_ex001_sem$past_ta <- 0
-multirole_students_ex001_sem$past_gr <- c_sem
+multirole_students_ex001_sem <- multirole_students_ex001[
+  , c("student_id", "year", "Name")
+]
 
 multirole_ex001_sem <- extract_multirole_info(
   student_df = multirole_students_ex001_sem,
   d_mat = multirole_demand_ex001,
   p_ta_mat = multirole_prefmat_ex001,
   e_mode = "rr",
-  C = c_sem
+  C = c_sem,
+  single_semester = TRUE
 )
 
 m_multirole_ex001_sem <- prepare_model(
@@ -787,8 +775,7 @@ m_multirole_ex001_sem <- prepare_model(
   assignment = "multirole",
   ta_protected_max = 1,
   ta_min = 1, ta_max = 1,
-  gr_min = 1, gr_max = 1,
-  C = c_sem
+  gr_min = 1, gr_max = 1
 )
 
 result_multirole_ex001_sem <- solve_model(

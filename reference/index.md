@@ -1,37 +1,33 @@
 # Package index
 
-## Data preparation
+## Common workflow
 
 - [`extract_info()`](https://Zimmy313.github.io/grouper/reference/extract_info.md)
   : Extract model inputs (wrapper)
-- [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
-  : Extract student information
-- [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
-  : Extract inputs for the multi-role workload allocation model
-- [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-  : Extract inputs for the PhD workload allocation model
-- [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
-  : Extract parameters from a YAML file
-
-## Model preparation
-
 - [`prepare_model()`](https://Zimmy313.github.io/grouper/reference/prepare_model.md)
   : Initialise optimisation model (wrapper)
-- [`prepare_diversity_model()`](https://Zimmy313.github.io/grouper/reference/prepare_diversity_model.md)
-  : Prepare the diversity-based assignment model
-- [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md)
-  : Prepare the multi-role workload allocation model
-- [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md)
-  : Prepare the PhD workload allocation model
-- [`prepare_preference_model()`](https://Zimmy313.github.io/grouper/reference/prepare_preference_model.md)
-  : Prepare the preference-based assignment model
-
-## Solving and processing results
-
 - [`solve_assignment()`](https://Zimmy313.github.io/grouper/reference/solve_assignment.md)
   : Solve a prepared model and post-process the assignment
+
+## Student Group Assignment
+
+- [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
+  : Extract student information
+- [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
+  : Extract parameters from a YAML file
+- [`prepare_diversity_model()`](https://Zimmy313.github.io/grouper/reference/prepare_diversity_model.md)
+  : Prepare the diversity-based assignment model
+- [`prepare_preference_model()`](https://Zimmy313.github.io/grouper/reference/prepare_preference_model.md)
+  : Prepare the preference-based assignment model
 - [`assign_groups()`](https://Zimmy313.github.io/grouper/reference/assign_groups.md)
   : Assigns model result to the original data frame.
+
+## Multi-role Workload Allocation
+
+- [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md)
+  : Extract inputs for the multi-role workload allocation model
+- [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md)
+  : Prepare the multi-role workload allocation model
 - [`assign_job()`](https://Zimmy313.github.io/grouper/reference/assign_job.md)
   : Convert workload allocation to a manual-style wide table
 

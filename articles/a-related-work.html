@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -188,60 +188,96 @@ programming model.</p>
 <div class="section level2">
 <h2 id="introducing-grouper-package">Introducing <code>grouper</code> package<a class="anchor" aria-label="anchor" href="#introducing-grouper-package"></a>
 </h2>
-<p><code>grouper</code> provides two distinct optimisation models, both
-of which are are formulated as integer linear programs.</p>
-<p>The Preference-Based Assignment (PBA) model allows educators to
-assign student groups to topics primarily to maximise overall student
-preferences for those topics. The topics can be viewed as project
-titles. The model allows for repetitions of each project title. It is
-also possible to allow each project team to be comprised of multiple
-sub-groups in this formulation.</p>
-<p>To execute the optimisation routine, an instructor needs to
-prepare:</p>
-<ol style="list-style-type: decimal">
-<li>A group composition table listing the member students within each
-self-formed group.</li>
-<li>A preference matrix containing the preference that each self-formed
-group has for each topic.</li>
-<li>The remaining model parameters, supplied either:
-<ul>
-<li>through a YAML file (backward-compatible workflow), or</li>
-<li>directly in <code>prepare_model(...)</code> as named arguments.</li>
-</ul>
-</li>
-</ol>
-<p>In both cases, extraction can be handled through the wrapper
-entrypoint <code><a href="../reference/extract_info.html">extract_info()</a></code>.</p>
-<p>The Diversity-Based Assignment (DBA) model enables educators to
-assign students to groups and topics with the dual aims of maximising
-diversity (based on student attributes) within groups and balancing
-specific skill levels across different groups. These are formulated in a
-single objective function with weights assigned to each component.</p>
-<p>To execute the DBA optimisation routine, the instructor needs to
-prepare:</p>
-<ol style="list-style-type: decimal">
-<li>A group composition table containing:
-<ul>
-<li>the member students within each self-formed group,</li>
-<li>the demographics that will be used to compute pairwise dissimilarity
-between students, and</li>
-<li>a numeric measure of each student’s skill.</li>
-</ul>
-</li>
-<li>The remaining model parameters, supplied either:
-<ul>
-<li>through a YAML file (backward-compatible workflow), or</li>
-<li>directly in <code>prepare_model(...)</code> as named arguments.</li>
-</ul>
-</li>
-</ol>
-<p>As above, extraction can be handled through
-<code><a href="../reference/extract_info.html">extract_info()</a></code>.</p>
+<p><code>grouper</code> provides three optimisation models, each
+formulated as an integer linear program.</p>
+<div class="section level3">
+<h3 id="diversity-based-assignment">Diversity-Based Assignment<a class="anchor" aria-label="anchor" href="#diversity-based-assignment"></a>
+</h3>
+<p>The Diversity-Based Assignment (DBA) model assigns students to groups
+and topics while maximising diversity based on student attributes and
+balancing skill levels across groups. Users provide a group composition
+table, demographic or dissimilarity information, optional skill scores,
+and model parameters controlling group and topic sizes.</p>
+</div>
+<div class="section level3">
+<h3 id="preference-based-assignment">Preference-Based Assignment<a class="anchor" aria-label="anchor" href="#preference-based-assignment"></a>
+</h3>
+<p>The Preference-Based Assignment (PBA) model assigns self-formed
+student groups to topics to maximise their submitted preference scores.
+Topics may be repeated, and each project team may contain multiple
+sub-groups. Users provide a group composition table, a group-by-topic
+preference matrix, and model parameters controlling topic repetitions
+and group sizes.</p>
+</div>
+<div class="section level3">
+<h3 id="multi-role-workload-allocation">Multi-role Workload Allocation<a class="anchor" aria-label="anchor" href="#multi-role-workload-allocation"></a>
+</h3>
+<p>The Multi-role Workload Allocation model assigns TA, grading, and
+lighter E duties across individuals. It balances exact role demand,
+annual workload spread, role-specific preferences, seniority-based E
+allocation, and optional cohort protection. Users provide individual
+workload data, role demand, optional TA and grading preference matrices,
+and objective weights.</p>
+</div>
+<div class="section level3">
+<h3 id="function-organisation">Function organisation<a class="anchor" aria-label="anchor" href="#function-organisation"></a>
+</h3>
+<p>The package API follows the same stages for all three models:</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Stage</th>
+<th align="left">Common entry point</th>
+<th align="left">Model-specific functions</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Extract inputs</td>
+<td align="left"><code><a href="../reference/extract_info.html">extract_info()</a></code></td>
+<td align="left">
+<code><a href="../reference/extract_student_info.html">extract_student_info()</a></code> for DBA/PBA;
+<code><a href="../reference/extract_multirole_info.html">extract_multirole_info()</a></code> for multi-role</td>
+</tr>
+<tr class="even">
+<td align="left">Prepare model</td>
+<td align="left"><code><a href="../reference/prepare_model.html">prepare_model()</a></code></td>
+<td align="left">
+<code><a href="../reference/prepare_diversity_model.html">prepare_diversity_model()</a></code>,
+<code><a href="../reference/prepare_preference_model.html">prepare_preference_model()</a></code>,
+<code><a href="../reference/prepare_multirole_model.html">prepare_multirole_model()</a></code>
+</td>
+</tr>
+<tr class="odd">
+<td align="left">Solve</td>
+<td align="left"><code><a href="../reference/solve_assignment.html">solve_assignment()</a></code></td>
+<td align="left">
+<code><a href="https://rdrr.io/pkg/ompr/man/solve_model.html" class="external-link">ompr::solve_model()</a></code> for lower-level solver
+control</td>
+</tr>
+<tr class="even">
+<td align="left">Format output</td>
+<td align="left">handled by <code><a href="../reference/solve_assignment.html">solve_assignment()</a></code>
+</td>
+<td align="left">
+<code><a href="../reference/assign_groups.html">assign_groups()</a></code> for DBA/PBA;
+<code><a href="../reference/assign_job.html">assign_job()</a></code> for multi-role</td>
+</tr>
+</tbody>
+</table>
+<p>For DBA and PBA, model parameters can be supplied directly to
+<code><a href="../reference/prepare_model.html">prepare_model()</a></code> or read from a YAML file with
+<code><a href="../reference/extract_params_yaml.html">extract_params_yaml()</a></code>. The multi-role workflow supplies
+extraction settings to <code><a href="../reference/extract_info.html">extract_info()</a></code> and model weights or
+bounds to <code><a href="../reference/prepare_model.html">prepare_model()</a></code>.</p>
 <p>Refer to the remaining vignettes for more information about the model
 definition and application.</p>
 <p>In our package, we use the <code>ompr</code> framework for
 optimisation, which means that you are free to use any solver. In our
-small examples, we demonstrate the package using the <code>gplk</code>
+small examples, we demonstrate the package using the <code>glpk</code>
 solver. However, for more complicated problems, we highly recommend the
 <code>gurobi</code> solver. There is a free academic license for this
 tool. However, the <code>ROI.plugin.gurobi</code> and
@@ -259,6 +295,7 @@ gurobi solver:</p>
 <li><a href="https://github.com/roigrp/ROI.plugin.gurobi" class="external-link">Installing
 <code>ROI.plugin.gurobi</code></a></li>
 </ul>
+</div>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

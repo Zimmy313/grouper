@@ -9,7 +9,7 @@ while balancing role-specific workload, preferences, and cohort protection."></h
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +70,6 @@ while balancing role-specific workload, preferences, and cohort protection.</p>
 <span>  phi <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  rho_ta <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  rho_gr <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  C <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  protected_year_ta <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  protected_year_gr <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -126,11 +125,6 @@ spread.</p></dd>
 slack.</p></dd>
 
 
-<dt id="arg-c">C<a class="anchor" aria-label="anchor" href="#arg-c"></a></dt>
-<dd><p>Semester workload capacity per individual. Annual total workload is
-fixed at <code>2 * C</code>.</p></dd>
-
-
 <dt id="arg-protected-year-ta-protected-year-gr">protected_year_ta, protected_year_gr<a class="anchor" aria-label="anchor" href="#arg-protected-year-ta-protected-year-gr"></a></dt>
 <dd><p>Whole numbers from 1 to 4
 identifying the TA- and GR-protected cohorts.</p></dd>
@@ -148,7 +142,9 @@ omits its two spread variables and fairness constraints. Disabling a
 protection penalty omits that role's slack variables and soft-limit
 constraints, and includes every individual in that role's fairness spread.</p>
 <p>When a preference term is active, the corresponding <code>P_ta</code> or <code>P_gr</code>
-element must be present in <code>df_list</code>.</p>
+element must be present in <code>df_list</code>.
+Semester capacity is read from <code>df_list$C</code>, as supplied to
+<code><a href="extract_multirole_info.html">extract_multirole_info()</a></code>. Annual total workload is fixed at <code>2 * C</code>.</p>
     </div>
 
     <div class="section level2">

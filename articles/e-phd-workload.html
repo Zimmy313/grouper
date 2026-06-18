@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -285,13 +285,56 @@ interface. Here the same matrix is supplied for TA and GR preferences
 only to keep the example compact. In practice, the matrices can contain
 different user-defined scores.</p>
 <div class="section level3">
+<h3 id="semester-history-and-capacity">Semester history and capacity<a class="anchor" aria-label="anchor" href="#semester-history-and-capacity"></a>
+</h3>
+<p>By default, <code><a href="../reference/extract_multirole_info.html">extract_multirole_info()</a></code> expects
+<code>student_id</code>, <code>year</code>, <code>past_ta</code>, and
+<code>past_gr</code> as the first four columns of
+<code>student_df</code> and uses the supplied prior workload. Semester
+capacity <code>C</code> is also supplied at extraction and stored in the
+returned input list. <code><a href="../reference/prepare_multirole_model.html">prepare_multirole_model()</a></code> reads this
+stored value when enforcing annual workload of <code>2 * C</code>; it
+does not take a separate capacity argument.</p>
+<p>For an allocation with no prior-semester workload data, use
+<code>single_semester = TRUE</code>. In this mode, only
+<code>student_id</code> and <code>year</code> are required as the first
+two columns, and any supplied past-workload columns are ignored.
+Extraction generates <code>t1 = 0</code> and <code>g1 = C</code> for
+every individual:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">single_semester_students</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_students_ex001.html">multirole_students_ex001</a></span><span class="op">[</span></span>
+<span>  , <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"student_id"</span>, <span class="st">"year"</span>, <span class="st">"Name"</span><span class="op">)</span></span>
+<span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">single_semester_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_multirole_info.html">extract_multirole_info</a></span><span class="op">(</span></span>
+<span>  student_df <span class="op">=</span> <span class="va">single_semester_students</span>,</span>
+<span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_demand_ex001.html">multirole_demand_ex001</a></span>,</span>
+<span>  p_ta_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_prefmat_ex001.html">multirole_prefmat_ex001</a></span>,</span>
+<span>  e_mode <span class="op">=</span> <span class="st">"rr"</span>,</span>
+<span>  C <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  single_semester <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>t1 <span class="op">=</span> <span class="va">single_semester_inputs</span><span class="op">$</span><span class="va">t1</span>, g1 <span class="op">=</span> <span class="va">single_semester_inputs</span><span class="op">$</span><span class="va">g1</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      t1 g1</span></span>
+<span><span class="co">#&gt; [1,]  0  4</span></span>
+<span><span class="co">#&gt; [2,]  0  4</span></span>
+<span><span class="co">#&gt; [3,]  0  4</span></span>
+<span><span class="co">#&gt; [4,]  0  4</span></span></code></pre></div>
+<p>The uniform synthetic <code>g1 = C</code> workload adds the same
+constant to every individual’s annual GR workload, so it does not change
+the GR spread. It fills the prior-semester half of the annual equality
+and leaves <code>C</code> units per individual for current TA, GR, and E
+allocation.</p>
+</div>
+<div class="section level3">
 <h3 id="e-allocation-scoring">E-allocation scoring<a class="anchor" aria-label="anchor" href="#e-allocation-scoring"></a>
 </h3>
 <p><code><a href="../reference/extract_multirole_info.html">extract_multirole_info()</a></code> accepts a four-value
 <code>s</code> vector ordered by Years 1 to 4. The default is set to
 <code>c(-1, 0, 1, 2)</code>, which encourages E allocation to more
 senior students.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">default_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_multirole_info.html">extract_multirole_info</a></span><span class="op">(</span></span>
 <span>  student_df <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_students_ex001.html">multirole_students_ex001</a></span>,</span>
 <span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_demand_ex001.html">multirole_demand_ex001</a></span>,</span>
@@ -304,7 +347,7 @@ senior students.</p>
 <span><span class="co">#&gt; [1] -1  0  1  2</span></span></code></pre></div>
 <p>Users can provide a different encoding to control the E-allocation
 objective:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">custom_inputs</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_multirole_info.html">extract_multirole_info</a></span><span class="op">(</span></span>
 <span>  student_df <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_students_ex001.html">multirole_students_ex001</a></span>,</span>
 <span>  d_mat <span class="op">=</span> <span class="fu">grouper</span><span class="fu">::</span><span class="va"><a href="../reference/multirole_demand_ex001.html">multirole_demand_ex001</a></span>,</span>
@@ -328,7 +371,7 @@ schemes during preprocessing rather than using the example
 <p>The new GR terms are disabled by default. Set their weights to
 positive values to enable GR workload spread, grading preferences, and
 GR cohort protection:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">multi_role_model</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">default_inputs</span>,</span>
 <span>  assignment <span class="op">=</span> <span class="st">"multirole"</span>,</span>
@@ -355,7 +398,7 @@ and is excluded from that role’s fairness spread.</p>
 during model construction. The corresponding objective expression is not
 added. For spread and protection terms, their supporting variables and
 constraints are also omitted. For example:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ta_only_model</span> <span class="op">&lt;-</span> <span class="fu">grouper</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_multirole_model.html">prepare_multirole_model</a></span><span class="op">(</span></span>
 <span>  <span class="va">default_inputs</span>,</span>
 <span>  alpha_gr <span class="op">=</span> <span class="cn">NULL</span>,</span>

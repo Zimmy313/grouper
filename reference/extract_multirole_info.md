@@ -14,7 +14,8 @@ extract_multirole_info(
   p_gr_mat = NULL,
   e_mode = c("rr", "none"),
   C = 4,
-  s = c(-1, 0, 1, 2)
+  s = c(-1, 0, 1, 2),
+  single_semester = FALSE
 )
 ```
 
@@ -22,9 +23,11 @@ extract_multirole_info(
 
 - student_df:
 
-  A data frame with one row per individual. Its first four columns must
-  be named `student_id`, `year`, `past_ta`, and `past_gr`, in that
-  order. `year` is capped to the range 1-4.
+  A data frame with one row per individual. By default, its first four
+  columns must be named `student_id`, `year`, `past_ta`, and `past_gr`,
+  in that order. With `single_semester = TRUE`, only `student_id` and
+  `year` are required as the first two columns. `year` is capped to the
+  range 1-4.
 
 - d_mat:
 
@@ -49,8 +52,11 @@ extract_multirole_info(
 
 - C:
 
-  Semester workload capacity per individual. Used when `e_mode = "rr"`
-  to compute total semester capacity as `Ns * C`.
+  Semester workload capacity per individual. It is stored in the
+  extracted input and used by
+  [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md)
+  to set annual workload to `2 * C`. It also determines E demand when
+  `e_mode = "rr"`.
 
 - s:
 
@@ -58,10 +64,16 @@ extract_multirole_info(
   for Years 1, 2, 3, and 4. Larger values make E allocation more
   attractive when the `phi` term is active.
 
+- single_semester:
+
+  One non-missing logical value. When `TRUE`, supplied past-workload
+  columns are ignored and extraction returns synthetic prior workloads
+  `t1 = 0` and `g1 = C` for every individual.
+
 ## Value
 
-A list containing `Ns`, `Nj`, `P_ta`, `P_gr`, `d`, `s`, `year`, `t1`,
-and `g1`.
+A list containing `Ns`, `Nj`, `C`, `P_ta`, `P_gr`, `d`, `s`, `year`,
+`t1`, and `g1`.
 
 ## Details
 
@@ -74,6 +86,11 @@ present.
 Input order must already be aligned: row `i` in each preference matrix
 must correspond to row `i` in `student_df`, and demand row `j` must
 correspond to preference column `j`.
+
+In single-semester mode, the uniform synthetic GR workload does not
+change the GR workload spread. It fills the prior-semester half of
+annual capacity, leaving `C` units per individual for current
+allocation.
 
 ## Examples
 

@@ -100,7 +100,7 @@ Explicit argument guide by assignment:
 
   - `p_ta_mat` and `p_gr_mat`
 
-  - `e_mode`, `C`, and `s`
+  - `e_mode`, `C`, `s`, and `single_semester`
 
 This wrapper does not parse YAML files. YAML-based parameter extraction
 remains available via

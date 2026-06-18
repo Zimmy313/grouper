@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -642,8 +642,7 @@ used for TA; the GR terms are disabled in this first example.</p>
 <span>  ta_min <span class="op">=</span> <span class="fl">1</span>, ta_max <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  gr_min <span class="op">=</span> <span class="fl">1</span>, gr_max <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  alpha_ta <span class="op">=</span> <span class="fl">2</span>, beta_ta <span class="op">=</span> <span class="fl">1</span>, phi <span class="op">=</span> <span class="fl">1</span>, rho_ta <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  alpha_gr <span class="op">=</span> <span class="cn">NULL</span>, beta_gr <span class="op">=</span> <span class="cn">NULL</span>, rho_gr <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  C <span class="op">=</span> <span class="va">c_sem</span></span>
+<span>  alpha_gr <span class="op">=</span> <span class="cn">NULL</span>, beta_gr <span class="op">=</span> <span class="cn">NULL</span>, rho_gr <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result_multirole_ex001</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ompr/man/solve_model.html" class="external-link">solve_model</a></span><span class="op">(</span></span>
@@ -698,8 +697,7 @@ receives TA protection, while Year 2 receives GR protection.</p>
 <span>  beta_gr <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  phi <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  rho_ta <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  rho_gr <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  C <span class="op">=</span> <span class="va">c_sem</span></span>
+<span>  rho_gr <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">full_multirole_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/solve_assignment.html">solve_assignment</a></span><span class="op">(</span></span>
@@ -725,47 +723,40 @@ receives TA protection, while Year 2 receives GR protection.</p>
 <span><span class="co">#&gt; 4      0      2</span></span></code></pre></div>
 <p>The resulting current-semester workload totals confirm that TA, GR,
 and E are all allocated:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">full_assignment</span> <span class="op">&lt;-</span> <span class="va">full_multirole_result</span><span class="op">$</span><span class="va">output</span></span>
-<span><span class="va">full_ta_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-t$"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_assignment</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">full_gr_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-g$"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_assignment</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">full_e_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"-e$"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">full_assignment</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  Name <span class="op">=</span> <span class="va">full_assignment</span><span class="op">$</span><span class="va">Name</span>,</span>
-<span>  TA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">full_assignment</span><span class="op">[</span>, <span class="va">full_ta_cols</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  GR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">full_assignment</span><span class="op">[</span>, <span class="va">full_gr_cols</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  E <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">full_assignment</span><span class="op">[</span>, <span class="va">full_e_cols</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  current_total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span></span>
-<span>    <span class="va">full_assignment</span><span class="op">[</span></span>
-<span>      , <span class="va">full_ta_cols</span> <span class="op">|</span> <span class="va">full_gr_cols</span> <span class="op">|</span> <span class="va">full_e_cols</span>,</span>
-<span>      drop <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span>    <span class="op">]</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Name TA GR E current_total</span></span>
+<pre><code><span><span class="co">#&gt;    Name TA GR E current_total</span></span>
 <span><span class="co">#&gt; 1   Ava  1  2 1             4</span></span>
 <span><span class="co">#&gt; 2   Ben  2  0 2             4</span></span>
 <span><span class="co">#&gt; 3 Chloe  0  2 2             4</span></span>
-<span><span class="co">#&gt; 4 Dylan  1  0 3             4</span></span></code></pre></div>
+<span><span class="co">#&gt; 4 Dylan  1  0 3             4</span></span></code></pre>
 </div>
 <div class="section level3">
-<h3 id="dataset-001-single-semester">Dataset 001 (Single-semester)<a class="anchor" aria-label="anchor" href="#dataset-001-single-semester"></a>
+<h3 id="single-semester">Single-semester<a class="anchor" aria-label="anchor" href="#single-semester"></a>
 </h3>
-<p>For a single-semester allocation, set <code>past_ta = 0</code> and
-<code>past_gr = C</code> for every individual so past workload does not
-contribute to role spread.</p>
+<p>The model enforces an annual total of <code>2 * C</code> for every
+individual. For a single-semester allocation, set
+<code>single_semester = TRUE</code> during extraction. Only
+<code>student_id</code> and <code>year</code> are then required as the
+first two columns. Extraction ignores any supplied <code>past_ta</code>
+and <code>past_gr</code> columns and generates <code>t1 = 0</code> and
+<code>g1 = C</code> for every individual.</p>
+<p>The synthetic <code>g1 = C</code> values are uniform, so they shift
+every annual GR workload by the same amount and do not change the GR
+spread. They fill one semester of the annual equality and leave exactly
+<code>C</code> units per individual for the current TA, GR, and E
+allocation. Capacity is supplied once during extraction and is stored in
+the resulting input list for model preparation.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">multirole_students_ex001_sem</span> <span class="op">&lt;-</span> <span class="va">multirole_students_ex001</span></span>
-<span><span class="va">multirole_students_ex001_sem</span><span class="op">$</span><span class="va">past_ta</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
-<span><span class="va">multirole_students_ex001_sem</span><span class="op">$</span><span class="va">past_gr</span> <span class="op">&lt;-</span> <span class="va">c_sem</span></span>
+<code class="sourceCode R"><span><span class="va">multirole_students_ex001_sem</span> <span class="op">&lt;-</span> <span class="va">multirole_students_ex001</span><span class="op">[</span></span>
+<span>  , <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"student_id"</span>, <span class="st">"year"</span>, <span class="st">"Name"</span><span class="op">)</span></span>
+<span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">multirole_ex001_sem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extract_multirole_info.html">extract_multirole_info</a></span><span class="op">(</span></span>
 <span>  student_df <span class="op">=</span> <span class="va">multirole_students_ex001_sem</span>,</span>
 <span>  d_mat <span class="op">=</span> <span class="va">multirole_demand_ex001</span>,</span>
 <span>  p_ta_mat <span class="op">=</span> <span class="va">multirole_prefmat_ex001</span>,</span>
 <span>  e_mode <span class="op">=</span> <span class="st">"rr"</span>,</span>
-<span>  C <span class="op">=</span> <span class="va">c_sem</span></span>
+<span>  C <span class="op">=</span> <span class="va">c_sem</span>,</span>
+<span>  single_semester <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">m_multirole_ex001_sem</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/prepare_model.html">prepare_model</a></span><span class="op">(</span></span>
@@ -773,8 +764,7 @@ contribute to role spread.</p>
 <span>  assignment <span class="op">=</span> <span class="st">"multirole"</span>,</span>
 <span>  ta_protected_max <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  ta_min <span class="op">=</span> <span class="fl">1</span>, ta_max <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  gr_min <span class="op">=</span> <span class="fl">1</span>, gr_max <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  C <span class="op">=</span> <span class="va">c_sem</span></span>
+<span>  gr_min <span class="op">=</span> <span class="fl">1</span>, gr_max <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result_multirole_ex001_sem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ompr/man/solve_model.html" class="external-link">solve_model</a></span><span class="op">(</span></span>

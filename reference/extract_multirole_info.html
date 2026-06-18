@@ -9,7 +9,7 @@ demand into the list expected by prepare_multirole_model()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,8 @@ demand into the list expected by <code><a href="prepare_multirole_model.html">pr
 <span>  p_gr_mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  e_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rr"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  C <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span>  s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  single_semester <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -69,9 +70,11 @@ demand into the list expected by <code><a href="prepare_multirole_model.html">pr
 
 
 <dl><dt id="arg-student-df">student_df<a class="anchor" aria-label="anchor" href="#arg-student-df"></a></dt>
-<dd><p>A data frame with one row per individual. Its first four
-columns must be named <code>student_id</code>, <code>year</code>, <code>past_ta</code>, and <code>past_gr</code>, in
-that order. <code>year</code> is capped to the range 1-4.</p></dd>
+<dd><p>A data frame with one row per individual. By default, its
+first four columns must be named <code>student_id</code>, <code>year</code>, <code>past_ta</code>, and
+<code>past_gr</code>, in that order. With <code>single_semester = TRUE</code>, only
+<code>student_id</code> and <code>year</code> are required as the first two columns. <code>year</code> is
+capped to the range 1-4.</p></dd>
 
 
 <dt id="arg-d-mat">d_mat<a class="anchor" aria-label="anchor" href="#arg-d-mat"></a></dt>
@@ -96,8 +99,9 @@ demand; <code>"none"</code> sets E demand to zero.</p></dd>
 
 
 <dt id="arg-c">C<a class="anchor" aria-label="anchor" href="#arg-c"></a></dt>
-<dd><p>Semester workload capacity per individual. Used when
-<code>e_mode = "rr"</code> to compute total semester capacity as <code>Ns * C</code>.</p></dd>
+<dd><p>Semester workload capacity per individual. It is stored in the
+extracted input and used by <code><a href="prepare_multirole_model.html">prepare_multirole_model()</a></code> to set annual
+workload to <code>2 * C</code>. It also determines E demand when <code>e_mode = "rr"</code>.</p></dd>
 
 
 <dt id="arg-s">s<a class="anchor" aria-label="anchor" href="#arg-s"></a></dt>
@@ -105,11 +109,17 @@ demand; <code>"none"</code> sets E demand to zero.</p></dd>
 scores for Years 1, 2, 3, and 4. Larger values make E allocation more
 attractive when the <code>phi</code> term is active.</p></dd>
 
+
+<dt id="arg-single-semester">single_semester<a class="anchor" aria-label="anchor" href="#arg-single-semester"></a></dt>
+<dd><p>One non-missing logical value. When <code>TRUE</code>, supplied
+past-workload columns are ignored and extraction returns synthetic prior
+workloads <code>t1 = 0</code> and <code>g1 = C</code> for every individual.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing <code>Ns</code>, <code>Nj</code>, <code>P_ta</code>, <code>P_gr</code>, <code>d</code>, <code>s</code>, <code>year</code>,
-<code>t1</code>, and <code>g1</code>.</p>
+    <p>A list containing <code>Ns</code>, <code>Nj</code>, <code>C</code>, <code>P_ta</code>, <code>P_gr</code>, <code>d</code>, <code>s</code>,
+<code>year</code>, <code>t1</code>, and <code>g1</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -119,6 +129,9 @@ terms can be disabled in <code><a href="prepare_multirole_model.html">prepare_mu
 <p>Input order must already be aligned: row <code>i</code> in each preference matrix must
 correspond to row <code>i</code> in <code>student_df</code>, and demand row <code>j</code> must correspond to
 preference column <code>j</code>.</p>
+<p>In single-semester mode, the uniform synthetic GR workload does not change
+the GR workload spread. It fills the prior-semester half of annual capacity,
+leaving <code>C</code> units per individual for current allocation.</p>
     </div>
 
     <div class="section level2">

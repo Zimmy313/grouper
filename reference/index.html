@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,7 +43,7 @@
     </div>
 
     <div class="section level2">
-      <h2 id="data-preparation">Data preparation<a class="anchor" aria-label="anchor" href="#data-preparation"></a></h2>
+      <h2 id="common-workflow">Common workflow<a class="anchor" aria-label="anchor" href="#common-workflow"></a></h2>
 
 
 
@@ -61,33 +61,19 @@
 
         <dt>
 
-          <code><a href="extract_student_info.html">extract_student_info()</a></code>
+          <code><a href="prepare_model.html">prepare_model()</a></code>
 
         </dt>
-        <dd>Extract student information</dd>
+        <dd>Initialise optimisation model (wrapper)</dd>
 
         <dt>
 
-          <code><a href="extract_multirole_info.html">extract_multirole_info()</a></code>
+          <code><a href="solve_assignment.html">solve_assignment()</a></code>
 
         </dt>
-        <dd>Extract inputs for the multi-role workload allocation model</dd>
-
-        <dt>
-
-          <code><a href="extract_phd_info.html">extract_phd_info()</a></code>
-
-        </dt>
-        <dd>Extract inputs for the PhD workload allocation model</dd>
-
-        <dt>
-
-          <code><a href="extract_params_yaml.html">extract_params_yaml()</a></code>
-
-        </dt>
-        <dd>Extract parameters from a YAML file</dd>
+        <dd>Solve a prepared model and post-process the assignment</dd>
       </dl></div><div class="section level2">
-      <h2 id="model-preparation">Model preparation<a class="anchor" aria-label="anchor" href="#model-preparation"></a></h2>
+      <h2 id="student-group-assignment">Student Group Assignment<a class="anchor" aria-label="anchor" href="#student-group-assignment"></a></h2>
 
 
 
@@ -98,10 +84,17 @@
 
       <dl><dt>
 
-          <code><a href="prepare_model.html">prepare_model()</a></code>
+          <code><a href="extract_student_info.html">extract_student_info()</a></code>
 
         </dt>
-        <dd>Initialise optimisation model (wrapper)</dd>
+        <dd>Extract student information</dd>
+
+        <dt>
+
+          <code><a href="extract_params_yaml.html">extract_params_yaml()</a></code>
+
+        </dt>
+        <dd>Extract parameters from a YAML file</dd>
 
         <dt>
 
@@ -112,26 +105,19 @@
 
         <dt>
 
-          <code><a href="prepare_multirole_model.html">prepare_multirole_model()</a></code>
-
-        </dt>
-        <dd>Prepare the multi-role workload allocation model</dd>
-
-        <dt>
-
-          <code><a href="prepare_phd_model.html">prepare_phd_model()</a></code>
-
-        </dt>
-        <dd>Prepare the PhD workload allocation model</dd>
-
-        <dt>
-
           <code><a href="prepare_preference_model.html">prepare_preference_model()</a></code>
 
         </dt>
         <dd>Prepare the preference-based assignment model</dd>
+
+        <dt>
+
+          <code><a href="assign_groups.html">assign_groups()</a></code>
+
+        </dt>
+        <dd>Assigns model result to the original data frame.</dd>
       </dl></div><div class="section level2">
-      <h2 id="solving-and-processing-results">Solving and processing results<a class="anchor" aria-label="anchor" href="#solving-and-processing-results"></a></h2>
+      <h2 id="multi-role-workload-allocation">Multi-role Workload Allocation<a class="anchor" aria-label="anchor" href="#multi-role-workload-allocation"></a></h2>
 
 
 
@@ -142,17 +128,17 @@
 
       <dl><dt>
 
-          <code><a href="solve_assignment.html">solve_assignment()</a></code>
+          <code><a href="extract_multirole_info.html">extract_multirole_info()</a></code>
 
         </dt>
-        <dd>Solve a prepared model and post-process the assignment</dd>
+        <dd>Extract inputs for the multi-role workload allocation model</dd>
 
         <dt>
 
-          <code><a href="assign_groups.html">assign_groups()</a></code>
+          <code><a href="prepare_multirole_model.html">prepare_multirole_model()</a></code>
 
         </dt>
-        <dd>Assigns model result to the original data frame.</dd>
+        <dd>Prepare the multi-role workload allocation model</dd>
 
         <dt>
 

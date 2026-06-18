@@ -24,7 +24,6 @@ prepare_multirole_model(
   phi = 1,
   rho_ta = 10,
   rho_gr = NULL,
-  C = 4,
   protected_year_ta = 1,
   protected_year_gr = 1
 )
@@ -75,11 +74,6 @@ prepare_multirole_model(
 
   Non-negative penalties for TA and GR protected-cohort slack.
 
-- C:
-
-  Semester workload capacity per individual. Annual total workload is
-  fixed at `2 * C`.
-
 - protected_year_ta, protected_year_gr:
 
   Whole numbers from 1 to 4 identifying the TA- and GR-protected
@@ -99,7 +93,10 @@ variables and soft-limit constraints, and includes every individual in
 that role's fairness spread.
 
 When a preference term is active, the corresponding `P_ta` or `P_gr`
-element must be present in `df_list`.
+element must be present in `df_list`. Semester capacity is read from
+`df_list$C`, as supplied to
+[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
+Annual total workload is fixed at `2 * C`.
 
 ## Examples
 

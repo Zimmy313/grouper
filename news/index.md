@@ -1,5 +1,26 @@
 # Changelog
 
+## grouper 0.7.2
+
+- Added `single_semester` extraction for multi-role allocations without
+  prior workload data.
+- Moved multi-role semester capacity to extraction so model preparation
+  uses the stored `C`.
+
+## grouper 0.7.1
+
+- Renamed the bundled workload data to `multirole_*`.
+- Expanded the workload examples with a complete TA/GR workflow.
+- Documented the single-semester synthetic prior-workload convention.
+
+## grouper 0.7.0
+
+- Added the multi-role workload allocation engine and wrapper support.
+- Added independent TA/GR preferences, fairness, and cohort protection.
+- Omitted objective components and supporting model structure when their
+  weights are `NULL` or zero.
+- Retained the existing PhD workflow and Shiny applications.
+
 ## grouper 0.6.2
 
 - Unified all three shiny apps into a single app with 3 tabs.
