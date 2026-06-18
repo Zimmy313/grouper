@@ -124,53 +124,55 @@ the only one that does not use an integer linear programming model.
 
 # Introducing `grouper` package
 
-`grouper` provides two distinct optimisation models, both of which are are
-formulated as integer linear programs.
+`grouper` provides three optimisation models, each formulated as an integer
+linear program.
 
-The Preference-Based Assignment (PBA) model allows educators to assign student
-groups to topics primarily to maximise overall student preferences for those
-topics. The topics can be viewed as project titles. The model allows for
-repetitions of each project title. It is also possible to allow each project
-team to be comprised of multiple sub-groups in this formulation.
+## Diversity-Based Assignment
 
-To execute the optimisation routine, an instructor needs to prepare:
+The Diversity-Based Assignment (DBA) model assigns students to groups and
+topics while maximising diversity based on student attributes and balancing
+skill levels across groups. Users provide a group composition table,
+demographic or dissimilarity information, optional skill scores, and model
+parameters controlling group and topic sizes.
 
-1.  A group composition table listing the member students within each
-    self-formed group.
-2.  A preference matrix containing the preference that each self-formed 
-    group has for each topic.
-3.  The remaining model parameters, supplied either:
-    * through a YAML file (backward-compatible workflow), or
-    * directly in `prepare_model(...)` as named arguments.
+## Preference-Based Assignment
 
-In both cases, extraction can be handled through the wrapper entrypoint
-`extract_info()`.
+The Preference-Based Assignment (PBA) model assigns self-formed student groups
+to topics to maximise their submitted preference scores. Topics may be repeated,
+and each project team may contain multiple sub-groups. Users provide a group
+composition table, a group-by-topic preference matrix, and model parameters
+controlling topic repetitions and group sizes.
 
-The Diversity-Based Assignment (DBA) model enables educators to assign students
-to groups and topics with the dual aims of maximising diversity (based on
-student attributes) within groups and balancing specific skill levels across
-different groups. These are formulated in a single objective function with
-weights assigned to each component.
+## Multi-role Workload Allocation
 
-To execute the DBA optimisation routine, the instructor needs to prepare:
+The Multi-role Workload Allocation model assigns TA, grading, and lighter E
+duties across individuals. It balances exact role demand, annual workload
+spread, role-specific preferences, seniority-based E allocation, and optional
+cohort protection. Users provide individual workload data, role demand,
+optional TA and grading preference matrices, and objective weights.
 
-1.  A group composition table containing:
-    *   the member students within each self-formed group,
-    *   the demographics that will be used to compute pairwise dissimilarity
-        between students, and
-    *   a numeric measure of each student's skill.
-2.  The remaining model parameters, supplied either:
-    * through a YAML file (backward-compatible workflow), or
-    * directly in `prepare_model(...)` as named arguments.
+## Function organisation
 
-As above, extraction can be handled through `extract_info()`.
+The package API follows the same stages for all three models:
+
+| Stage | Common entry point | Model-specific functions |
+|:--|:--|:--|
+| Extract inputs | `extract_info()` | `extract_student_info()` for DBA/PBA; `extract_multirole_info()` for multi-role |
+| Prepare model | `prepare_model()` | `prepare_diversity_model()`, `prepare_preference_model()`, `prepare_multirole_model()` |
+| Solve | `solve_assignment()` | `ompr::solve_model()` for lower-level solver control |
+| Format output | handled by `solve_assignment()` | `assign_groups()` for DBA/PBA; `assign_job()` for multi-role |
+
+For DBA and PBA, model parameters can be supplied directly to
+`prepare_model()` or read from a YAML file with `extract_params_yaml()`. The
+multi-role workflow supplies extraction settings to `extract_info()` and model
+weights or bounds to `prepare_model()`.
 
 Refer to the remaining vignettes for more information about the model definition
 and application. 
 
 In our package, we use the `ompr` framework for optimisation, which means that
 you are free to use any solver. In our small examples, we demonstrate the
-package using the `gplk` solver. However, for more complicated problems, we
+package using the `glpk` solver. However, for more complicated problems, we
 highly recommend the `gurobi` solver. There is a free academic license for this 
 tool. However, the `ROI.plugin.gurobi` and `gurobi` packages are not on CRAN. The 
 following links will aid in installing the `gurobi` package:

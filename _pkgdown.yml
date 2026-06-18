@@ -21,24 +21,22 @@ navbar:
       href: https://github.com/Zimmy313/grouper
 
 reference:
-- title: Data preparation
+- title: Common workflow
   contents:
   - extract_info
-  - extract_student_info
-  - extract_multirole_info
-  - extract_phd_info
-  - extract_params_yaml
-- title: Model preparation
-  contents:
   - prepare_model
-  - prepare_diversity_model
-  - prepare_multirole_model
-  - prepare_phd_model
-  - prepare_preference_model
-- title: Solving and processing results
-  contents:
   - solve_assignment
+- title: Student Group Assignment
+  contents:
+  - extract_student_info
+  - extract_params_yaml
+  - prepare_diversity_model
+  - prepare_preference_model
   - assign_groups
+- title: Multi-role Workload Allocation
+  contents:
+  - extract_multirole_info
+  - prepare_multirole_model
   - assign_job
 - title: Included data
   contents:
