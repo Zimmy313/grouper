@@ -48,9 +48,9 @@ extract_phd_info(
 
 - s:
 
-  A finite numeric vector of length four containing the E-allocation
-  scores for Years 1, 2, 3, and 4, respectively. Larger scores make E
-  units more attractive for that year when `phi > 0` in
+  Numeric vector containing the E-allocation scores for Years 1, 2, 3,
+  and 4, respectively. Larger scores make E units more attractive for
+  that year when `phi > 0` in
   [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md).
   Defaults to `c(-1, 0, 1, 2)`.
 

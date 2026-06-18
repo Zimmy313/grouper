@@ -78,17 +78,17 @@ capped to the range 1-4.</p></dd>
 
 
 <dt id="arg-d-mat">d_mat<a class="anchor" aria-label="anchor" href="#arg-d-mat"></a></dt>
-<dd><p>A finite numeric demand matrix with <code>Nj</code> rows and two or three
+<dd><p>Numeric demand matrix with <code>Nj</code> rows and two or three
 columns. Columns are interpreted as TA, GR, and optional E.</p></dd>
 
 
 <dt id="arg-p-ta-mat">p_ta_mat<a class="anchor" aria-label="anchor" href="#arg-p-ta-mat"></a></dt>
-<dd><p>Optional finite numeric TA preference matrix with dimensions
+<dd><p>Optional numeric TA preference matrix with dimensions
 <code>Ns x Nj</code>.</p></dd>
 
 
 <dt id="arg-p-gr-mat">p_gr_mat<a class="anchor" aria-label="anchor" href="#arg-p-gr-mat"></a></dt>
-<dd><p>Optional finite numeric GR preference matrix with dimensions
+<dd><p>Optional numeric GR preference matrix with dimensions
 <code>Ns x Nj</code>.</p></dd>
 
 
@@ -105,15 +105,15 @@ workload to <code>2 * C</code>. It also determines E demand when <code>e_mode = 
 
 
 <dt id="arg-s">s<a class="anchor" aria-label="anchor" href="#arg-s"></a></dt>
-<dd><p>A finite numeric vector of length four containing E-allocation
-scores for Years 1, 2, 3, and 4. Larger values make E allocation more
-attractive when the <code>phi</code> term is active.</p></dd>
+<dd><p>Numeric vector containing E-allocation scores for Years 1, 2, 3,
+and 4. Larger values make E allocation more attractive when the <code>phi</code> term
+is active.</p></dd>
 
 
 <dt id="arg-single-semester">single_semester<a class="anchor" aria-label="anchor" href="#arg-single-semester"></a></dt>
-<dd><p>One non-missing logical value. When <code>TRUE</code>, supplied
-past-workload columns are ignored and extraction returns synthetic prior
-workloads <code>t1 = 0</code> and <code>g1 = C</code> for every individual.</p></dd>
+<dd><p>Logical flag. When <code>TRUE</code>, supplied past-workload
+columns are ignored and extraction returns synthetic prior workloads
+<code>t1 = 0</code> and <code>g1 = C</code> for every individual.</p></dd>
 
 </dl></div>
     <div class="section level2">

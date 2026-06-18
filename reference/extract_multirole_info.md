@@ -31,18 +31,16 @@ extract_multirole_info(
 
 - d_mat:
 
-  A finite numeric demand matrix with `Nj` rows and two or three
-  columns. Columns are interpreted as TA, GR, and optional E.
+  Numeric demand matrix with `Nj` rows and two or three columns. Columns
+  are interpreted as TA, GR, and optional E.
 
 - p_ta_mat:
 
-  Optional finite numeric TA preference matrix with dimensions
-  `Ns x Nj`.
+  Optional numeric TA preference matrix with dimensions `Ns x Nj`.
 
 - p_gr_mat:
 
-  Optional finite numeric GR preference matrix with dimensions
-  `Ns x Nj`.
+  Optional numeric GR preference matrix with dimensions `Ns x Nj`.
 
 - e_mode:
 
@@ -60,15 +58,15 @@ extract_multirole_info(
 
 - s:
 
-  A finite numeric vector of length four containing E-allocation scores
-  for Years 1, 2, 3, and 4. Larger values make E allocation more
-  attractive when the `phi` term is active.
+  Numeric vector containing E-allocation scores for Years 1, 2, 3,
+  and 4. Larger values make E allocation more attractive when the `phi`
+  term is active.
 
 - single_semester:
 
-  One non-missing logical value. When `TRUE`, supplied past-workload
-  columns are ignored and extraction returns synthetic prior workloads
-  `t1 = 0` and `g1 = C` for every individual.
+  Logical flag. When `TRUE`, supplied past-workload columns are ignored
+  and extraction returns synthetic prior workloads `t1 = 0` and `g1 = C`
+  for every individual.
 
 ## Value
 
