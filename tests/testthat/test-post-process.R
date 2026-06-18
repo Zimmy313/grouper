@@ -181,37 +181,3 @@ test_that("solve_assignment wraps PhD solving and post-processing", {
   expect_named(wrapped, c("model_result", "output"))
   expect_equal(wrapped$output, manual)
 })
-
-test_that("solve_assignment validates wrapper inputs before solving", {
-  expect_error(
-    solve_assignment(model = NULL, assignment = "diversity"),
-    "Missing required argument\\(s\\).*dframe.*group_names"
-  )
-  expect_error(
-    solve_assignment(model = NULL, assignment = "preference", dframe = data.frame(), group_names = "grouping"),
-    "Missing required argument\\(s\\).*params_list"
-  )
-  expect_error(
-    solve_assignment(model = NULL, assignment = "phd"),
-    "Missing required argument\\(s\\).*student_df.*course_codes"
-  )
-  expect_error(
-    solve_assignment(
-      model = NULL,
-      solver = "cbc",
-      dframe = data.frame(groups = 1),
-      group_names = "groups"
-    ),
-    "should be one of"
-  )
-  expect_error(
-    solve_assignment(
-      model = NULL,
-      assignment = "diversity",
-      dframe = data.frame(groups = 1),
-      group_names = "groups",
-      solver_args = 1
-    ),
-    "solver_args must be a list"
-  )
-})

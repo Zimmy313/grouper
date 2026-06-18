@@ -22,13 +22,13 @@ first four columns must be named \code{student_id}, \code{year}, \code{past_ta},
 \code{student_id} and \code{year} are required as the first two columns. \code{year} is
 capped to the range 1-4.}
 
-\item{d_mat}{A finite numeric demand matrix with \code{Nj} rows and two or three
+\item{d_mat}{Numeric demand matrix with \code{Nj} rows and two or three
 columns. Columns are interpreted as TA, GR, and optional E.}
 
-\item{p_ta_mat}{Optional finite numeric TA preference matrix with dimensions
+\item{p_ta_mat}{Optional numeric TA preference matrix with dimensions
 \verb{Ns x Nj}.}
 
-\item{p_gr_mat}{Optional finite numeric GR preference matrix with dimensions
+\item{p_gr_mat}{Optional numeric GR preference matrix with dimensions
 \verb{Ns x Nj}.}
 
 \item{e_mode}{How to handle E demand when \code{d_mat} has no E column. \code{"rr"}
@@ -39,13 +39,13 @@ demand; \code{"none"} sets E demand to zero.}
 extracted input and used by \code{\link[=prepare_multirole_model]{prepare_multirole_model()}} to set annual
 workload to \code{2 * C}. It also determines E demand when \code{e_mode = "rr"}.}
 
-\item{s}{A finite numeric vector of length four containing E-allocation
-scores for Years 1, 2, 3, and 4. Larger values make E allocation more
-attractive when the \code{phi} term is active.}
+\item{s}{Numeric vector containing E-allocation scores for Years 1, 2, 3,
+and 4. Larger values make E allocation more attractive when the \code{phi} term
+is active.}
 
-\item{single_semester}{One non-missing logical value. When \code{TRUE}, supplied
-past-workload columns are ignored and extraction returns synthetic prior
-workloads \code{t1 = 0} and \code{g1 = C} for every individual.}
+\item{single_semester}{Logical flag. When \code{TRUE}, supplied past-workload
+columns are ignored and extraction returns synthetic prior workloads
+\code{t1 = 0} and \code{g1 = C} for every individual.}
 }
 \value{
 A list containing \code{Ns}, \code{Nj}, \code{C}, \code{P_ta}, \code{P_gr}, \code{d}, \code{s},

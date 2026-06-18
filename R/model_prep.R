@@ -194,41 +194,8 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
   t1 <- df_list$t1  # previous semester TA workload
   g1 <- df_list$g1  # previous semester GR workload
 
-  if (!is.numeric(protected_year) ||
-      length(protected_year) != 1 ||
-      !is.finite(protected_year) ||
-      protected_year %% 1 != 0 ||
-      protected_year < 1 ||
-      protected_year > 4) {
-    stop("protected_year must be a single whole number from 1 to 4.")
-  }
-  protected_year <- as.integer(protected_year)
-
   idx_protected <- which(year == protected_year)
   idx_fairness <- which(year != protected_year)
-
-  # check optional workload bounds
-  validate_optional_bound <- function(x, nm) {
-    if (!is.null(x) && (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 0)) {
-      stop(nm, " must be NULL or a single non-negative number.")
-    }
-  }
-  validate_optional_bound(e_max, "e_max")
-  validate_optional_bound(ta_min, "ta_min")
-  validate_optional_bound(ta_max, "ta_max")
-  validate_optional_bound(gr_min, "gr_min")
-  validate_optional_bound(gr_max, "gr_max")
-  validate_optional_bound(e_min, "e_min")
-
-  if (!is.null(ta_min) && !is.null(ta_max) && ta_min > ta_max) {
-    stop("ta_min cannot be greater than ta_max.")
-  }
-  if (!is.null(gr_min) && !is.null(gr_max) && gr_min > gr_max) {
-    stop("gr_min cannot be greater than gr_max.")
-  }
-  if (!is.null(e_min) && !is.null(e_max) && e_min > e_max) {
-    stop("e_min cannot be greater than e_max.")
-  }
 
   model <- ompr::MIPModel() %>%
     # assignment vars
@@ -407,21 +374,6 @@ prepare_multirole_model <- function(
   t1 <- df_list$t1
   g1 <- df_list$g1
 
-  validate_weight <- function(x, nm) {
-    if (!is.null(x) &&
-        (!is.numeric(x) || length(x) != 1 || !is.finite(x) || x < 0)) {
-      stop(nm, " must be NULL or a single finite non-negative number.")
-    }
-  }
-  weights <- list(
-    alpha_ta = alpha_ta, alpha_gr = alpha_gr,
-    beta_ta = beta_ta, beta_gr = beta_gr,
-    phi = phi, rho_ta = rho_ta, rho_gr = rho_gr
-  )
-  for (nm in names(weights)) {
-    validate_weight(weights[[nm]], nm)
-  }
-
   is_active <- function(x) !is.null(x) && x > 0
   active_alpha_ta <- is_active(alpha_ta)
   active_alpha_gr <- is_active(alpha_gr)
@@ -430,58 +382,6 @@ prepare_multirole_model <- function(
   active_phi <- is_active(phi)
   active_rho_ta <- is_active(rho_ta)
   active_rho_gr <- is_active(rho_gr)
-
-  validate_year <- function(x, nm) {
-    if (!is.numeric(x) || length(x) != 1 || !is.finite(x) ||
-        x %% 1 != 0 || x < 1 || x > 4) {
-      stop(nm, " must be a single whole number from 1 to 4.")
-    }
-    as.integer(x)
-  }
-  protected_year_ta <- validate_year(protected_year_ta, "protected_year_ta")
-  protected_year_gr <- validate_year(protected_year_gr, "protected_year_gr")
-
-  validate_optional_bound <- function(x, nm) {
-    if (!is.null(x) &&
-        (!is.numeric(x) || length(x) != 1 || !is.finite(x) || x < 0)) {
-      stop(nm, " must be NULL or a single finite non-negative number.")
-    }
-  }
-  bounds <- list(
-    ta_protected_max = ta_protected_max,
-    gr_protected_max = gr_protected_max,
-    e_max = e_max,
-    ta_min = ta_min, ta_max = ta_max,
-    gr_min = gr_min, gr_max = gr_max,
-    e_min = e_min
-  )
-  for (nm in names(bounds)) {
-    validate_optional_bound(bounds[[nm]], nm)
-  }
-
-  if (active_rho_ta && is.null(ta_protected_max)) {
-    stop("ta_protected_max is required when rho_ta is active.")
-  }
-  if (active_rho_gr && is.null(gr_protected_max)) {
-    stop("gr_protected_max is required when rho_gr is active.")
-  }
-  if (!is.null(ta_min) && !is.null(ta_max) && ta_min > ta_max) {
-    stop("ta_min cannot be greater than ta_max.")
-  }
-  if (!is.null(gr_min) && !is.null(gr_max) && gr_min > gr_max) {
-    stop("gr_min cannot be greater than gr_max.")
-  }
-  if (!is.null(e_min) && !is.null(e_max) && e_min > e_max) {
-    stop("e_min cannot be greater than e_max.")
-  }
-
-  require_active_preference <- function(x, nm, active) {
-    if (active && is.null(x)) {
-      stop(nm, " is required when its preference weight is active.")
-    }
-  }
-  require_active_preference(P_ta, "df_list$P_ta", active_beta_ta)
-  require_active_preference(P_gr, "df_list$P_gr", active_beta_gr)
 
   idx_protected_ta <- which(year == protected_year_ta)
   idx_protected_gr <- which(year == protected_year_gr)
@@ -716,7 +616,6 @@ prepare_model_params_from_dots <- function(assignment, dots) {
       paste(missing_fields, collapse = ", "), "."
     )
   }
-
   if (assignment == "diversity") {
     nmin <- matrix(
       data = dots$nmin,

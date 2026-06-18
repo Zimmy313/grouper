@@ -86,25 +86,7 @@ test_that("extract_phd_info maps custom seniority scores by capped year", {
   expect_equal(x$s, c(0, 1, 3, 6))
 })
 
-test_that("extract_phd_info validates seniority score encoding", {
-  extract_with_s <- function(s) {
-    extract_phd_info(
-      student_df = multirole_students_ex001,
-      p_mat = multirole_prefmat_ex001,
-      d_mat = multirole_demand_ex001,
-      e_mode = "none",
-      s = s
-    )
-  }
-
-  expect_error(extract_with_s(c(0, 1, 2)), "finite numeric vector of length 4")
-  expect_error(extract_with_s(c("0", "1", "2", "3")), "finite numeric vector of length 4")
-  expect_error(extract_with_s(c(0, 1, NA, 3)), "finite numeric vector of length 4")
-  expect_error(extract_with_s(c(0, 1, NaN, 3)), "finite numeric vector of length 4")
-  expect_error(extract_with_s(c(0, 1, Inf, 3)), "finite numeric vector of length 4")
-})
-
-test_that("extract_phd_info supports none mode and validates core schema", {
+test_that("extract_phd_info supports none mode", {
   x_none <- extract_phd_info(
     student_df = multirole_students_ex001,
     p_mat = multirole_prefmat_ex001,
@@ -113,26 +95,6 @@ test_that("extract_phd_info supports none mode and validates core schema", {
     C = 4
   )
   expect_true(all(x_none$d[, "E"] == 0))
-
-  bad_students <- multirole_students_ex001
-  names(bad_students)[1] <- "student"
-  expect_error(
-    extract_phd_info(
-      student_df = bad_students,
-      p_mat = multirole_prefmat_ex001,
-      d_mat = multirole_demand_ex001
-    ),
-    "first 4 columns are exactly"
-  )
-
-  expect_error(
-    extract_phd_info(
-      student_df = multirole_students_ex001,
-      p_mat = multirole_prefmat_ex001[1:3, , drop = FALSE],
-      d_mat = multirole_demand_ex001
-    ),
-    "nrow\\(p_mat\\) must match"
-  )
 })
 
 test_that("extract_params_yaml parses diversity and preference parameter files", {

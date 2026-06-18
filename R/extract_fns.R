@@ -166,10 +166,10 @@ extract_student_info <- function(dframe, assignment=c("diversity", "preference")
 #'   demand; `"none"` leaves E at 0.
 #' @param C Semester workload capacity per student. Used when `e_mode = "rr"`
 #'   to compute total semester capacity as `Ns * C`.
-#' @param s A finite numeric vector of length four containing the E-allocation
-#'   scores for Years 1, 2, 3, and 4, respectively. Larger scores make E units
-#'   more attractive for that year when `phi > 0` in [prepare_phd_model()].
-#'   Defaults to `c(-1, 0, 1, 2)`.
+#' @param s Numeric vector containing the E-allocation scores for Years 1, 2,
+#'   3, and 4, respectively. Larger scores make E units more attractive for
+#'   that year when `phi > 0` in [prepare_phd_model()]. Defaults to
+#'   `c(-1, 0, 1, 2)`.
 #'
 #' @details
 #' This function assumes input order is already aligned:
@@ -219,19 +219,6 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
                              s = c(-1, 0, 1, 2)){
   e_mode <- match.arg(e_mode)
 
-  if (!is.numeric(s) || length(s) != 4 || any(!is.finite(s))) {
-    stop("s must be a finite numeric vector of length 4 for Years 1 to 4.")
-  }
-
-  required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
-  current_head_cols <- names(student_df)[seq_along(required_student_cols)]
-  if (!identical(current_head_cols, required_student_cols)) {
-    stop(
-      "Please ensure student_df first 4 columns are exactly: ",
-      paste(required_student_cols, collapse = ", ")
-    )
-  }
-
   year_num <- as.numeric(student_df$year)
   # Cap year_num to the range 1-4
   year_num <- pmin(4, pmax(1, year_num))
@@ -240,15 +227,9 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 
   Ns <- nrow(student_df)
   P <- matrix(as.numeric(p_mat), nrow = nrow(p_mat), ncol = ncol(p_mat))
-  if (nrow(P) != Ns) {
-    stop("nrow(p_mat) must match nrow(student_df).")
-  }
 
   Nj <- ncol(P)
   d_in <- matrix(as.numeric(d_mat), nrow = nrow(d_mat), ncol = ncol(d_mat))
-  if (nrow(d_in) != Nj) {
-    stop("nrow(d_mat) must match ncol(p_mat).")
-  }
 
   ta_units <- d_in[, 1]
   gr_units <- d_in[, 2]
@@ -265,11 +246,9 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 
     if (total_E > 0) {
       eligible <- which(gr_units > 0)
-      if (length(eligible) > 0) {
-        ranked <- eligible[order(gr_units[eligible], decreasing = TRUE)]
-        rr_idx <- ranked[((seq_len(total_E) - 1) %% length(ranked)) + 1]
-        e_units <- tabulate(rr_idx, nbins = Nj)
-      }
+      ranked <- eligible[order(gr_units[eligible], decreasing = TRUE)]
+      rr_idx <- ranked[((seq_len(total_E) - 1) %% length(ranked)) + 1]
+      e_units <- tabulate(rr_idx, nbins = Nj)
     }
   }
 
@@ -303,11 +282,11 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #'   `past_gr`, in that order. With `single_semester = TRUE`, only
 #'   `student_id` and `year` are required as the first two columns. `year` is
 #'   capped to the range 1-4.
-#' @param d_mat A finite numeric demand matrix with `Nj` rows and two or three
+#' @param d_mat Numeric demand matrix with `Nj` rows and two or three
 #'   columns. Columns are interpreted as TA, GR, and optional E.
-#' @param p_ta_mat Optional finite numeric TA preference matrix with dimensions
+#' @param p_ta_mat Optional numeric TA preference matrix with dimensions
 #'   `Ns x Nj`.
-#' @param p_gr_mat Optional finite numeric GR preference matrix with dimensions
+#' @param p_gr_mat Optional numeric GR preference matrix with dimensions
 #'   `Ns x Nj`.
 #' @param e_mode How to handle E demand when `d_mat` has no E column. `"rr"`
 #'   computes E demand by round-robin allocation from highest to lowest GR
@@ -315,12 +294,12 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #' @param C Semester workload capacity per individual. It is stored in the
 #'   extracted input and used by [prepare_multirole_model()] to set annual
 #'   workload to `2 * C`. It also determines E demand when `e_mode = "rr"`.
-#' @param s A finite numeric vector of length four containing E-allocation
-#'   scores for Years 1, 2, 3, and 4. Larger values make E allocation more
-#'   attractive when the `phi` term is active.
-#' @param single_semester One non-missing logical value. When `TRUE`, supplied
-#'   past-workload columns are ignored and extraction returns synthetic prior
-#'   workloads `t1 = 0` and `g1 = C` for every individual.
+#' @param s Numeric vector containing E-allocation scores for Years 1, 2, 3,
+#'   and 4. Larger values make E allocation more attractive when the `phi` term
+#'   is active.
+#' @param single_semester Logical flag. When `TRUE`, supplied past-workload
+#'   columns are ignored and extraction returns synthetic prior workloads
+#'   `t1 = 0` and `g1 = C` for every individual.
 #'
 #' @details
 #' Preference matrices are optional during extraction because their objective
@@ -355,50 +334,8 @@ extract_multirole_info <- function(student_df, d_mat,
                                    single_semester = FALSE) {
   e_mode <- match.arg(e_mode)
 
-  if (!is.numeric(C) || length(C) != 1 || !is.finite(C) || C < 0) {
-    stop("C must be one finite non-negative numeric value.")
-  }
-  if (!is.numeric(s) || length(s) != 4 || any(!is.finite(s))) {
-    stop("s must be a finite numeric vector of length 4 for Years 1 to 4.")
-  }
-
-  required_student_cols <- if (single_semester) {
-    c("student_id", "year")
-  } else {
-    c("student_id", "year", "past_ta", "past_gr")
-  }
-  current_head_cols <- names(student_df)[seq_along(required_student_cols)]
-  if (!identical(current_head_cols, required_student_cols)) {
-    stop(
-      "Please ensure student_df first ", length(required_student_cols),
-      " columns are exactly: ",
-      paste(required_student_cols, collapse = ", ")
-    )
-  }
-
-  if (!is.matrix(d_mat) || !is.numeric(d_mat) ||
-      ncol(d_mat) < 2 || ncol(d_mat) > 3 ||
-      any(!is.finite(d_mat))) {
-    stop("d_mat must be a finite numeric matrix with 2 or 3 columns.")
-  }
-
   Ns <- nrow(student_df)
   Nj <- nrow(d_mat)
-
-  validate_preference_matrix <- function(x, nm) {
-    if (is.null(x)) {
-      return(NULL)
-    }
-    if (!is.matrix(x) || !is.numeric(x) ||
-        !identical(dim(x), c(Ns, Nj)) ||
-        any(!is.finite(x))) {
-      stop(nm, " must be NULL or a finite numeric matrix with dimensions Ns x Nj.")
-    }
-    x
-  }
-
-  P_ta <- validate_preference_matrix(p_ta_mat, "p_ta_mat")
-  P_gr <- validate_preference_matrix(p_gr_mat, "p_gr_mat")
 
   year_num <- as.numeric(student_df$year)
   year_num <- pmin(4, pmax(1, year_num))
@@ -413,11 +350,9 @@ extract_multirole_info <- function(student_df, d_mat,
 
     if (total_E > 0) {
       eligible <- which(gr_units > 0)
-      if (length(eligible) > 0) {
-        ranked <- eligible[order(gr_units[eligible], decreasing = TRUE)]
-        rr_idx <- ranked[((seq_len(total_E) - 1) %% length(ranked)) + 1]
-        e_units <- tabulate(rr_idx, nbins = Nj)
-      }
+      ranked <- eligible[order(gr_units[eligible], decreasing = TRUE)]
+      rr_idx <- ranked[((seq_len(total_E) - 1) %% length(ranked)) + 1]
+      e_units <- tabulate(rr_idx, nbins = Nj)
     }
   }
 
@@ -433,8 +368,8 @@ extract_multirole_info <- function(student_df, d_mat,
     Ns = Ns,
     Nj = Nj,
     C = C,
-    P_ta = P_ta,
-    P_gr = P_gr,
+    P_ta = p_ta_mat,
+    P_gr = p_gr_mat,
     d = cbind(TA = ta_units, GR = gr_units, E = e_units),
     s = unname(s[year]),
     year = year,

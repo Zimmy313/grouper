@@ -136,89 +136,16 @@ assign_job <- function(model_result,
 }
 
 
-solver_plugin_package <- function(solver) {
-  switch(
-    solver,
-    glpk = "ROI.plugin.glpk",
-    highs = "ROI.plugin.highs",
-    gurobi = "ROI.plugin.gurobi"
-  )
-}
-
-
-require_roi_solver <- function(solver) {
-  if (!requireNamespace("ompr.roi", quietly = TRUE)) {
-    stop(
-      "Solving requires package 'ompr.roi'. Install it and retry.",
-      call. = FALSE
-    )
-  }
-
-  plugin_pkg <- solver_plugin_package(solver)
-  if (!requireNamespace(plugin_pkg, quietly = TRUE)) {
-    stop(
-      "Solver '", solver, "' requires package '", plugin_pkg,
-      "'. Install it and retry.",
-      call. = FALSE
-    )
-  }
-}
-
-
-validate_required_args <- function(assignment, args) {
-  required <- switch(
-    assignment,
-    diversity = c("dframe", "group_names"),
-    preference = c("dframe", "params_list", "group_names"),
-    phd = c("student_df", "course_codes"),
-    multirole = c("student_df", "course_codes")
-  )
-
-  missing_args <- required[vapply(
-    required,
-    function(x) is.null(args[[x]]),
-    logical(1)
-  )]
-
-  if (length(missing_args) > 0) {
-    stop(
-      "Missing required argument(s) for assignment = '", assignment, "': ",
-      paste(missing_args, collapse = ", "),
-      ".",
-      call. = FALSE
-    )
-  }
-}
-
-
-validate_solver_limit <- function(x, nm) {
-  if (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 0) {
-    stop(nm, " must be NULL or a single non-negative number.", call. = FALSE)
-  }
-  x
-}
-
-
 build_roi_args <- function(solver, verbose, time_limit, iteration_limit,
                            solver_args) {
-  if (!is.list(solver_args)) {
-    stop("solver_args must be a list.", call. = FALSE)
-  }
-  if ("solver" %in% names(solver_args)) {
-    stop("solver_args cannot include 'solver'. Use the solver argument instead.",
-         call. = FALSE)
-  }
-
   roi_args <- c(list(solver = solver, verbose = verbose), solver_args)
 
   if (solver == "gurobi") {
     if (!is.null(time_limit)) {
-      roi_args$TimeLimit <- validate_solver_limit(time_limit, "time_limit")
+      roi_args$TimeLimit <- time_limit
     }
     if (!is.null(iteration_limit)) {
-      roi_args$IterationLimit <- as.integer(round(
-        validate_solver_limit(iteration_limit, "iteration_limit")
-      ))
+      roi_args$IterationLimit <- iteration_limit
     }
   }
 
@@ -279,19 +206,6 @@ solve_assignment <- function(model,
                              solver_args = list()) {
   assignment <- match.arg(assignment)
   solver <- match.arg(solver)
-
-  validate_required_args(
-    assignment = assignment,
-    args = list(
-      dframe = dframe,
-      params_list = params_list,
-      group_names = group_names,
-      student_df = student_df,
-      course_codes = course_codes
-    )
-  )
-
-  require_roi_solver(solver)
 
   roi_args <- build_roi_args(
     solver = solver,

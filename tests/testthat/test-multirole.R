@@ -69,25 +69,6 @@ test_that("single-semester extraction generates and stores prior workload", {
   expect_equal(ignored_past$g1, rep(3, ignored_past$Ns))
 })
 
-test_that("multi-role extraction validates semester mode and input schema", {
-  students_without_past <- multirole_students_ex001[
-    , c("student_id", "year", "Name")
-  ]
-
-  expect_error(
-    multirole_inputs(student_df = students_without_past),
-    "first 4 columns.*past_ta, past_gr"
-  )
-
-  bad_modes <- list(c(TRUE, FALSE), NA, 1, "TRUE", NULL)
-  for (value in bad_modes) {
-    expect_error(
-      multirole_inputs(single_semester = value),
-      "single_semester must be one non-missing logical value"
-    )
-  }
-})
-
 test_that("extract_multirole_info accepts omitted preference matrices", {
   neither <- multirole_inputs(p_ta_mat = NULL, p_gr_mat = NULL)
   ta_only <- multirole_inputs(p_gr_mat = NULL)
@@ -99,32 +80,6 @@ test_that("extract_multirole_info accepts omitted preference matrices", {
   expect_null(ta_only$P_gr)
   expect_null(gr_only$P_ta)
   expect_equal(gr_only$P_gr, multirole_prefmat_ex001)
-})
-
-test_that("extract_multirole_info validates supplied matrices", {
-  bad_dim <- multirole_prefmat_ex001[-1, , drop = FALSE]
-  bad_value <- multirole_prefmat_ex001
-  bad_value[1, 1] <- Inf
-
-  expect_error(
-    multirole_inputs(p_ta_mat = bad_dim),
-    "p_ta_mat.*dimensions Ns x Nj"
-  )
-  expect_error(
-    multirole_inputs(p_gr_mat = bad_value),
-    "p_gr_mat.*finite numeric matrix"
-  )
-  expect_error(
-    multirole_inputs(p_ta_mat = as.data.frame(multirole_prefmat_ex001)),
-    "p_ta_mat.*finite numeric matrix"
-  )
-  expect_error(
-    extract_multirole_info(
-      multirole_students_ex001,
-      cbind(multirole_demand_ex001, E = 0, extra = 0)
-    ),
-    "d_mat must be a finite numeric matrix with 2 or 3 columns"
-  )
 })
 
 test_that("extract_info dispatches to the multi-role extractor", {
@@ -235,21 +190,9 @@ test_that("protection blocks are independent and control fairness membership", {
   expect_equal(ompr::nconstraints(unprotected), 32)
 })
 
-test_that("active preference weights require their matrices", {
+test_that("disabled preference weights allow omitted matrices", {
   no_preferences <- multirole_inputs(p_ta_mat = NULL, p_gr_mat = NULL)
 
-  expect_error(
-    prepare_multirole_model(no_preferences),
-    "df_list\\$P_ta is required"
-  )
-  expect_error(
-    prepare_multirole_model(
-      no_preferences,
-      beta_ta = 0,
-      beta_gr = 1
-    ),
-    "df_list\\$P_gr is required"
-  )
   expect_s3_class(
     prepare_multirole_model(
       no_preferences,
@@ -260,45 +203,8 @@ test_that("active preference weights require their matrices", {
   )
 })
 
-test_that("prepare_multirole_model validates weights, years, and bounds", {
+test_that("disabled protection accepts omitted thresholds", {
   x <- multirole_inputs()
-  bad_weights <- list(-1, c(1, 2), "1", NA_real_, NaN, Inf)
-  for (value in bad_weights) {
-    expect_error(
-      prepare_multirole_model(x, alpha_gr = value),
-      "alpha_gr must be NULL or a single finite non-negative number"
-    )
-  }
-
-  bad_years <- list(0, 5, 1.5, c(1, 2), "1", NA_real_, NaN, Inf)
-  for (value in bad_years) {
-    expect_error(
-      prepare_multirole_model(x, protected_year_gr = value),
-      "protected_year_gr must be a single whole number from 1 to 4"
-    )
-  }
-
-  expect_error(
-    prepare_multirole_model(x, ta_protected_max = -1),
-    "ta_protected_max.*non-negative"
-  )
-  expect_error(
-    prepare_multirole_model(x, gr_min = 2, gr_max = 1),
-    "gr_min cannot be greater than gr_max"
-  )
-
-  expect_error(
-    prepare_multirole_model(x, ta_protected_max = NULL),
-    "ta_protected_max is required when rho_ta is active"
-  )
-  expect_error(
-    prepare_multirole_model(
-      x,
-      rho_gr = 1,
-      gr_protected_max = NULL
-    ),
-    "gr_protected_max is required when rho_gr is active"
-  )
 
   expect_s3_class(
     prepare_multirole_model(
@@ -342,12 +248,6 @@ test_that("prepare_multirole_model uses capacity stored by extraction", {
   expect_error(
     prepare_multirole_model(x, C = 4),
     "unused argument"
-  )
-
-  x$C <- NULL
-  expect_error(
-    prepare_multirole_model(x),
-    "df_list\\$C must be one finite non-negative numeric value"
   )
 })
 

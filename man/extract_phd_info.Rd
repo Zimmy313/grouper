@@ -32,10 +32,10 @@ demand; \code{"none"} leaves E at 0.}
 \item{C}{Semester workload capacity per student. Used when \code{e_mode = "rr"}
 to compute total semester capacity as \code{Ns * C}.}
 
-\item{s}{A finite numeric vector of length four containing the E-allocation
-scores for Years 1, 2, 3, and 4, respectively. Larger scores make E units
-more attractive for that year when \code{phi > 0} in \code{\link[=prepare_phd_model]{prepare_phd_model()}}.
-Defaults to \code{c(-1, 0, 1, 2)}.}
+\item{s}{Numeric vector containing the E-allocation scores for Years 1, 2,
+3, and 4, respectively. Larger scores make E units more attractive for
+that year when \code{phi > 0} in \code{\link[=prepare_phd_model]{prepare_phd_model()}}. Defaults to
+\code{c(-1, 0, 1, 2)}.}
 }
 \value{
 A list containing:

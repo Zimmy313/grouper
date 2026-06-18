@@ -463,3 +463,29 @@ job_output_summary <- job_output %>%
 
 job_output_summary
 ```
+
+## solve_assignment wrapper with Gurobi solution pool
+
+```{r}
+wrapped_pool <- solve_assignment(
+  model = model_0,
+  assignment = "phd",
+  solver = "gurobi",
+  student_df = preference,
+  course_codes = courses,
+  name_col = "Name",
+  verbose = TRUE,
+  solver_args = list(
+    PoolSearchMode = 2,
+    PoolSolutions = 50
+  )
+)
+
+wrapped_pool_results <- extract_phd_pool_results(
+  result_pool = wrapped_pool$model_result,
+  preference = preference,
+  k = 50
+)
+
+wrapped_pool_results[[1]]$phd_assignment
+```

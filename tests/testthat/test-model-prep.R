@@ -1,4 +1,4 @@
-test_that("prepare_model wrapper dispatches and validates arguments", {
+test_that("prepare_model wrapper dispatches", {
   div_df <- extract_student_info(
     dba_gc_ex001,
     assignment = "diversity",
@@ -103,54 +103,6 @@ test_that("prepare_model wrapper dispatches and validates arguments", {
   expect_s3_class(m_phd_year_2, "linear_optimization_model")
   expect_equal(grep("^w\\[", ompr::variable_keys(m_phd_year_2), value = TRUE), "w[2]")
 
-  expect_error(
-    prepare_model(
-      div_df,
-      assignment = "diversity",
-      R = 1,
-      nmin = 2,
-      nmax = 2,
-      rmin = 1,
-      rmax = 1
-    ),
-    "Missing required parameters.*n_topics"
-  )
-  expect_error(
-    prepare_model(
-      pref_df,
-      assignment = "preference",
-      n_topics = 2,
-      R = 1,
-      nmin = 2,
-      nmax = 2,
-      rmin = 1,
-      rmax = 1
-    ),
-    "Missing required parameters.*B"
-  )
-})
-
-test_that("prepare_phd_model validates optional bound consistency", {
-  phd_df <- extract_phd_info(
-    student_df = multirole_students_ex001,
-    p_mat = multirole_prefmat_ex001,
-    d_mat = multirole_demand_ex001,
-    e_mode = "none",
-    C = 4
-  )
-
-  expect_error(
-    prepare_phd_model(phd_df, ta_min = 2, ta_max = 1),
-    "ta_min cannot be greater than ta_max"
-  )
-  expect_error(
-    prepare_phd_model(phd_df, gr_min = 2, gr_max = 1),
-    "gr_min cannot be greater than gr_max"
-  )
-  expect_error(
-    prepare_phd_model(phd_df, e_min = 2, e_max = 1),
-    "e_min cannot be greater than e_max"
-  )
 })
 
 test_that("custom seniority scores do not redefine year-based model groups", {
@@ -223,31 +175,4 @@ test_that("prepare_phd_model includes every unprotected year in fairness", {
 
   expect_equal(grep("^w\\[", ompr::variable_keys(model), value = TRUE), "w[3]")
   expect_equal(ompr::nconstraints(model), 23)
-})
-
-test_that("prepare_phd_model validates protected_year", {
-  phd_df <- extract_phd_info(
-    student_df = multirole_students_ex001,
-    p_mat = multirole_prefmat_ex001,
-    d_mat = multirole_demand_ex001,
-    e_mode = "none"
-  )
-
-  invalid_values <- list(
-    c(1, 2),
-    1.5,
-    "1",
-    NA_real_,
-    NaN,
-    Inf,
-    0,
-    5
-  )
-
-  for (protected_year in invalid_values) {
-    expect_error(
-      prepare_phd_model(phd_df, protected_year = protected_year),
-      "single whole number from 1 to 4"
-    )
-  }
 })
