@@ -37,7 +37,8 @@ compatibility. If supplied, this list is used directly. Ignored for
 \code{protected_year} when a cohort other than Year 1 should receive the soft
 TA-load protection.
 \item For \code{assignment = "multirole"}: passed to
-\code{\link[=prepare_multirole_model]{prepare_multirole_model()}}.
+\code{\link[=prepare_multirole_model]{prepare_multirole_model()}}. Multi-role semester capacity is supplied
+during extraction and read from \code{df_list$C}.
 }}
 }
 \value{

@@ -11,13 +11,16 @@ extract_multirole_info(
   p_gr_mat = NULL,
   e_mode = c("rr", "none"),
   C = 4,
-  s = c(-1, 0, 1, 2)
+  s = c(-1, 0, 1, 2),
+  single_semester = FALSE
 )
 }
 \arguments{
-\item{student_df}{A data frame with one row per individual. Its first four
-columns must be named \code{student_id}, \code{year}, \code{past_ta}, and \code{past_gr}, in
-that order. \code{year} is capped to the range 1-4.}
+\item{student_df}{A data frame with one row per individual. By default, its
+first four columns must be named \code{student_id}, \code{year}, \code{past_ta}, and
+\code{past_gr}, in that order. With \code{single_semester = TRUE}, only
+\code{student_id} and \code{year} are required as the first two columns. \code{year} is
+capped to the range 1-4.}
 
 \item{d_mat}{A finite numeric demand matrix with \code{Nj} rows and two or three
 columns. Columns are interpreted as TA, GR, and optional E.}
@@ -32,16 +35,21 @@ columns. Columns are interpreted as TA, GR, and optional E.}
 computes E demand by round-robin allocation from highest to lowest GR
 demand; \code{"none"} sets E demand to zero.}
 
-\item{C}{Semester workload capacity per individual. Used when
-\code{e_mode = "rr"} to compute total semester capacity as \code{Ns * C}.}
+\item{C}{Semester workload capacity per individual. It is stored in the
+extracted input and used by \code{\link[=prepare_multirole_model]{prepare_multirole_model()}} to set annual
+workload to \code{2 * C}. It also determines E demand when \code{e_mode = "rr"}.}
 
 \item{s}{A finite numeric vector of length four containing E-allocation
 scores for Years 1, 2, 3, and 4. Larger values make E allocation more
 attractive when the \code{phi} term is active.}
+
+\item{single_semester}{One non-missing logical value. When \code{TRUE}, supplied
+past-workload columns are ignored and extraction returns synthetic prior
+workloads \code{t1 = 0} and \code{g1 = C} for every individual.}
 }
 \value{
-A list containing \code{Ns}, \code{Nj}, \code{P_ta}, \code{P_gr}, \code{d}, \code{s}, \code{year},
-\code{t1}, and \code{g1}.
+A list containing \code{Ns}, \code{Nj}, \code{C}, \code{P_ta}, \code{P_gr}, \code{d}, \code{s},
+\code{year}, \code{t1}, and \code{g1}.
 }
 \description{
 Converts individual-level data, role-specific preference matrices, and role
@@ -55,6 +63,10 @@ terms can be disabled in \code{\link[=prepare_multirole_model]{prepare_multirole
 Input order must already be aligned: row \code{i} in each preference matrix must
 correspond to row \code{i} in \code{student_df}, and demand row \code{j} must correspond to
 preference column \code{j}.
+
+In single-semester mode, the uniform synthetic GR workload does not change
+the GR workload spread. It fills the prior-semester half of annual capacity,
+leaving \code{C} units per individual for current allocation.
 }
 \examples{
 inputs <- extract_multirole_info(

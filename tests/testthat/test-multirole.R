@@ -1,13 +1,17 @@
 multirole_inputs <- function(p_ta_mat = multirole_prefmat_ex001,
                              p_gr_mat = multirole_prefmat_ex001,
-                             e_mode = "none") {
+                             e_mode = "none",
+                             student_df = multirole_students_ex001,
+                             C = 4,
+                             single_semester = FALSE) {
   extract_multirole_info(
-    student_df = multirole_students_ex001,
+    student_df = student_df,
     d_mat = multirole_demand_ex001,
     p_ta_mat = p_ta_mat,
     p_gr_mat = p_gr_mat,
     e_mode = e_mode,
-    C = 4
+    C = C,
+    single_semester = single_semester
   )
 }
 
@@ -23,16 +27,65 @@ test_that("extract_multirole_info returns aligned role-specific inputs", {
 
   expect_named(
     x,
-    c("Ns", "Nj", "P_ta", "P_gr", "d", "s", "year", "t1", "g1")
+    c("Ns", "Nj", "C", "P_ta", "P_gr", "d", "s", "year", "t1", "g1")
   )
   expect_equal(x$Ns, nrow(multirole_students_ex001))
   expect_equal(x$Nj, nrow(multirole_demand_ex001))
+  expect_equal(x$C, 4)
   expect_equal(x$P_ta, multirole_prefmat_ex001)
   expect_equal(x$P_gr, multirole_prefmat_ex001)
   expect_equal(dim(x$d), c(4, 3))
   expect_equal(colnames(x$d), c("TA", "GR", "E"))
   expect_equal(x$s, c(-1, 0, 1, 2))
   expect_equal(x$year, 1:4)
+  expect_equal(x$t1, multirole_students_ex001$past_ta)
+  expect_equal(x$g1, multirole_students_ex001$past_gr)
+})
+
+test_that("single-semester extraction generates and stores prior workload", {
+  students_without_past <- multirole_students_ex001[
+    , c("student_id", "year", "Name")
+  ]
+  no_past <- multirole_inputs(
+    student_df = students_without_past,
+    C = 5,
+    single_semester = TRUE
+  )
+
+  expect_equal(no_past$C, 5)
+  expect_equal(no_past$t1, rep(0, no_past$Ns))
+  expect_equal(no_past$g1, rep(5, no_past$Ns))
+
+  students_with_changed_past <- multirole_students_ex001
+  students_with_changed_past$past_ta <- 99
+  students_with_changed_past$past_gr <- -99
+  ignored_past <- multirole_inputs(
+    student_df = students_with_changed_past,
+    C = 3,
+    single_semester = TRUE
+  )
+
+  expect_equal(ignored_past$t1, rep(0, ignored_past$Ns))
+  expect_equal(ignored_past$g1, rep(3, ignored_past$Ns))
+})
+
+test_that("multi-role extraction validates semester mode and input schema", {
+  students_without_past <- multirole_students_ex001[
+    , c("student_id", "year", "Name")
+  ]
+
+  expect_error(
+    multirole_inputs(student_df = students_without_past),
+    "first 4 columns.*past_ta, past_gr"
+  )
+
+  bad_modes <- list(c(TRUE, FALSE), NA, 1, "TRUE", NULL)
+  for (value in bad_modes) {
+    expect_error(
+      multirole_inputs(single_semester = value),
+      "single_semester must be one non-missing logical value"
+    )
+  }
 })
 
 test_that("extract_multirole_info accepts omitted preference matrices", {
@@ -267,6 +320,35 @@ test_that("prepare_model dispatches to the multi-role constructor", {
   expect_s3_class(wrapped, "linear_optimization_model")
   expect_equal(ompr::variable_keys(wrapped), ompr::variable_keys(direct))
   expect_equal(ompr::nconstraints(wrapped), ompr::nconstraints(direct))
+})
+
+test_that("prepare_multirole_model uses capacity stored by extraction", {
+  skip_if_not_installed("ompr.roi")
+  skip_if_not_installed("ROI.plugin.glpk")
+
+  students_without_past <- multirole_students_ex001[
+    , c("student_id", "year", "Name")
+  ]
+  x <- multirole_inputs(
+    student_df = students_without_past,
+    e_mode = "rr",
+    C = 5,
+    single_semester = TRUE
+  )
+  model <- prepare_multirole_model(x)
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = "glpk"))
+
+  expect_equal(result$status, "success")
+  expect_error(
+    prepare_multirole_model(x, C = 4),
+    "unused argument"
+  )
+
+  x$C <- NULL
+  expect_error(
+    prepare_multirole_model(x),
+    "df_list\\$C must be one finite non-negative numeric value"
+  )
 })
 
 test_that("solve_assignment supports multi-role post-processing", {

@@ -297,9 +297,11 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #' Converts individual-level data, role-specific preference matrices, and role
 #' demand into the list expected by [prepare_multirole_model()].
 #'
-#' @param student_df A data frame with one row per individual. Its first four
-#'   columns must be named `student_id`, `year`, `past_ta`, and `past_gr`, in
-#'   that order. `year` is capped to the range 1-4.
+#' @param student_df A data frame with one row per individual. By default, its
+#'   first four columns must be named `student_id`, `year`, `past_ta`, and
+#'   `past_gr`, in that order. With `single_semester = TRUE`, only
+#'   `student_id` and `year` are required as the first two columns. `year` is
+#'   capped to the range 1-4.
 #' @param d_mat A finite numeric demand matrix with `Nj` rows and two or three
 #'   columns. Columns are interpreted as TA, GR, and optional E.
 #' @param p_ta_mat Optional finite numeric TA preference matrix with dimensions
@@ -309,11 +311,15 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #' @param e_mode How to handle E demand when `d_mat` has no E column. `"rr"`
 #'   computes E demand by round-robin allocation from highest to lowest GR
 #'   demand; `"none"` sets E demand to zero.
-#' @param C Semester workload capacity per individual. Used when
-#'   `e_mode = "rr"` to compute total semester capacity as `Ns * C`.
+#' @param C Semester workload capacity per individual. It is stored in the
+#'   extracted input and used by [prepare_multirole_model()] to set annual
+#'   workload to `2 * C`. It also determines E demand when `e_mode = "rr"`.
 #' @param s A finite numeric vector of length four containing E-allocation
 #'   scores for Years 1, 2, 3, and 4. Larger values make E allocation more
 #'   attractive when the `phi` term is active.
+#' @param single_semester One non-missing logical value. When `TRUE`, supplied
+#'   past-workload columns are ignored and extraction returns synthetic prior
+#'   workloads `t1 = 0` and `g1 = C` for every individual.
 #'
 #' @details
 #' Preference matrices are optional during extraction because their objective
@@ -324,8 +330,12 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 #' correspond to row `i` in `student_df`, and demand row `j` must correspond to
 #' preference column `j`.
 #'
-#' @returns A list containing `Ns`, `Nj`, `P_ta`, `P_gr`, `d`, `s`, `year`,
-#'   `t1`, and `g1`.
+#' In single-semester mode, the uniform synthetic GR workload does not change
+#' the GR workload spread. It fills the prior-semester half of annual capacity,
+#' leaving `C` units per individual for current allocation.
+#'
+#' @returns A list containing `Ns`, `Nj`, `C`, `P_ta`, `P_gr`, `d`, `s`,
+#'   `year`, `t1`, and `g1`.
 #'
 #' @examples
 #' inputs <- extract_multirole_info(
@@ -340,18 +350,27 @@ extract_phd_info <- function(student_df, p_mat, d_mat,
 extract_multirole_info <- function(student_df, d_mat,
                                    p_ta_mat = NULL, p_gr_mat = NULL,
                                    e_mode = c("rr", "none"), C = 4,
-                                   s = c(-1, 0, 1, 2)) {
+                                   s = c(-1, 0, 1, 2),
+                                   single_semester = FALSE) {
   e_mode <- match.arg(e_mode)
 
+  if (!is.numeric(C) || length(C) != 1 || !is.finite(C) || C < 0) {
+    stop("C must be one finite non-negative numeric value.")
+  }
   if (!is.numeric(s) || length(s) != 4 || any(!is.finite(s))) {
     stop("s must be a finite numeric vector of length 4 for Years 1 to 4.")
   }
 
-  required_student_cols <- c("student_id", "year", "past_ta", "past_gr")
+  required_student_cols <- if (single_semester) {
+    c("student_id", "year")
+  } else {
+    c("student_id", "year", "past_ta", "past_gr")
+  }
   current_head_cols <- names(student_df)[seq_along(required_student_cols)]
   if (!identical(current_head_cols, required_student_cols)) {
     stop(
-      "Please ensure student_df first 4 columns are exactly: ",
+      "Please ensure student_df first ", length(required_student_cols),
+      " columns are exactly: ",
       paste(required_student_cols, collapse = ", ")
     )
   }
@@ -401,16 +420,25 @@ extract_multirole_info <- function(student_df, d_mat,
     }
   }
 
+  if (single_semester) {
+    t1 <- rep(0, Ns)
+    g1 <- rep(C, Ns)
+  } else {
+    t1 <- as.numeric(student_df$past_ta)
+    g1 <- as.numeric(student_df$past_gr)
+  }
+
   list(
     Ns = Ns,
     Nj = Nj,
+    C = C,
     P_ta = P_ta,
     P_gr = P_gr,
     d = cbind(TA = ta_units, GR = gr_units, E = e_units),
     s = unname(s[year]),
     year = year,
-    t1 = as.numeric(student_df$past_ta),
-    g1 = as.numeric(student_df$past_gr)
+    t1 = t1,
+    g1 = g1
   )
 }
 
@@ -471,7 +499,7 @@ extract_multirole_info <- function(student_df, d_mat,
 #'
 #'   Optional arguments:
 #'   - `p_ta_mat` and `p_gr_mat`
-#'   - `e_mode`, `C`, and `s`
+#'   - `e_mode`, `C`, `s`, and `single_semester`
 #'
 #' This wrapper does not parse YAML files. YAML-based parameter extraction
 #' remains available via [extract_params_yaml()].

@@ -1,3 +1,10 @@
+# grouper 0.7.2
+
+* Added `single_semester` extraction for multi-role allocations without prior
+  workload data.
+* Moved multi-role semester capacity to extraction so model preparation uses
+  the stored `C`.
+
 # grouper 0.7.1
 
 * Renamed the bundled workload data to `multirole_*`.

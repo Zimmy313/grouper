@@ -350,8 +350,6 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
 #' @param phi Non-negative weight for score-guided E allocation.
 #' @param rho_ta,rho_gr Non-negative penalties for TA and GR protected-cohort
 #'   slack.
-#' @param C Semester workload capacity per individual. Annual total workload is
-#'   fixed at `2 * C`.
 #' @param protected_year_ta,protected_year_gr Whole numbers from 1 to 4
 #'   identifying the TA- and GR-protected cohorts.
 #'
@@ -364,6 +362,8 @@ prepare_phd_model <- function(df_list, t_max_y1 = 1, e_max = NULL,
 #'
 #' When a preference term is active, the corresponding `P_ta` or `P_gr`
 #' element must be present in `df_list`.
+#' Semester capacity is read from `df_list$C`, as supplied to
+#' [extract_multirole_info()]. Annual total workload is fixed at `2 * C`.
 #'
 #' @returns An `ompr` model.
 #'
@@ -394,10 +394,10 @@ prepare_multirole_model <- function(
     beta_ta = 1, beta_gr = NULL,
     phi = 1,
     rho_ta = 10, rho_gr = NULL,
-    C = 4,
     protected_year_ta = 1, protected_year_gr = 1) {
   Ns <- df_list$Ns
   Nj <- df_list$Nj
+  C <- df_list$C
   P_ta <- df_list$P_ta
   P_gr <- df_list$P_gr
   d <- df_list$d
@@ -785,7 +785,8 @@ prepare_model_params_from_dots <- function(assignment, dots) {
 #'     `protected_year` when a cohort other than Year 1 should receive the soft
 #'     TA-load protection.
 #'   * For `assignment = "multirole"`: passed to
-#'     [prepare_multirole_model()].
+#'     [prepare_multirole_model()]. Multi-role semester capacity is supplied
+#'     during extraction and read from `df_list$C`.
 #'
 #' @returns An ompr model.
 #' @export

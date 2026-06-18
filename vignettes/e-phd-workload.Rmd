@@ -189,6 +189,42 @@ Here the same matrix is supplied for TA and GR preferences only to keep the
 example compact. In practice, the matrices can contain different user-defined
 scores.
 
+## Semester history and capacity
+
+By default, `extract_multirole_info()` expects `student_id`, `year`,
+`past_ta`, and `past_gr` as the first four columns of `student_df` and uses the
+supplied prior workload. Semester capacity `C` is also supplied at extraction
+and stored in the returned input list. `prepare_multirole_model()` reads this
+stored value when enforcing annual workload of `2 * C`; it does not take a
+separate capacity argument.
+
+For an allocation with no prior-semester workload data, use
+`single_semester = TRUE`. In this mode, only `student_id` and `year` are
+required as the first two columns, and any supplied past-workload columns are
+ignored. Extraction generates `t1 = 0` and `g1 = C` for every individual:
+
+```{r}
+single_semester_students <- grouper::multirole_students_ex001[
+  , c("student_id", "year", "Name")
+]
+
+single_semester_inputs <- grouper::extract_multirole_info(
+  student_df = single_semester_students,
+  d_mat = grouper::multirole_demand_ex001,
+  p_ta_mat = grouper::multirole_prefmat_ex001,
+  e_mode = "rr",
+  C = 4,
+  single_semester = TRUE
+)
+
+cbind(t1 = single_semester_inputs$t1, g1 = single_semester_inputs$g1)
+```
+
+The uniform synthetic `g1 = C` workload adds the same constant to every
+individual's annual GR workload, so it does not change the GR spread. It fills
+the prior-semester half of the annual equality and leaves `C` units per
+individual for current TA, GR, and E allocation.
+
 ## E-allocation scoring
 
 `extract_multirole_info()` accepts a four-value `s` vector ordered by Years 1

@@ -80,7 +80,7 @@ Required arguments:
 Optional arguments:
 \itemize{
 \item \code{p_ta_mat} and \code{p_gr_mat}
-\item \code{e_mode}, \code{C}, and \code{s}
+\item \code{e_mode}, \code{C}, \code{s}, and \code{single_semester}
 }
 }
 

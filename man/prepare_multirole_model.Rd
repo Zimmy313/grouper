@@ -21,7 +21,6 @@ prepare_multirole_model(
   phi = 1,
   rho_ta = 10,
   rho_gr = NULL,
-  C = 4,
   protected_year_ta = 1,
   protected_year_gr = 1
 )
@@ -53,9 +52,6 @@ spread.}
 \item{rho_ta, rho_gr}{Non-negative penalties for TA and GR protected-cohort
 slack.}
 
-\item{C}{Semester workload capacity per individual. Annual total workload is
-fixed at \code{2 * C}.}
-
 \item{protected_year_ta, protected_year_gr}{Whole numbers from 1 to 4
 identifying the TA- and GR-protected cohorts.}
 }
@@ -75,6 +71,8 @@ constraints, and includes every individual in that role's fairness spread.
 
 When a preference term is active, the corresponding \code{P_ta} or \code{P_gr}
 element must be present in \code{df_list}.
+Semester capacity is read from \code{df_list$C}, as supplied to
+\code{\link[=extract_multirole_info]{extract_multirole_info()}}. Annual total workload is fixed at \code{2 * C}.
 }
 \examples{
 inputs <- extract_multirole_info(
