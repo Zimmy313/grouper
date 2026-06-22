@@ -18,11 +18,12 @@ prepare_diversity_model <- function(df_list, yaml_list, w1 = 0.5, w2 = 0.5) {
   s <- df_list$s
 
   n_topics <- yaml_list$n_topics
-  R <- yaml_list$R
+  #R <- yaml_list$R
   nmin <- yaml_list$nmin
   nmax <- yaml_list$nmax
   rmin <- yaml_list$rmin
   rmax <- yaml_list$rmax
+  R <- rmax
 
   model <- ompr::MIPModel() %>%
     # DEFINE DECISION VARIABLES
@@ -119,6 +120,7 @@ prepare_preference_model <- function(df_list, yaml_list) {
     ompr::add_constraint(a[t,r]>=x[g,t,r], g=1:G, t=1:(B*T), r=1:R) %>%
     ompr::add_constraint(a[t,r]<=ompr::sum_over(x[g,t,r], g=1:G), t=1:(B*T), r=1:R) %>%
     ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)>=rmin, t=1:T) %>%
+    ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)<=rmax, t=1:T) %>%
     # DEFINE CONSTRAINTS (BALANCED NO. OF REPETITIONS FOR SUBGROUPS)
     ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)==ompr::sum_over(a[(b*T+t),r], r=1:R), t=1:T, b=min(1,B-1):max(0,B-1)) %>%
     # DEFINE CONSTRAINTS (MIN AND MAX NO. OF STUDENTS PER TOPIC-REPETITION)
