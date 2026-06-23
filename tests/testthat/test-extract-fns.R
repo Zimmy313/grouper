@@ -140,17 +140,17 @@ test_that("extract_params_yaml parses diversity and preference parameter files",
     system.file("extdata", "dba_params_ex001.yml", package = "grouper"),
     assignment = "diversity"
   )
-  expect_true(all(c("n_topics", "R", "nmin", "nmax", "rmin", "rmax") %in% names(d)))
-  expect_equal(nrow(d$nmin), d$n_topics)
-  expect_equal(ncol(d$nmin), d$R)
+  expect_true(all(c("n_topics", "nmin", "nmax", "rmin", "rmax") %in% names(d)))
+  expect_equal(NROW(d$nmin), d$n_topics)
+  expect_equal(NCOL(d$nmin), d$rmax)
 
   p <- extract_params_yaml(
     system.file("extdata", "pba_params_ex002.yml", package = "grouper"),
     assignment = "preference"
   )
-  expect_true(all(c("n_topics", "B", "R", "nmin", "nmax", "rmin", "rmax") %in% names(p)))
-  expect_equal(nrow(p$nmin), p$B * p$n_topics)
-  expect_equal(ncol(p$nmin), p$R)
+  expect_true(all(c("n_topics", "nmin", "nmax", "rmin", "rmax") %in% names(p)))
+  expect_equal(NROW(p$nmin), p$B * p$n_topics)
+  expect_equal(NCOL(p$nmin), p$rmax)
 })
 
 test_that("extract_info wrapper dispatches to student extractors", {

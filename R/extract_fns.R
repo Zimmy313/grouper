@@ -7,7 +7,7 @@
 #'
 #' @param dframe A dataframe with one row for each student. The columns could
 #'   possibly contain demographic variables, an overall skill measure, and a
-#'   column indicating self-formed groups. It is best to have an id column to
+#'   column indicating self-formed groups. It is best to also have an id column to
 #'   identify each student.
 #' @param assignment Character string indicating the type of model that this
 #'   dataset is for. The argument is either 'preference' or 'diversity'. Partial
@@ -561,7 +561,6 @@ extract_params_yaml <- function(fname, assignment=c("diversity", "preference")) 
                    ncol=in_params$R, byrow=TRUE)
 
     return(list(n_topics = in_params$n_topics, B = B,
-                R = in_params$R,
                 nmin=nmin, nmax = nmax,
                 rmin=in_params$rmin, rmax=in_params$rmax
                 )
