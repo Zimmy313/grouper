@@ -2,10 +2,12 @@ library(grouper)
 library(ompr)
 library(ompr.roi)
 library(ROI.plugin.gurobi)
+library(ROI.plugin.glpk)
 library(tidyverse)
 
 source('df_summary.R')
 
+############### DBA examples ###############
 ## Example 1
 
 cur_df <- readRDS("data013-composition.rds")
@@ -18,7 +20,7 @@ result <- solve_model(cur_mdl, with_ROI(solver="gurobi", verbose=TRUE))
 cur_assigned <- assign_groups(result, assignment = "diversity",
                               dframe=cur_df, yaml_list,
                               group_names="student_id")
-summary_diversity(cur_assigned, df_list, NULL, "group")
+summary_dba(cur_assigned, df_list, "group")
 
 ## Example 2
 
@@ -29,7 +31,7 @@ m1 <- prepare_model(df_list, yaml_list, w1=1.0)
 result <- solve_model(m1, with_ROI(solver="gurobi", verbose=TRUE))
 assigned_groups <- assign_groups(result, dframe=df1, assignment = "diversity",
                                  group_names = "student_id")
-summary_diversity(assigned_groups, df_list, NULL, "group")
+summary_dba(assigned_groups, df_list, "group")
 
 ## Example 3
 
@@ -68,3 +70,36 @@ m2 <- prepare_model(df_ex001_list, yaml_ex001_list, assignment="diversity",
 result3 <- solve_model(m2, with_ROI(solver="gurobi"))
 assigned_groups <- assign_groups(result3, assignment = "diversity", dframe=dba_gc_ex001,
               group_names="groups")
+
+################## PBA Examples ##########################
+
+### Example 1
+group_comp_df1 <- readRDS("data006-composition.rds")
+group_pref_mat1 <- readRDS("data006-preference.rds")
+
+df_list <- extract_student_info(group_comp_df1, "preference",
+                                self_formed_groups = 2,
+                                pref_mat = group_pref_mat1)
+yaml_list <- extract_params_yaml("mdl02_input06.yml", "preference")
+mdl2_6 <- prepare_model(df_list, yaml_list, "preference")
+result <- solve_model(mdl2_6, with_ROI(solver="gurobi", verbose=TRUE))
+groupr_assigned_df1 <- assign_groups(result, assignment = "preference",
+                                     dframe=group_comp_df1, yaml_list,
+                                     group_names="group_id")
+
+
+## Example 2
+df_ex002_list <- extract_student_info(pba_gc_ex002, "preference",
+                                      self_formed_groups = 2,
+                                      pref_mat = pba_prefmat_ex002)
+yaml_ex002_list <- extract_params_yaml(system.file("extdata",
+                                             "pba_params_ex002.yml",
+                                             package = "grouper"),
+                                       "preference")
+m2 <- prepare_model(df_ex002_list, yaml_ex002_list, "preference")
+
+#result2 <- solve_model(m2, with_ROI(solver="gurobi"))
+result2 <- solve_model(m2, with_ROI(solver="glpk"))
+assign_groups(result2, assignment = "preference",
+              dframe=pba_gc_ex002, yaml_ex002_list,
+              group_names="grouping")
