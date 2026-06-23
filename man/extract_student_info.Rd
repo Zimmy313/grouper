@@ -17,7 +17,7 @@ extract_student_info(
 \arguments{
 \item{dframe}{A dataframe with one row for each student. The columns could
 possibly contain demographic variables, an overall skill measure, and a
-column indicating self-formed groups. It is best to have an id column to
+column indicating self-formed groups. It is best to also have an id column to
 identify each student.}
 
 \item{assignment}{Character string indicating the type of model that this
