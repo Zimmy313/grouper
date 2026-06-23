@@ -3,6 +3,7 @@ library(ompr)
 library(ompr.roi)
 library(ROI.plugin.gurobi)
 library(ROI.plugin.glpk)
+library(ROI.plugin.highs)
 library(tidyverse)
 
 source('df_summary.R')
@@ -39,7 +40,8 @@ df1 <- readRDS("data010-composition.rds")
 df_list <- extract_student_info(df1, demographic_cols = 2, skills = NULL, self_formed_groups = 1)
 yaml_list <- extract_params_yaml("mdl01_input010.yml")
 m1 <- prepare_model(df_list, yaml_list, w1=1.0)
-result <- solve_model(m1, with_ROI(solver="gurobi", verbose=TRUE))
+#result <- solve_model(m1, with_ROI(solver="gurobi", verbose=TRUE))
+result <- solve_model(m1, with_ROI(solver="highs", verbose=TRUE))
 assigned_groups <- assign_groups(result, dframe = df1, assignment = "diversity",
                                  group_names = "student_id")
 
