@@ -64,9 +64,14 @@ saveRDS(P_ay2510, file="data2510-phd_pref.rds")
 saveRDS(D_ay2510, file="data2510-phd_demand.rds")
 
 ### Load 2520 datasets
-students_ay2520 <- readRDS("data2520-phd_students.rds")
-P_ay2520 <- readRDS("data2520-phd_pref.rds")
-D_ay2520 <- readRDS("data2520-phd_demand.rds")
+students_ay2510 <- readRDS("data2510-phd_students.rds")
+P_ay2510 <- readRDS("data2510-phd_pref.rds")
+D_ay2510 <- readRDS("data2510-phd_demand.rds")
+
+demand_ay2510 <- read.csv(
+  "data/raw/ay2510/demand.csv",
+  stringsAsFactors = FALSE
+)
 
 ## ----phd-extract-info---------------------------------------------------------
 df_phd <- extract_info(
@@ -103,3 +108,8 @@ phd_solution <- solve_assignment(
   name_col = "student_id",
   verbose = TRUE
 )
+
+as_tibble(phd_solution$output) %>%
+  pivot_longer(cols=2:last_col(), names_to = "course_role", values_to = "work_units" ) %>%
+  filter(work_units > 0) %>%
+  separate_wider_delim(course_role, delim="-", names=c("course", "role"))
