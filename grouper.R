@@ -98,35 +98,38 @@ P_ay2520[
 D_ay2520 <- as.matrix(demand_ay2520[, c("TA", "GR", "E")])
 
 
-## ----phd-extract-info---------------------------------------------------------
-df_phd <- extract_info(
-  assignment = "phd",
+## ----multirole-extract-info---------------------------------------------------
+df_multirole <- extract_info(
+  assignment = "multirole",
   student_df = students_ay2520[, c("student_id", "year", "past_ta", "past_gr")],
-  p_mat = P_ay2520,
   d_mat = D_ay2520,
+  p_ta_mat = P_ay2520,
   e_mode = "none",
   C = 4
 )
 
 
-## ----phd-prepare-model--------------------------------------------------------
-model_phd <- prepare_model(
-  df_list = df_phd,
-  assignment = "phd",
-  alpha = 2,
-  beta = 1,
+## ----multirole-prepare-model--------------------------------------------------
+model_multirole <- prepare_model(
+  df_list = df_multirole,
+  assignment = "multirole",
+  alpha_ta = 2,
+  alpha_gr = NULL,
+  beta_ta = 1,
+  beta_gr = NULL,
   phi = 1,
-  rho = 10,
-  t_max_y1 = 1,
-  e_max = 1,
-  C = 4
+  rho_ta = 10,
+  rho_gr = NULL,
+  protected_year_ta = 1,
+  ta_protected_max = 1,
+  e_max = 1
 )
 
 
-## ----phd-solve-assignment-----------------------------------------------------
-phd_solution <- solve_assignment(
-  model = model_phd,
-  assignment = "phd",
+## ----multirole-solve-assignment-----------------------------------------------
+multirole_solution <- solve_assignment(
+  model = model_multirole,
+  assignment = "multirole",
   solver = "glpk",
   student_df = students_ay2520,
   course_codes = demand_ay2520$course_code,
@@ -143,7 +146,7 @@ knitr::include_graphics("figures/multi_role_objective_comparison.pdf")
 knitr::include_graphics("figures/ay2520_distribution.pdf")
 
 
-## ----fig-multi-role-objective-term-gap, fig.cap="AY2420 weighted objective-term differences between manual and model schedules.", fig.alt="Horizontal bar chart showing AY2420 manual-minus-model weighted differences for preference, fairness, seniority residual support, and Year-1 slack terms.", out.width="0.78\\linewidth", fig.pos="!htbp", echo=FALSE----
+## ----fig-multi-role-objective-term-gap, fig.cap="AY2420 weighted objective-term differences between manual and model schedules.", fig.alt="Horizontal bar chart showing AY2420 manual-minus-model weighted differences for TA preference, TA fairness, seniority residual support, and Year-1 TA slack terms.", out.width="0.78\\linewidth", fig.pos="!htbp", echo=FALSE----
 knitr::include_graphics("figures/multi_role_objective_term_gap.pdf")
 
 

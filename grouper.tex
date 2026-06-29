@@ -403,40 +403,58 @@ trade-off
 The third model addresses a general multi-role workload allocation problem.
 Individuals receive discrete work units across several roles while the
 allocation satisfies task demand, annual workload requirements, and policy
-constraints. The implementation is motivated by PhD workload allocation, where
-students receive teaching assistantship, grading, and residual support duties.
-More generally, role \(A\) is preference-sensitive, role \(B\) is routine or
-demand-driven, and role \(C\) is allocated according to a priority score such as
+constraints. Doctoral teaching-workload allocation motivated the design:
+individuals may receive teaching assistantship (TA), grading (GR), and lighter
+residual support duties (E). The resulting formulation is not specific to that
+setting. TA and GR can each have their own preference, fairness, and
+protected-cohort policies, while E can be allocated according to a score such as
 seniority, experience, or eligibility.
 
-The extractor aligns a student table, preference matrix, and role-demand matrix.
-The student table supplies cohort year and previous TA and grading workload,
-which become the priority score \(q_i\) and historical workload vectors
-\(t_i^{(1)}\) and \(g_i^{(1)}\). The preference matrix supplies \(P_{ij}\), and
-the demand matrix supplies \(d_{jr}\). Residual-role demand may either be
-provided or derived from total semester workload and submitted TA and grading
-demand.
+The extractor aligns an individual table, optional role-specific preference
+matrices, and a role-demand matrix. The individual table supplies cohort year
+and, when available, previous TA and GR workload. These become the historical
+workload vectors \(t_i^{(1)}\) and \(g_i^{(1)}\). The preference matrices
+supply \(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\), the demand matrix
+supplies \(d_{jr}\), and a user-configurable score \(s_i\) guides E allocation.
+E demand may either be supplied or derived from total semester capacity and
+submitted TA and GR demand.
 
 \subsubsection{Objective}\label{objective-2}
 
 Let \(X_{ijr}\) be the non-negative integer units of role \(r\) assigned to
-individual \(i\) for task \(j\). Let \(Y_1\) denote the protected subgroup and
-\(Y_0\) the individuals included in the role-\(A\) fairness calculation. The
-objective is
+individual \(i\) for task \(j\), where
+\(r\in\{\mathrm{TA},\mathrm{GR},\mathrm{E}\}\). Define annual TA and GR
+workload as
 
 \[
-\min\quad \alpha(L_{\max}-L_{\min})
--\beta\sum_{i,j}P_{ij}X_{ij,A}
--\phi\sum_{i,j}q_iX_{ij,C}
-+\rho\sum_{i\in Y_1}w_i.
+T_i=t_i^{(1)}+\sum_jX_{ij,\mathrm{TA}},\qquad
+G_i=g_i^{(1)}+\sum_jX_{ij,\mathrm{GR}}.
 \]
 
-The first term penalizes the spread in cumulative role-\(A\) workload among
-individuals in \(Y_0\). The second rewards preference fit for role \(A\), the
-third rewards assigning role \(C\) according to priority \(q_i\), and the final
-term penalizes violations of the protected subgroup's soft role-\(A\) limit.
-Role \(B\) is governed by demand and workload constraints rather than a direct
-objective reward.
+Let \(Y_{\mathrm{TA}}\) and \(Y_{\mathrm{GR}}\) denote the cohorts protected
+for TA and GR, respectively. The two cohorts may be the same or different. The
+general objective is
+
+\[
+\begin{aligned}
+\min\quad
+&\alpha_{\mathrm{TA}}(T_{\max}-T_{\min})
++\alpha_{\mathrm{GR}}(G_{\max}-G_{\min})\\
+&-\beta_{\mathrm{TA}}\sum_{i,j}
+P^{\mathrm{TA}}_{ij}X_{ij,\mathrm{TA}}
+-\beta_{\mathrm{GR}}\sum_{i,j}
+P^{\mathrm{GR}}_{ij}X_{ij,\mathrm{GR}}\\
+&-\phi\sum_{i,j}s_iX_{ij,\mathrm{E}}
++\rho_{\mathrm{TA}}\sum_{i\in Y_{\mathrm{TA}}}w_i^{\mathrm{TA}}
++\rho_{\mathrm{GR}}\sum_{i\in Y_{\mathrm{GR}}}w_i^{\mathrm{GR}}.
+\end{aligned}
+\]
+
+The first two terms penalize annual TA and GR workload spread. The next two
+reward role-specific preference fit, the E term rewards allocation according to
+the supplied score, and the final terms penalize violations of the two
+protected-cohort soft limits. Each objective component is optional, so the
+formulation can represent policies that use only a subset of these criteria.
 
 \subsubsection{Key constraints}\label{key-constraints-2}
 
@@ -449,25 +467,35 @@ Every task-role demand must be met exactly:
 Each individual's annual workload is fixed at \(2C\):
 
 \[
-\left(t_i^{(1)}+\sum_jX_{ij,A}\right)
-+\left(g_i^{(1)}+\sum_jX_{ij,B}\right)
-+\sum_jX_{ij,C}=2C,\quad \forall i. \tag{12}
+\left(t_i^{(1)}+\sum_jX_{ij,\mathrm{TA}}\right)
++\left(g_i^{(1)}+\sum_jX_{ij,\mathrm{GR}}\right)
++\sum_jX_{ij,\mathrm{E}}=2C,\quad \forall i. \tag{12}
 \]
 
-The fairness variables bound cumulative role-\(A\) workload only for the
-population included in the spread calculation:
+The role-specific fairness variables bound annual workload outside the
+corresponding protected cohort:
 
 \[
-L_{\min}\leq t_i^{(1)}+\sum_jX_{ij,A}\leq L_{\max},
-\quad \forall i\in Y_0. \tag{13}
+\begin{aligned}
+T_{\min}\leq T_i\leq T_{\max},
+&\quad \forall i\notin Y_{\mathrm{TA}},\\
+G_{\min}\leq G_i\leq G_{\max},
+&\quad \forall i\notin Y_{\mathrm{GR}}.
+\end{aligned}\tag{13}
 \]
 
-For protected individuals, \(w_i\) permits but penalizes role-\(A\) workload
-above the soft threshold:
+For protected individuals, separate slack variables permit but penalize
+current-semester workload above the corresponding soft threshold:
 
 \[
-\sum_jX_{ij,A}\leq t_{\max}^{(Y1)}+w_i,
-\quad \forall i\in Y_1. \tag{14}
+\begin{aligned}
+\sum_jX_{ij,\mathrm{TA}}
+&\leq t_{\max}^{(P)}+w_i^{\mathrm{TA}},
+\quad \forall i\in Y_{\mathrm{TA}},\\
+\sum_jX_{ij,\mathrm{GR}}
+&\leq g_{\max}^{(P)}+w_i^{\mathrm{GR}},
+\quad \forall i\in Y_{\mathrm{GR}}.
+\end{aligned}\tag{14}
 \]
 
 Optional role-wide lower and upper bounds are imposed only when supplied:
@@ -480,19 +508,21 @@ The variable domains are
 
 \[
 X_{ijr}\in\mathbb{Z}_{\geq0},\qquad
-L_{\min},L_{\max}\geq0,\qquad w_i\geq0\quad(i\in Y_1). \tag{16}
+T_{\min},T_{\max},G_{\min},G_{\max}\geq0,\qquad
+w_i^{\mathrm{TA}},w_i^{\mathrm{GR}}\geq0. \tag{16}
 \]
 
-In the PhD workload example, roles \(A\), \(B\), and \(C\) correspond to
-teaching assistantship, grading, and residual support. The score \(q_i\) is
-seniority, \(Y_1\) contains Year-1 students, and \(Y_0\) contains the remaining
-students. Historical workload allows the model to balance past and
-current-semester duties together. For a one-semester analysis, users can set
-\texttt{past\_ta\ =\ 0} and \texttt{past\_gr\ =\ C} before calling \texttt{extract\_info()}.
+Historical workload allows the model to balance past and current-semester
+duties together. When previous workload is unavailable,
+\texttt{single\_semester\ =\ TRUE} generates uniform synthetic history with
+\(t_i^{(1)}=0\) and \(g_i^{(1)}=C\). This leaves \(C\) units per individual for
+the current allocation without changing GR workload spread.
 
-Setting an objective weight to zero removes the corresponding policy component
-from the optimization criterion without removing any associated feasibility
-constraints.
+Setting an objective weight to zero or \texttt{NULL} disables that policy component.
+Preference and E expressions are omitted from the objective; disabling a
+fairness or protection term also omits its supporting variables and
+constraints. When a protection term is disabled, all individuals enter that
+role's fairness calculation if the corresponding fairness term remains active.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
@@ -522,11 +552,11 @@ trade-off
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-\texttt{alpha} & increases the penalty on role-\(A\) workload spread within \(Y_0\) & can improve fairness at the expense of preference or priority terms \\
-\texttt{beta} & increases the reward for role-\(A\) preference scores & can improve preference attainment at the expense of workload spread or priority terms \\
-\texttt{phi} & increases the reward for assigning role \(C\) to higher-priority individuals & can improve priority alignment at the expense of the other objective terms \\
-\texttt{rho} & makes protected-group slack more expensive & discourages overload but does not alter feasibility because slack remains available \\
-\texttt{t\_max\_y1} & raises the protected subgroup's soft role-\(A\) threshold & weakens protection and can reduce the slack penalty; formal feasibility is unchanged \\
+\texttt{alpha\_ta}, \texttt{alpha\_gr} & increases the penalty on annual workload spread for the corresponding role & can improve role-specific fairness at the expense of preference, priority, or protection terms \\
+\texttt{beta\_ta}, \texttt{beta\_gr} & increases the reward for the corresponding role's preference scores & can improve role-specific preference attainment at the expense of other objective terms \\
+\texttt{phi} & increases the reward for assigning E to individuals with larger scores & can improve priority alignment at the expense of the other objective terms \\
+\texttt{rho\_ta}, \texttt{rho\_gr} & makes the corresponding protected-cohort slack more expensive & discourages overload but does not alter feasibility because slack remains available \\
+\texttt{ta\_protected\_max}, \texttt{gr\_protected\_max} & raises the corresponding protected cohort's soft threshold & weakens protection and can reduce the slack penalty; formal feasibility is unchanged \\
 \texttt{C} & raises every individual's required annual workload from \(2C\) & requires two additional workload units per person for each unit increase and may cause infeasibility if aggregate demand is incompatible \\
 \texttt{ta\_min}, \texttt{gr\_min}, \texttt{e\_min} & raises the required minimum for the corresponding role & tightens feasibility and forces more of that role onto every individual \\
 \texttt{ta\_max}, \texttt{gr\_max}, \texttt{e\_max} & raises the permitted maximum for the corresponding role & weakly enlarges the feasible set and may allow greater concentration \\
@@ -568,26 +598,28 @@ used by the model builders. For \texttt{assignment\ =\ "diversity"}, it accepts 
 student or group data frame, the self-formed-group column, and either a
 precomputed dissimilarity matrix or demographic columns from which dissimilarity
 is computed. For \texttt{assignment\ =\ "preference"}, it accepts the same group
-structure together with the group-topic preference matrix. For the historical
-\texttt{assignment\ =\ "phd"} option, which invokes the multi-role workload workflow, it
-accepts the student table, preference matrix, and role-demand matrix. In all
-cases, the purpose of \texttt{extract\_info()} is to align user-supplied records with
-the mathematical objects used in the optimization model.
+structure together with the group-topic preference matrix. For the multi-role
+workflow, \texttt{assignment\ =\ "multirole"} accepts the individual table,
+role-demand matrix, optional TA and GR preference matrices, semester capacity,
+and history mode. In all cases, the purpose of \texttt{extract\_info()} is to align
+user-supplied records with the mathematical objects used in the optimization
+model.
 
-The following illustrative calls use the historical \texttt{assignment\ =\ "phd"}
-argument to show the multi-role workload workflow, with \texttt{S}, \texttt{P}, \texttt{D}, and \texttt{J}
-denoting the student table, preference matrix, demand matrix, and course-code
-vector.
+The following illustrative call uses \(S\), \(P_{\mathrm{TA}}\),
+\(P_{\mathrm{GR}}\), \(D\), and \(J\) to denote the individual table, two
+preference matrices, demand matrix, and task-code vector.
 
 \begin{verbatim}
 # "diversity": dframe + self_formed_groups + d_mat/demographic_cols
 # "preference": dframe + self_formed_groups + pref_mat
-# "phd": S, P, and D for multi-role workload allocation
+# "multirole": S, D, and optional role-specific preferences
 df <- extract_info(
-  "phd",
+  "multirole",
   student_df = S,
-  p_mat = P,
-  d_mat = D
+  d_mat = D,
+  p_ta_mat = P_TA,
+  p_gr_mat = P_GR,
+  C = 4
 )
 \end{verbatim}
 
@@ -607,14 +639,17 @@ solving when needed.
 \begin{verbatim}
 # "diversity": add n_topics, R, nmin, nmax, rmin, rmax, w1, w2
 # "preference": add n_topics, B, R, nmin, nmax, rmin, rmax
-# "phd": alpha, beta, phi, rho, t_max_y1, e_max, and C
+# "multirole": add role-specific policy weights and bounds
 m <- prepare_model(
   df,
-  assignment = "phd",
-  alpha = a,
-  beta = b,
+  assignment = "multirole",
+  alpha_ta = a_ta,
+  alpha_gr = a_gr,
+  beta_ta = b_ta,
+  beta_gr = b_gr,
   phi = p,
-  rho = r
+  rho_ta = r_ta,
+  rho_gr = r_gr
 )
 \end{verbatim}
 
@@ -636,7 +671,7 @@ individual-by-task-role allocation table.
 # multi-role passes student_df and course_codes for post-processing
 out <- solve_assignment(
   m,
-  "phd",
+  "multirole",
   "glpk",
   student_df = S,
   course_codes = J
@@ -655,8 +690,11 @@ and decision-ready allocation outputs.
 
 \section{Multi-role workload allocation in practice}\label{multi-role-workload-allocation-in-practice}
 
-This section evaluates the multi-role workload workflow using institutional
-planning data from AY2420, AY2510, and AY2520. The notation
+The multi-role workflow is selected for the detailed use case because it exposes
+the largest argument set and the richest interaction among demand, preferences,
+fairness, workload history, priority scores, and cohort protection. This section
+evaluates that workflow using institutional planning data from AY2420, AY2510,
+and AY2520. The notation
 follows the department's academic-year convention, where AY denotes academic
 year, the first two digits indicate the academic year, and the final two digits
 indicate the semester. For example, AY2510 refers to Semester 1 of Academic
@@ -677,6 +715,15 @@ assigned according to seniority. The columns Y1--Y4 show the cohort
 composition by year. AY2510 is the largest instance by both student
 and course count, while role demand and cohort structure vary across
 the three semesters.
+
+The generalized model permits independent GR fairness, preference, and
+protected-cohort terms. The institutional comparison retains the policy used in
+the original planning exercise: TA fairness, TA preferences, seniority-guided E
+allocation, and Year-1 TA protection are active, while the GR-specific objective
+terms are disabled. In particular, no GR preference term is evaluated because
+the retained manual records do not identify GR assignments by course. The
+comparison therefore demonstrates a TA-focused configuration of the general
+multi-role model rather than every available policy component.
 
 \begin{table}[!h]
 
@@ -707,45 +754,50 @@ than treating each semester in isolation.
 
 The workflow begins by standardizing the inputs. In this example, \texttt{student\_df}
 records the anonymized student identifier, cohort year, and previous-semester
-TA/GR workload. The preference matrix \(P\) is student by course, and the demand
-matrix \(D\) is course by role. Residual support demand is already included as
-the third role column, so \texttt{e\_mode} is set to \texttt{"none"}.
+TA/GR workload. The TA preference matrix \(P^{\mathrm{TA}}\) is individual by
+course, and the demand matrix \(D\) is course by role. A GR preference matrix is
+not supplied for this policy configuration. Residual support demand is already
+included as the third role column, so \texttt{e\_mode} is set to \texttt{"none"}.
 
 \begin{verbatim}
-df_phd <- extract_info(
-  assignment = "phd",
+df_multirole <- extract_info(
+  assignment = "multirole",
   student_df = students_ay2520[, c("student_id", "year", "past_ta", "past_gr")],
-  p_mat = P_ay2520,
   d_mat = D_ay2520,
+  p_ta_mat = P_ay2520,
   e_mode = "none",
   C = 4
 )
 \end{verbatim}
 
-The resulting \texttt{df\_phd} object is the standardized input contract used by the
-model-building stage. It contains the aligned preference matrix, role-demand
-matrix, seniority vector, and past workload vectors; downstream code no longer
-needs to know the original file layout.
+The resulting \texttt{df\_multirole} object is the standardized input contract used by
+the model-building stage. It contains the aligned TA preference matrix,
+role-demand matrix, semester capacity, seniority score, and past workload
+vectors; downstream code no longer needs to know the original file layout.
 
 The second step constructs the mixed-integer model. In this example, the policy
-weights are set to \texttt{alpha\ =\ 2}, \texttt{beta\ =\ 1}, \texttt{phi\ =\ 1}, and \texttt{rho\ =\ 10}, encoding
-the trade-off between yearly TA fairness, TA preference fit, seniority-guided
-residual support work, and Year-1 TA overload protection. The bound
-\texttt{t\_max\_y1\ =\ 1} limits Year-1 teaching assistantship load before slack is used,
-and \texttt{e\_max\ =\ 1} keeps residual support duties from concentrating too heavily on
-any single student.
+weights are set to \texttt{alpha\_ta\ =\ 2}, \texttt{beta\_ta\ =\ 1}, \texttt{phi\ =\ 1}, and
+\texttt{rho\_ta\ =\ 10}, encoding the trade-off between yearly TA fairness, TA preference
+fit, seniority-guided residual support work, and Year-1 TA overload protection.
+The GR-specific weights are explicitly disabled. The bound
+\texttt{ta\_protected\_max\ =\ 1} limits Year-1 teaching assistantship load before slack is
+used, and \texttt{e\_max\ =\ 1} keeps residual support duties from concentrating too
+heavily on any single student.
 
 \begin{verbatim}
-model_phd <- prepare_model(
-  df_list = df_phd,
-  assignment = "phd",
-  alpha = 2,
-  beta = 1,
+model_multirole <- prepare_model(
+  df_list = df_multirole,
+  assignment = "multirole",
+  alpha_ta = 2,
+  alpha_gr = NULL,
+  beta_ta = 1,
+  beta_gr = NULL,
   phi = 1,
-  rho = 10,
-  t_max_y1 = 1,
-  e_max = 1,
-  C = 4
+  rho_ta = 10,
+  rho_gr = NULL,
+  protected_year_ta = 1,
+  ta_protected_max = 1,
+  e_max = 1
 )
 \end{verbatim}
 
@@ -755,9 +807,9 @@ is used here because it is open-source and supports a reproducible example in a
 standard R environment.
 
 \begin{verbatim}
-phd_solution <- solve_assignment(
-  model = model_phd,
-  assignment = "phd",
+multirole_solution <- solve_assignment(
+  model = model_multirole,
+  assignment = "multirole",
   solver = "glpk",
   student_df = students_ay2520,
   course_codes = demand_ay2520$course_code,
@@ -794,8 +846,10 @@ The model obtains a lower weighted objective in all three semesters. This should
 be interpreted as a policy-consistent comparison rather than a general judgment
 on the department's manual allocation. Both schedules are scored using the same
 objective function, so each difference reflects the combined treatment of
-workload fairness, preference fit, seniority steering, and Year-1 protection
-under the stated policy weights.
+TA workload fairness, TA preference fit, seniority steering, and Year-1 TA
+protection under the stated policy weights. GR demand and total workload remain
+feasibility requirements, but no GR-specific objective term contributes to this
+comparison.
 
 Figure \ref{fig:fig-ay2520-distribution} then shows how an optimized schedule is
 allocated at student level. For AY2520, it displays annual workload by student
@@ -829,44 +883,46 @@ weighted objective terms.
 
 \begin{figure}[!htbp]
 
-{\centering \includegraphics[width=0.78\linewidth,alt={Horizontal bar chart showing AY2420 manual-minus-model weighted differences for preference, fairness, seniority residual support, and Year-1 slack terms.}]{figures/multi_role_objective_term_gap} 
+{\centering \includegraphics[width=0.78\linewidth,alt={Horizontal bar chart showing AY2420 manual-minus-model weighted differences for TA preference, TA fairness, seniority residual support, and Year-1 TA slack terms.}]{figures/multi_role_objective_term_gap}
 
 }
 
 \caption{AY2420 weighted objective-term differences between manual and model schedules.}\label{fig:fig-multi-role-objective-term-gap}
 \end{figure}
 
-The decomposition makes the trade-offs explicit. In AY2420, the preference term
-accounts for 125 objective units of the 125-unit total gap. The fairness term
-adds 8 units to the manual objective, while the seniority-residual-support term
-offsets the gap by 8 units and the Year-1 slack term is unchanged. In this
-sense, \texttt{grouper} makes allocation rules explicit and searches the feasible
+The decomposition makes the trade-offs explicit. In AY2420, the TA preference
+term accounts for 125 objective units of the 125-unit total gap. The TA fairness
+term adds 8 units to the manual objective, while the seniority-residual-support
+term offsets the gap by 8 units and the Year-1 TA slack term is unchanged. In
+this sense, \texttt{grouper} makes allocation rules explicit and searches the feasible
 assignment space more systematically than an operational manual process.
 
 \subsection{Hyperparameter effectiveness}\label{hyperparameter-effectiveness}
 
 A one-at-a-time AY2520 sensitivity check was used to examine whether local
 changes to the objective weights alter the operational conclusions. In this
-example, changing \texttt{alpha} has the clearest effect on TA workload fairness
+example, changing \texttt{alpha\_ta} has the clearest effect on TA workload fairness
 because it directly penalizes the annual TA spread. In the local check, the
-spread decreases from 5 units at \texttt{alpha\ =\ 1} to 3 units at the manuscript value
-\texttt{alpha\ =\ 2}, and remains 3 units at \texttt{alpha\ =\ 4}. Local changes to \texttt{beta}, \texttt{phi},
-and \texttt{rho} have smaller visible effects because the baseline solution already
-achieves high TA preference attainment, assigns residual support toward senior
-students, and uses no Year-1 TA-overload slack. The sensitivity check therefore
-supports interpreting these weights as local policy levers rather than universal
-tuning constants.
+spread decreases from 5 units at \texttt{alpha\_ta\ =\ 1} to 3 units at the manuscript
+value \texttt{alpha\_ta\ =\ 2}, and to 2 units in the returned solution at
+\texttt{alpha\_ta\ =\ 4}. Local changes to \texttt{beta\_ta}, \texttt{phi}, and \texttt{rho\_ta} have smaller
+visible effects because the baseline solution already achieves high TA
+preference attainment, assigns residual support toward senior students, and
+uses no Year-1 TA-overload slack. The sensitivity check therefore supports
+interpreting these active weights as local policy levers rather than universal
+tuning constants. The disabled GR weights are not varied because they are
+outside the institutional policy evaluated here.
 
 The reproducible benchmark repeated the AY2520 solve 30 times for each
 open-source solver. \texttt{GLPK} returned the same objective value,
 \(-182\), in all 30 runs with a mean
-runtime of 0.190 seconds and an observed
-range from 0.184 to
-0.242 seconds. \texttt{HiGHS} also returned
+runtime of 0.181 seconds and an observed
+range from 0.174 to
+0.241 seconds. \texttt{HiGHS} also returned
 objective value \(-182\) in all 30
-runs, with a mean runtime of 0.201
-seconds and an observed range from 0.192
-to 0.248 seconds. These timings indicate
+runs, with a mean runtime of 0.195
+seconds and an observed range from 0.189
+to 0.243 seconds. These timings indicate
 that the example is small enough for either open-source backend to solve
 interactively.
 
@@ -918,9 +974,12 @@ exporting the resulting assignment.
 
 The multi-role workload tab validates uploaded files, normalizes prior
 workload, and then runs the same multi-role optimization model described in the
-workflow section. After a successful run, the app displays solver status,
-objective diagnostics, a workload-distribution plot, preference attainment, and
-the wide assignment table produced by \texttt{assign\_job()}.
+workflow section. Its controls expose the workload constraints and policy
+settings needed for the operational interface; direct R users can access the
+full generalized argument set, including independent TA and GR terms and
+single-semester extraction. After a successful run, the app displays solver
+status, objective diagnostics, a workload-distribution plot, preference
+attainment, and the wide assignment table produced by \texttt{assign\_job()}.
 
 The assignment table can be downloaded as an XLSX file for further processing
 or record-keeping for all three workflows.
@@ -996,16 +1055,19 @@ remain deployment considerations.
 recurring allocation problems in higher education. Diversity-based assignment
 supports balanced group composition, preference-based assignment allocates
 self-formed groups to requested destinations, and multi-role workload allocation
-combines demand, preference, fairness, and priority rules. Across these settings,
-the package translates institutional policies into explicit model terms exposed
+combines demand with independently configurable role-specific preference,
+fairness, priority, and cohort-protection rules. Across these settings, the
+package translates institutional policies into explicit model terms exposed
 through documented R interfaces.
 
 The detailed multi-role application demonstrates this design on a departmental
-planning task across three semesters. The workflow combines prior workload,
-course demand, student preferences, seniority-based priority, and Year-1
-protection. Under the stated policy weights, the optimized schedules obtain
-lower objective values than the corresponding manual schedules. This comparison
-is specific to the encoded policy, while the first two workflows extend the same
+planning task across three semesters. It uses a TA-focused configuration that
+combines prior workload, course demand, TA preferences, seniority-based priority,
+and Year-1 TA protection, while leaving the optional GR objective terms
+disabled. Under the stated policy weights, the optimized schedules obtain lower
+objective values than the corresponding manual schedules. This comparison is
+specific to the encoded policy; the generalized model supports broader TA and
+GR configurations, while the first two workflows extend the same
 data-build-solve pattern to diversity balancing and preference-sensitive topic
 allocation.
 
