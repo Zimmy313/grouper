@@ -6,6 +6,7 @@
   prior workload data.
 - Moved multi-role semester capacity to extraction so model preparation
   uses the stored `C`.
+- Updated the Shiny workload apps to run the multi-role engine directly.
 
 ## grouper 0.7.1
 
