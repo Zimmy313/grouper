@@ -10,6 +10,46 @@ library(ompr.roi)
 
 source("utils.R")
 
+workload_step_title <- function(step, title, subtitle = NULL) {
+  div(
+    class = "card-title-row",
+    span(class = "step-badge", step),
+    div(
+      h3(title),
+      if (!is.null(subtitle)) p(class = "hint", subtitle)
+    )
+  )
+}
+
+single_semester_switch <- function(id) {
+  div(
+    class = "mode-card",
+    div(class = "mode-kicker", "Input Mode"),
+    div(
+      class = "form-check form-switch workload-switch",
+      tags$input(
+        class = "form-check-input",
+        type = "checkbox",
+        role = "switch",
+        id = id
+      ),
+      tags$label(
+        class = "form-check-label",
+        `for` = id,
+        "Single-semester mode"
+      )
+    ),
+    div(
+      class = "mode-help",
+      "When enabled, previous workload is synthetic: past TA = 0 and past GR = C."
+    )
+  )
+}
+
+settings_grid <- function(..., columns = 4) {
+  div(class = paste0("settings-grid settings-grid-", columns), ...)
+}
+
 ui <- fluidPage(
   theme = bs_theme(
     version = 5,
@@ -19,12 +59,26 @@ ui <- fluidPage(
   ),
   tags$head(
     tags$style(HTML(
-      ".hero-banner {
+      ":root {
+         --brand-deep: #0f4c81;
+         --brand-mid: #2b6cb0;
+         --brand-light: #7fb3d5;
+         --ink-900: #123a63;
+         --ink-700: #355d80;
+         --surface: #ffffff;
+         --border: #d9e2ec;
+         --accent: #e66100;
+         --accent-dark: #c95300;
+       }
+       body {
+         background: linear-gradient(180deg, #f4f8fc 0%, #edf4fa 55%, #f7fbff 100%);
+       }
+       .hero-banner {
          background: linear-gradient(115deg, #0f4c81 0%, #2b6cb0 52%, #7fb3d5 100%);
          color: #ffffff;
          border-radius: 16px;
-         padding: 18px 22px;
-         margin-bottom: 14px;
+         padding: 24px 28px;
+         margin: 18px 0 16px;
          box-shadow: 0 12px 24px rgba(18, 67, 115, 0.18);
        }
        .hero-banner h1 {
@@ -37,18 +91,51 @@ ui <- fluidPage(
          margin: 0;
          opacity: 0.95;
        }
+       .role-strip {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px;
+         margin-top: 14px;
+       }
+       .role-pill {
+         border: 1px solid rgba(255, 255, 255, 0.35);
+         background: rgba(255, 255, 255, 0.15);
+         border-radius: 999px;
+         color: #ffffff;
+         font-size: 13px;
+         font-weight: 600;
+         padding: 5px 10px;
+       }
        .panel-card {
          background: #ffffff;
          border: 1px solid #d9e2ec;
-         border-radius: 14px;
-         padding: 14px 16px;
-         margin-bottom: 12px;
-         box-shadow: 0 8px 20px rgba(15, 76, 129, 0.06);
+         border-radius: 16px;
+         padding: 18px;
+         margin-bottom: 16px;
+         box-shadow: 0 10px 26px rgba(15, 76, 129, 0.07);
        }
        .panel-card h3 {
-         margin-top: 0;
-         margin-bottom: 10px;
+         margin: 0;
          color: #123a63;
+       }
+       .card-title-row {
+         display: flex;
+         gap: 12px;
+         align-items: flex-start;
+         margin-bottom: 14px;
+       }
+       .step-badge {
+         align-items: center;
+         background: rgba(15, 76, 129, 0.1);
+         border: 1px solid rgba(15, 76, 129, 0.2);
+         border-radius: 999px;
+         color: #0f4c81;
+         display: inline-flex;
+         flex: 0 0 auto;
+         font-weight: 700;
+         height: 30px;
+         justify-content: center;
+         width: 30px;
        }
        .hint {
          color: #355d80;
@@ -72,6 +159,189 @@ ui <- fluidPage(
          border-color: #b54a00;
          color: #ffffff;
        }
+       .mode-card,
+       .file-card,
+       .settings-card {
+         background: #f8fbfe;
+         border: 1px solid #d9e2ec;
+         border-radius: 14px;
+         padding: 14px;
+       }
+       .mode-card,
+       .file-card {
+         min-height: 100%;
+       }
+       .file-template-row {
+         display: flex;
+         margin-bottom: 16px;
+       }
+       .file-template-row .btn {
+         white-space: normal;
+       }
+       .file-upload-grid {
+         align-items: start;
+         display: grid;
+         gap: 14px;
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+       }
+       .file-upload-cell {
+         min-width: 0;
+       }
+       .file-upload-cell .shiny-input-container {
+         margin-bottom: 0;
+         max-width: none;
+         width: 100%;
+       }
+       .file-upload-cell label {
+         min-height: 28px;
+       }
+       .file-upload-cell .input-group {
+         width: 100%;
+       }
+       .mode-kicker,
+       .setting-kicker {
+         color: #355d80;
+         font-size: 12px;
+         font-weight: 700;
+         letter-spacing: 0.06em;
+         margin-bottom: 8px;
+         text-transform: uppercase;
+       }
+       .workload-switch {
+         margin-bottom: 8px;
+       }
+       .workload-switch .form-check-input {
+         height: 1.35rem;
+         width: 2.6rem;
+       }
+       .workload-switch .form-check-input:checked {
+         background-color: #e66100;
+         border-color: #e66100;
+       }
+       .workload-switch .form-check-label {
+         color: #123a63;
+         font-weight: 700;
+         margin-left: 6px;
+       }
+       .mode-help {
+         color: #355d80;
+         font-size: 13px;
+         line-height: 1.35;
+       }
+       .action-row {
+         align-items: center;
+         display: flex;
+         flex-wrap: wrap;
+         gap: 10px;
+         margin-top: 10px;
+       }
+       .status-message {
+         margin-top: 12px;
+       }
+       .status-message .status-ok,
+       .status-message .status-warn,
+       .run-message .status-ok,
+       .run-message .status-warn {
+         border-radius: 12px;
+         display: block;
+         padding: 10px 12px;
+       }
+       .status-message .status-ok,
+       .run-message .status-ok {
+         background: rgba(11, 125, 68, 0.1);
+         border: 1px solid rgba(11, 125, 68, 0.22);
+       }
+       .status-message .status-warn,
+       .run-message .status-warn {
+         background: rgba(160, 74, 0, 0.1);
+         border: 1px solid rgba(160, 74, 0, 0.22);
+       }
+       .settings-tabs {
+         margin-top: 8px;
+       }
+       .settings-tabs summary {
+         color: #123a63;
+         cursor: pointer;
+         font-weight: 700;
+       }
+       .settings-tabs .tab-content {
+         background: #ffffff;
+         border: 1px solid #d9e2ec;
+         border-top: 0;
+         border-radius: 0 0 14px 14px;
+         padding: 14px;
+       }
+       .settings-grid {
+         align-items: start;
+         display: grid;
+         gap: 12px;
+         margin-bottom: 12px;
+       }
+       .settings-grid-2 {
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+       }
+       .settings-grid-4 {
+         grid-template-columns: repeat(4, minmax(0, 1fr));
+       }
+       .settings-grid .shiny-input-container {
+         margin-bottom: 0;
+         max-width: none;
+         width: 100%;
+       }
+       .settings-grid .form-group {
+         margin-bottom: 0;
+       }
+       .metric-grid {
+         display: grid;
+         gap: 12px;
+         grid-template-columns: repeat(4, minmax(0, 1fr));
+       }
+       .metric-card {
+         background: #ffffff;
+         border: 1px solid #d9e2ec;
+         border-radius: 14px;
+         display: flex;
+         flex-direction: column;
+         justify-content: space-between;
+         min-height: 92px;
+         min-width: 0;
+         padding: 14px;
+         box-shadow: 0 8px 18px rgba(15, 76, 129, 0.05);
+       }
+       .metric-card-accent {
+         border-color: rgba(230, 97, 0, 0.35);
+       }
+       .metric-label {
+         color: #355d80;
+         display: block;
+         font-size: 12px;
+         font-weight: 700;
+         letter-spacing: 0.04em;
+         text-transform: uppercase;
+       }
+       .metric-value {
+         color: #123a63;
+         display: block;
+         font-size: 22px;
+         font-weight: 700;
+         margin-top: 4px;
+         overflow-wrap: anywhere;
+       }
+       @media (max-width: 991px) {
+         .file-upload-grid,
+         .settings-grid-4,
+         .metric-grid {
+           grid-template-columns: repeat(2, minmax(0, 1fr));
+         }
+       }
+       @media (max-width: 575px) {
+         .file-upload-grid,
+         .settings-grid-2,
+         .settings-grid-4,
+         .metric-grid {
+           grid-template-columns: 1fr;
+         }
+       }
       "
     ))
   ),
@@ -80,128 +350,186 @@ ui <- fluidPage(
   div(
     class = "hero-banner",
     h1("Multi-role Workload Allocation"),
-    p("Template-driven upload, parameterized optimisation, and direct downloadable outputs.")
+    p("Balance teaching support, grading work, and lighter residual duties across workload history, preferences, and cohort protections."),
+    div(
+      class = "role-strip",
+      span(class = "role-pill", "TA: tutorials, labs, teaching support"),
+      span(class = "role-pill", "GR: marking and assessment"),
+      span(class = "role-pill", "E: invigilation, consultation, admin")
+    )
   ),
 
   # ---- Step 2: Parameter Selection & Run ----
   div(
     class = "panel-card",
-    h3("Step 1: Upload And Load"),
-    p(
-      class = "hint",
+    workload_step_title(
+      "1",
+      "Upload And Load",
       "Use the current semester template. Upload previous assign_job output unless single-semester mode is selected."
     ),
     fluidRow(
       column(
-        width = 6,
-        downloadButton("download_template", "Download current_semester.xlsx")
+        width = 4,
+        single_semester_switch("single_semester")
       ),
       column(
-        width = 6,
-        actionButton("validate_inputs", "Load Inputs", class = "btn btn-primary")
+        width = 8,
+        div(
+          class = "file-card",
+          div(class = "setting-kicker", "Files"),
+          div(
+            class = "file-template-row",
+            downloadButton("download_template", "Download current_semester.xlsx")
+          ),
+          div(
+            class = "file-upload-grid",
+            div(
+              class = "file-upload-cell",
+              fileInput(
+                "current_file",
+                "Current semester file (XLSX)",
+                accept = c(".xlsx")
+              )
+            ),
+            div(
+              class = "file-upload-cell",
+              conditionalPanel(
+                condition = "!input.single_semester",
+                fileInput(
+                  "past_file",
+                  "Previous semester model output (XLSX)",
+                  accept = c(".xlsx")
+                )
+              )
+            )
+          ),
+          div(
+            class = "action-row",
+            actionButton("validate_inputs", "Load Inputs", class = "btn btn-primary")
+          )
+        )
       )
     ),
-    br(),
-    fileInput(
-      "current_file",
-      "Current semester file (XLSX)",
-      accept = c(".xlsx")
-    ),
-    checkboxInput(
-      "single_semester",
-      "Single-semester mode: use synthetic past workload (past TA = 0, past GR = C)",
-      value = FALSE
-    ),
+    htmlOutput("validation_message", class = "status-message"),
     conditionalPanel(
-      condition = "!input.single_semester",
-      fileInput(
-        "past_file",
-        "Previous semester model output (XLSX)",
-        accept = c(".xlsx")
+      condition = "output.has_validated == 'true'",
+      hr(),
+      tabsetPanel(
+        tabPanel("Students preview", DTOutput("students_preview")),
+        tabPanel("Demand preview", DTOutput("demand_preview")),
+        tabPanel("Previous output preview", DTOutput("past_preview"))
       )
-    ),
-    htmlOutput("validation_message"),
-    hr(),
-    tabsetPanel(
-      tabPanel("Students preview", DTOutput("students_preview")),
-      tabPanel("Demand preview", DTOutput("demand_preview")),
-      tabPanel("Previous output preview", DTOutput("past_preview"))
     )
   ),
 
   div(
     class = "panel-card",
-    h3("Step 2: Parameters And Run"),
-    p(class = "hint", "Set parameters after validation, then run optimisation."),
-    fluidRow(
-      column(
-        width = 4,
-        selectInput(
-          "solver",
-          "Solver",
-          choices = c("gurobi", "glpk", "highs"),
-          selected = "gurobi"
+    workload_step_title(
+      "2",
+      "Configure And Run",
+      "Start with the core settings. Open advanced settings when you need role-specific tradeoffs."
+    ),
+    div(
+      class = "settings-card",
+      div(class = "setting-kicker", "Core Settings"),
+      fluidRow(
+        column(
+          width = 4,
+          selectInput(
+            "solver",
+            "Solver",
+            choices = c("gurobi", "glpk", "highs"),
+            selected = "gurobi"
+          )
+        ),
+        column(
+          width = 4,
+          numericInput("capacity", "C (semester cap)", value = 4, min = 1, step = 1)
+        ),
+        column(
+          width = 4,
+          numericInput("e_max", "e_max", value = 1, min = 0, step = 1)
         )
-      ),
-      column(
-        width = 4,
-        numericInput("capacity", "C (semester cap)", value = 4, min = 1, step = 1)
-      ),
-      column(
-        width = 4,
-        numericInput("e_max", "e_max", value = 1, min = 0, step = 1)
       )
     ),
 
     tags$details(
+      class = "settings-tabs",
       tags$summary("Advanced Parameters"),
-      br(),
-      fluidRow(
-        column(width = 3, numericInput("alpha_ta", "alpha_ta", value = 2, min = 0, step = 0.1)),
-        column(width = 3, numericInput("alpha_gr", "alpha_gr", value = NA, min = 0, step = 0.1)),
-        column(width = 3, numericInput("beta_ta", "beta_ta", value = 1, min = 0, step = 0.1)),
-        column(width = 3, numericInput("beta_gr", "beta_gr", value = NA, min = 0, step = 0.1))
-      ),
-      fluidRow(
-        column(width = 3, numericInput("rho_ta", "rho_ta", value = 10, min = 0, step = 0.1)),
-        column(width = 3, numericInput("rho_gr", "rho_gr", value = NA, min = 0, step = 0.1)),
-        column(width = 3, selectInput("protected_year_ta", "protected_year_ta", choices = 1:4, selected = 1)),
-        column(width = 3, selectInput("protected_year_gr", "protected_year_gr", choices = 1:4, selected = 1))
-      ),
-      fluidRow(
-        column(width = 3, numericInput("ta_protected_max", "ta_protected_max", value = 1, min = 0, step = 1)),
-        column(width = 3, numericInput("gr_protected_max", "gr_protected_max", value = 1, min = 0, step = 1)),
-        column(width = 3, numericInput("ta_min", "ta_min", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("ta_max", "ta_max", value = NA, min = 0, step = 1))
-      ),
-      fluidRow(
-        column(width = 3, numericInput("gr_min", "gr_min", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("gr_max", "gr_max", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("e_min", "e_min", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("phi", "phi", value = 1, min = 0, step = 0.1))
-      ),
-      fluidRow(
-        column(width = 3, numericInput("s_year1", "s_year1", value = -1, step = 0.1)),
-        column(width = 3, numericInput("s_year2", "s_year2", value = 0, step = 0.1)),
-        column(width = 3, numericInput("s_year3", "s_year3", value = 1, step = 0.1)),
-        column(width = 3, numericInput("s_year4", "s_year4", value = 2, step = 0.1))
-      ),
-      fluidRow(
-        column(width = 6, numericInput("time_limit", "Time limit (sec, Gurobi)", value = 0, min = 0, step = 1)),
-        column(width = 6, numericInput("iteration_limit", "Iteration limit (Gurobi)", value = 0, min = 0, step = 1))
+      tabsetPanel(
+        tabPanel(
+          "Fairness & Preferences",
+          settings_grid(
+            numericInput("alpha_ta", "alpha_ta", value = 2, min = 0, step = 0.1),
+            numericInput("alpha_gr", "alpha_gr", value = NA, min = 0, step = 0.1),
+            numericInput("beta_ta", "beta_ta", value = 1, min = 0, step = 0.1),
+            numericInput("beta_gr", "beta_gr", value = NA, min = 0, step = 0.1)
+          )
+        ),
+        tabPanel(
+          "Protection",
+          settings_grid(
+            numericInput("rho_ta", "rho_ta", value = 10, min = 0, step = 0.1),
+            numericInput("rho_gr", "rho_gr", value = NA, min = 0, step = 0.1),
+            selectInput("protected_year_ta", "protected_year_ta", choices = 1:4, selected = 1),
+            selectInput("protected_year_gr", "protected_year_gr", choices = 1:4, selected = 1)
+          ),
+          settings_grid(
+            numericInput("ta_protected_max", "ta_protected_max", value = 1, min = 0, step = 1),
+            numericInput("gr_protected_max", "gr_protected_max", value = 1, min = 0, step = 1),
+            columns = 2
+          )
+        ),
+        tabPanel(
+          "Bounds",
+          settings_grid(
+            numericInput("ta_min", "ta_min", value = NA, min = 0, step = 1),
+            numericInput("ta_max", "ta_max", value = NA, min = 0, step = 1),
+            numericInput("gr_min", "gr_min", value = NA, min = 0, step = 1),
+            numericInput("gr_max", "gr_max", value = NA, min = 0, step = 1)
+          ),
+          settings_grid(
+            numericInput("e_min", "e_min", value = NA, min = 0, step = 1),
+            numericInput("phi", "phi", value = 1, min = 0, step = 0.1),
+            columns = 2
+          )
+        ),
+        tabPanel(
+          "E Seniority",
+          settings_grid(
+            numericInput("s_year1", "s_year1", value = -1, step = 0.1),
+            numericInput("s_year2", "s_year2", value = 0, step = 0.1),
+            numericInput("s_year3", "s_year3", value = 1, step = 0.1),
+            numericInput("s_year4", "s_year4", value = 2, step = 0.1)
+          ),
+          settings_grid(
+            numericInput("time_limit", "Time limit (sec, Gurobi)", value = 0, min = 0, step = 1),
+            numericInput("iteration_limit", "Iteration limit (Gurobi)", value = 0, min = 0, step = 1),
+            columns = 2
+          )
+        )
       )
     ),
 
-    br(),
-    actionButton("run_model", "Run Optimisation", class = "btn btn-accent"),
-    br(),
-    br(),
-    htmlOutput("run_message")
+    div(
+      class = "action-row",
+      actionButton("run_model", "Run Optimisation", class = "btn btn-accent"),
+      htmlOutput("run_message", class = "run-message")
+    )
   ),
 
   # ---- Step 3: Post-run Summary ----
   conditionalPanel(
     condition = "output.has_run == 'true'",
+    div(
+      class = "panel-card",
+      workload_step_title(
+        "3",
+        "Results Overview",
+        "Review the optimisation status and role spread before downloading outputs."
+      ),
+      uiOutput("metric_cards")
+    ),
     fluidRow(
       column(
         width = 4,
@@ -281,6 +609,15 @@ server <- function(input, output, session) {
     }
   })
   outputOptions(output, "has_run", suspendWhenHidden = FALSE)
+
+  output$has_validated <- renderText({
+    if (is.null(validated_data())) {
+      "false"
+    } else {
+      "true"
+    }
+  })
+  outputOptions(output, "has_validated", suspendWhenHidden = FALSE)
 
   # ---- Template download ----
   output$download_template <- downloadHandler(
@@ -507,6 +844,11 @@ server <- function(input, output, session) {
       rownames = FALSE,
       options = list(dom = "t", ordering = FALSE)
     )
+  })
+
+  output$metric_cards <- renderUI({
+    req(run_data())
+    run_metric_cards(run_data()$summary_tbl)
   })
 
   output$workload_plot <- renderPlot({

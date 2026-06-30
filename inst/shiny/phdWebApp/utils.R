@@ -482,6 +482,32 @@ compute_run_summary <- function(model_result, settings = list()) {
   )
 }
 
+summary_metric_value <- function(summary_tbl, metric) {
+  value <- summary_tbl$value[summary_tbl$metric == metric]
+  if (length(value) == 0 || is.na(value[[1]])) {
+    return("--")
+  }
+  as.character(value[[1]])
+}
+
+run_metric_cards <- function(summary_tbl) {
+  metric_card <- function(label, value, accent = FALSE) {
+    shiny::div(
+      class = paste("metric-card", if (accent) "metric-card-accent" else ""),
+      shiny::span(class = "metric-label", label),
+      shiny::span(class = "metric-value", value)
+    )
+  }
+
+  shiny::div(
+    class = "metric-grid",
+    metric_card("Solver Status", summary_metric_value(summary_tbl, "Status"), accent = TRUE),
+    metric_card("Objective", summary_metric_value(summary_tbl, "Objective")),
+    metric_card("TA Spread", summary_metric_value(summary_tbl, "TA spread")),
+    metric_card("GR Spread", summary_metric_value(summary_tbl, "GR spread"))
+  )
+}
+
 plot_workload_distribution <- function(student_diag, C = 4, single_semester = FALSE) {
   plot_df <- student_diag[order(student_diag$year, student_diag$student_id), , drop = FALSE]
   plot_df$student_label <- paste0(plot_df$student_id, " - ", plot_df$student_name)
