@@ -94,7 +94,7 @@ within one extensible framework.
 
 \section{Mathematical allocation models}\label{mathematical-allocation-models}
 
-Each \texttt{grouper} workflow is formulated as an integer or mixed-integer program.
+Each \texttt{grouper} workflow is formulated as an integer program.
 The objective describes the allocation goal, while the constraints define which
 allocations are feasible.
 
@@ -406,28 +406,16 @@ discrete work units across three roles:
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  teaching assistantship (TA);
+  teaching assistantship (TA)
 \item
-  grading assignments and exams (GR); and
+  grading assignments and exams (GR)
 \item
-  lighter extra duties such as invigilating exams, proctoring, and other administrative support work (E).
+  lighter extra duties such as invigilating exams, proctoring, and other administrative support work (E)
 \end{enumerate}
 
 The allocation satisfies task demand, individual capacity limits, and institutional
-policy constraints.
-
-The extractor aligns an individual table, optional role-specific preference
-matrices, and a role-demand matrix.
-
-The individual table supplies cohort year
-and, when available, previous TA and GR workload. These become the historical
-workload vectors \(t_i^{(1)}\) and \(g_i^{(1)}\). The preference matrices
-supply \(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\), the demand matrix
-supplies \(d_{jr}\), and a user-configurable score \(s_i\) guides E allocation.
-E demand may either be supplied or derived from total semester capacity and
-submitted TA and GR demand.
-
-The extractor aligns three input objects:
+policy constraints. The extraction step receives three order-aligned input
+objects:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -442,7 +430,9 @@ The extractor aligns three input objects:
 
 The individual table supplies cohort year and previous TA and GR workload,
 which are converted into the historical workload vectors \(t_i^{(1)}\) and
-\(g_i^{(1)}\). The preference matrices supply
+\(g_i^{(1)}\). Row \(i\) in each preference matrix must correspond to row
+\(i\) in the individual table, and demand row \(j\) must correspond to
+preference column \(j\). The preference matrices supply
 \(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\). The demand matrix
 supplies \(d_{jr}\), the required number of units for task \(j\) and role
 \(r\). A user-configurable score \(s_i\) is used to guide the allocation of E
@@ -621,25 +611,30 @@ is computed. For \texttt{assignment\ =\ "preference"}, it accepts the same group
 structure together with the group-topic preference matrix. For the multi-role
 workflow, \texttt{assignment\ =\ "multirole"} accepts the individual table,
 role-demand matrix, optional TA and GR preference matrices, semester capacity,
-and history mode. In all cases, the purpose of \texttt{extract\_info()} is to align
-user-supplied records with the mathematical objects used in the optimization
-model.
+E-demand mode, optional E-allocation scores, and history mode. For multi-role
+inputs, row and column order must already be aligned across the individual
+table, demand matrix, and any supplied preference matrices. In all cases, the
+purpose of \texttt{extract\_info()} is to translate user-supplied records into the
+mathematical objects used in the optimization model.
 
 The following illustrative call uses \(S\), \(P_{\mathrm{TA}}\),
-\(P_{\mathrm{GR}}\), \(D\), and \(J\) to denote the individual table, two
-preference matrices, demand matrix, and task-code vector.
+\(P_{\mathrm{GR}}\), and \(D\) to denote the individual table, two preference
+matrices, and demand matrix.
 
 \begin{verbatim}
 # "diversity": dframe + self_formed_groups + d_mat/demographic_cols
 # "preference": dframe + self_formed_groups + pref_mat
-# "multirole": S, D, and optional role-specific preferences
+# "multirole": order-aligned S, D, and optional role-specific preferences
 df <- extract_info(
   "multirole",
   student_df = S,
   d_mat = D,
   p_ta_mat = P_TA,
   p_gr_mat = P_GR,
-  C = 4
+  e_mode = "none",
+  C = 4,
+  s = c(-1, 0, 1, 2),
+  single_semester = FALSE
 )
 \end{verbatim}
 
@@ -684,11 +679,14 @@ diagnostics and reproducibility, and \texttt{output}, the post-processed assignm
 table. For the student-group workflows, the output maps groups back to selected
 topics or slots; for the multi-role workload workflow, the output is a wide
 individual-by-task-role allocation table.
+For multi-role output, the task-code vector \(J\) is supplied at this stage as
+\texttt{course\_codes}, and its order must match the row order of the demand matrix used
+during extraction.
 
 \begin{verbatim}
 # solver can be "glpk", "highs", or "gurobi" when available
 # group workflows pass dframe, params_list, and group_names
-# multi-role passes student_df and course_codes for post-processing
+# multi-role passes student_df and course_codes (J) for post-processing
 out <- solve_assignment(
   m,
   "multirole",
@@ -734,6 +732,23 @@ composition by year. AY2510 is the largest instance by both student
 and course count, while role demand and cohort structure vary across
 the three semesters.
 
+\begin{table}[!h]
+
+\caption{\label{tab:multi-role-dataset-summary}Scale, role demand, and cohort composition of the three multi-role workload datasets.}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r}
+\hline
+Semester & Students & Courses & TA & GR & E & Y1 & Y2 & Y3 & Y4\\
+\hline
+AY2420 & 43 & 19 & 54 & 80 & 38 & 10 & 13 & 8 & 12\\
+\hline
+AY2510 & 48 & 25 & 50 & 104 & 38 & 15 & 12 & 11 & 10\\
+\hline
+AY2520 & 40 & 19 & 55 & 81 & 24 & 10 & 11 & 13 & 6\\
+\hline
+\end{tabular}
+\end{table}
+
 The allocation uses the policy configuration from
 the original departmental planning exercise:
 
@@ -753,23 +768,6 @@ the original departmental planning exercise:
 This is a subset of the generalized model. In particular, no GR preference term
 is evaluated because it was not part of the department's operational policy in this case.
 
-\begin{table}[!h]
-
-\caption{\label{tab:multi-role-dataset-summary}Scale, role demand, and cohort composition of the three multi-role workload datasets.}
-\centering
-\begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r}
-\hline
-Semester & Students & Courses & TA & GR & E & Y1 & Y2 & Y3 & Y4\\
-\hline
-AY2420 & 43 & 19 & 54 & 80 & 38 & 10 & 13 & 8 & 12\\
-\hline
-AY2510 & 48 & 25 & 50 & 104 & 38 & 15 & 12 & 11 & 10\\
-\hline
-AY2520 & 40 & 19 & 55 & 81 & 24 & 10 & 11 & 13 & 6\\
-\hline
-\end{tabular}
-\end{table}
-
 The same wrapper workflow is applied to all three semesters. To avoid repeating
 nearly identical code, AY2520 is used only to demonstrate the input,
 model-building, and solving steps and to show one student-level workload
@@ -784,8 +782,11 @@ The workflow begins by standardizing the inputs. In this example, \texttt{studen
 records the anonymized student identifier, cohort year, and previous-semester
 TA/GR workload. The TA preference matrix \(P^{\mathrm{TA}}\) is individual by
 course, and the demand matrix \(D\) is course by role. A GR preference matrix is
-not supplied for this policy configuration. Residual support demand is already
-included as the third role column, so \texttt{e\_mode} is set to \texttt{"none"}.
+not supplied for this policy configuration. The reproducibility setup fixes the
+student and course positions before matrix construction; \texttt{extract\_info()} then
+uses those positions as supplied.
+Residual support demand is already included as the third role column, so
+\texttt{e\_mode} is set to \texttt{"none"}.
 
 \begin{verbatim}
 df_multirole <- extract_info(
@@ -799,9 +800,9 @@ df_multirole <- extract_info(
 \end{verbatim}
 
 The resulting \texttt{df\_multirole} object is the standardized input contract used by
-the model-building stage. It contains the aligned TA preference matrix,
-role-demand matrix, semester capacity, seniority score, and past workload
-vectors.
+the model-building stage. It contains the TA preference matrix, role-demand
+matrix, semester capacity, seniority score, and past workload vectors in the
+order supplied to the extraction step.
 
 The second step constructs the mixed-integer model. In this example, the policy
 weights are set to \texttt{alpha\_ta\ =\ 2}, \texttt{beta\_ta\ =\ 1}, \texttt{phi\ =\ 1}, and

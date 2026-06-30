@@ -159,7 +159,7 @@ within one extensible framework.
 
 # Mathematical allocation models
 
-Each `grouper` workflow is formulated as an integer or mixed-integer program.
+Each `grouper` workflow is formulated as an integer program.
 The objective describes the allocation goal, while the constraints define which
 allocations are feasible.
 
@@ -419,25 +419,13 @@ The third model addresses a general multi-role workload allocation problem
 that arises in higher-education departments. Individuals are assigned 
 discrete work units across three roles:
 
-1. teaching assistantship (TA);
-2. grading assignments and exams (GR); and
-3. lighter extra duties such as invigilating exams, proctoring, and other administrative support work (E).
+1. teaching assistantship (TA)
+2. grading assignments and exams (GR)
+3. lighter extra duties such as invigilating exams, proctoring, and other administrative support work (E)
 
 The allocation satisfies task demand, individual capacity limits, and institutional 
-policy constraints.
-
-The extractor aligns an individual table, optional role-specific preference
-matrices, and a role-demand matrix. 
-
-The individual table supplies cohort year
-and, when available, previous TA and GR workload. These become the historical
-workload vectors \(t_i^{(1)}\) and \(g_i^{(1)}\). The preference matrices
-supply \(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\), the demand matrix
-supplies \(d_{jr}\), and a user-configurable score \(s_i\) guides E allocation.
-E demand may either be supplied or derived from total semester capacity and
-submitted TA and GR demand.
-
-The extractor aligns three input objects:
+policy constraints. The extraction step receives three order-aligned input
+objects:
 
 1. an individual table,
 2. optional role-specific preference matrices, and
@@ -445,7 +433,9 @@ The extractor aligns three input objects:
 
 The individual table supplies cohort year and previous TA and GR workload,
 which are converted into the historical workload vectors \(t_i^{(1)}\) and
-\(g_i^{(1)}\). The preference matrices supply
+\(g_i^{(1)}\). Row \(i\) in each preference matrix must correspond to row
+\(i\) in the individual table, and demand row \(j\) must correspond to
+preference column \(j\). The preference matrices supply
 \(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\). The demand matrix
 supplies \(d_{jr}\), the required number of units for task \(j\) and role
 \(r\). A user-configurable score \(s_i\) is used to guide the allocation of E
@@ -597,25 +587,30 @@ is computed. For `assignment = "preference"`, it accepts the same group
 structure together with the group-topic preference matrix. For the multi-role
 workflow, `assignment = "multirole"` accepts the individual table,
 role-demand matrix, optional TA and GR preference matrices, semester capacity,
-and history mode. In all cases, the purpose of `extract_info()` is to align
-user-supplied records with the mathematical objects used in the optimization
-model.
+E-demand mode, optional E-allocation scores, and history mode. For multi-role
+inputs, row and column order must already be aligned across the individual
+table, demand matrix, and any supplied preference matrices. In all cases, the
+purpose of `extract_info()` is to translate user-supplied records into the
+mathematical objects used in the optimization model.
 
 The following illustrative call uses \(S\), \(P_{\mathrm{TA}}\),
-\(P_{\mathrm{GR}}\), \(D\), and \(J\) to denote the individual table, two
-preference matrices, demand matrix, and task-code vector.
+\(P_{\mathrm{GR}}\), and \(D\) to denote the individual table, two preference
+matrices, and demand matrix.
 
 ```r
 # "diversity": dframe + self_formed_groups + d_mat/demographic_cols
 # "preference": dframe + self_formed_groups + pref_mat
-# "multirole": S, D, and optional role-specific preferences
+# "multirole": order-aligned S, D, and optional role-specific preferences
 df <- extract_info(
   "multirole",
   student_df = S,
   d_mat = D,
   p_ta_mat = P_TA,
   p_gr_mat = P_GR,
-  C = 4
+  e_mode = "none",
+  C = 4,
+  s = c(-1, 0, 1, 2),
+  single_semester = FALSE
 )
 ```
 
@@ -660,11 +655,14 @@ diagnostics and reproducibility, and `output`, the post-processed assignment
 table. For the student-group workflows, the output maps groups back to selected
 topics or slots; for the multi-role workload workflow, the output is a wide
 individual-by-task-role allocation table.
+For multi-role output, the task-code vector \(J\) is supplied at this stage as
+`course_codes`, and its order must match the row order of the demand matrix used
+during extraction.
 
 ```r
 # solver can be "glpk", "highs", or "gurobi" when available
 # group workflows pass dframe, params_list, and group_names
-# multi-role passes student_df and course_codes for post-processing
+# multi-role passes student_df and course_codes (J) for post-processing
 out <- solve_assignment(
   m,
   "multirole",
@@ -699,31 +697,6 @@ operational settings and compare optimized schedules with the manual schedules
 used by the department. Student identifiers and course codes are anonymized
 throughout.
 
-```{r load-multirole-evidence, include=FALSE}
-multi_role_dataset <- read.csv(
-  "data/derived/multi_role_dataset_summary.csv",
-  check.names = FALSE
-)
-solver_runtime <- read.csv(
-  "data/derived/ay2520_solver_runtime.csv",
-  check.names = FALSE
-)
-
-runtime_summary <- solver_runtime |>
-  group_by(Solver) |>
-  summarise(
-    runs = n(),
-    objective = unique(Objective),
-    mean_time = mean(Time_seconds),
-    min_time = min(Time_seconds),
-    max_time = max(Time_seconds),
-    .groups = "drop"
-  )
-
-glpk_runtime <- runtime_summary |> filter(Solver == "glpk")
-highs_runtime <- runtime_summary |> filter(Solver == "highs")
-```
-
 Table \@ref(tab:multi-role-dataset-summary) summarizes the size and
 structure of each semester instance. Students and Courses describe
 the scale of the assignment problem, while TA, GR, and E report the
@@ -735,6 +708,19 @@ composition by year. AY2510 is the largest instance by both student
 and course count, while role demand and cohort structure vary across
 the three semesters.
 
+```{r multi-role-dataset-summary, results='asis', echo=FALSE}
+multi_role_dataset <- read.csv(
+  "data/derived/multi_role_dataset_summary.csv",
+  check.names = FALSE
+)
+
+knitr::kable(
+  multi_role_dataset,
+  caption = "Scale, role demand, and cohort composition of the three multi-role workload datasets.",
+  position = "!h"
+)
+```
+
 The allocation uses the policy configuration from 
 the original departmental planning exercise: 
 
@@ -745,14 +731,6 @@ the original departmental planning exercise:
 
 This is a subset of the generalized model. In particular, no GR preference term 
 is evaluated because it was not part of the department's operational policy in this case.
-
-```{r multi-role-dataset-summary, results='asis', echo=FALSE}
-knitr::kable(
-  multi_role_dataset,
-  caption = "Scale, role demand, and cohort composition of the three multi-role workload datasets.",
-  position = "!h"
-)
-```
 
 The same wrapper workflow is applied to all three semesters. To avoid repeating
 nearly identical code, AY2520 is used only to demonstrate the input,
@@ -805,8 +783,11 @@ The workflow begins by standardizing the inputs. In this example, `student_df`
 records the anonymized student identifier, cohort year, and previous-semester
 TA/GR workload. The TA preference matrix \(P^{\mathrm{TA}}\) is individual by
 course, and the demand matrix \(D\) is course by role. A GR preference matrix is
-not supplied for this policy configuration. Residual support demand is already
-included as the third role column, so `e_mode` is set to `"none"`.
+not supplied for this policy configuration. The reproducibility setup fixes the
+student and course positions before matrix construction; `extract_info()` then
+uses those positions as supplied.
+Residual support demand is already included as the third role column, so
+`e_mode` is set to `"none"`.
 
 ```{r multirole-extract-info}
 df_multirole <- extract_info(
@@ -820,9 +801,9 @@ df_multirole <- extract_info(
 ```
 
 The resulting `df_multirole` object is the standardized input contract used by
-the model-building stage. It contains the aligned TA preference matrix,
-role-demand matrix, semester capacity, seniority score, and past workload
-vectors.
+the model-building stage. It contains the TA preference matrix, role-demand
+matrix, semester capacity, seniority score, and past workload vectors in the
+order supplied to the extraction step.
 
 The second step constructs the mixed-integer model. In this example, the policy
 weights are set to `alpha_ta = 2`, `beta_ta = 1`, `phi = 1`, and
@@ -937,6 +918,27 @@ preference attainment, assigns residual support toward senior students, and
 uses no Year-1 TA-overload slack. The sensitivity check therefore supports
 interpreting these active weights as local policy levers rather than universal
 tuning constants.
+
+```{r load-solver-runtime, include=FALSE}
+solver_runtime <- read.csv(
+  "data/derived/ay2520_solver_runtime.csv",
+  check.names = FALSE
+)
+
+runtime_summary <- solver_runtime |>
+  group_by(Solver) |>
+  summarise(
+    runs = n(),
+    objective = unique(Objective),
+    mean_time = mean(Time_seconds),
+    min_time = min(Time_seconds),
+    max_time = max(Time_seconds),
+    .groups = "drop"
+  )
+
+glpk_runtime <- runtime_summary |> filter(Solver == "glpk")
+highs_runtime <- runtime_summary |> filter(Solver == "highs")
+```
 
 The reproducible benchmark repeated the AY2520 solve 30 times for each
 open-source solver. `GLPK` returned the same objective value,

@@ -28,32 +28,12 @@ suppressPackageStartupMessages({
 knitr::include_graphics("figures/workflow.png")
 
 
-## ----load-multirole-evidence, include=FALSE-----------------------------------
+## ----multi-role-dataset-summary, results='asis', echo=FALSE-------------------
 multi_role_dataset <- read.csv(
   "data/derived/multi_role_dataset_summary.csv",
   check.names = FALSE
 )
-solver_runtime <- read.csv(
-  "data/derived/ay2520_solver_runtime.csv",
-  check.names = FALSE
-)
 
-runtime_summary <- solver_runtime |>
-  group_by(Solver) |>
-  summarise(
-    runs = n(),
-    objective = unique(Objective),
-    mean_time = mean(Time_seconds),
-    min_time = min(Time_seconds),
-    max_time = max(Time_seconds),
-    .groups = "drop"
-  )
-
-glpk_runtime <- runtime_summary |> filter(Solver == "glpk")
-highs_runtime <- runtime_summary |> filter(Solver == "highs")
-
-
-## ----multi-role-dataset-summary, results='asis', echo=FALSE-------------------
 knitr::kable(
   multi_role_dataset,
   caption = "Scale, role demand, and cohort composition of the three multi-role workload datasets.",
@@ -148,6 +128,27 @@ knitr::include_graphics("figures/ay2520_distribution.pdf")
 
 ## ----fig-multi-role-objective-term-gap, fig.cap="AY2420 weighted objective-term differences between manual and model schedules.", fig.alt="Horizontal bar chart showing AY2420 manual-minus-model weighted differences for TA preference, TA fairness, seniority residual support, and Year-1 TA slack terms.", out.width="0.78\\linewidth", fig.pos="!htbp", echo=FALSE----
 knitr::include_graphics("figures/multi_role_objective_term_gap.pdf")
+
+
+## ----load-solver-runtime, include=FALSE---------------------------------------
+solver_runtime <- read.csv(
+  "data/derived/ay2520_solver_runtime.csv",
+  check.names = FALSE
+)
+
+runtime_summary <- solver_runtime |>
+  group_by(Solver) |>
+  summarise(
+    runs = n(),
+    objective = unique(Objective),
+    mean_time = mean(Time_seconds),
+    min_time = min(Time_seconds),
+    max_time = max(Time_seconds),
+    .groups = "drop"
+  )
+
+glpk_runtime <- runtime_summary |> filter(Solver == "glpk")
+highs_runtime <- runtime_summary |> filter(Solver == "highs")
 
 
 ## ----gui-run-command, eval=FALSE----------------------------------------------
