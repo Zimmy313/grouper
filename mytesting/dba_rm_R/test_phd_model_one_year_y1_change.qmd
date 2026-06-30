@@ -1,0 +1,189 @@
+---
+title: "Test a year"
+format: html
+---
+
+## Load packages
+
+```{r}
+suppressPackageStartupMessages({
+  library(grouper)
+  library(ompr)
+  library(ompr.roi)
+  library(ROI.plugin.glpk)
+  library(dplyr)
+  library(ggplot2)
+  library(tidyverse)
+})
+```
+
+## 2510 allocation
+
+Read in 2510 student data:
+
+```{r}
+students_ay2510 <- readRDS("data2510-phd_students.rds")
+P_ay2510 <- readRDS("data2510-phd_pref.rds")
+D_ay2510 <- readRDS("data2510-phd_demand.rds")
+
+demand_ay2510 <- read.csv(
+  "data/raw/ay2510/demand.csv",
+  stringsAsFactors = FALSE
+)
+
+```
+
+Take note that past grading has been set to 4, and past ta to be 0. Extract
+information from data:
+
+```{r}
+df_phd <- extract_info(
+  assignment = "phd",
+  student_df = students_ay2510[, c("student_id", "year", "past_ta", "past_gr")],
+  p_mat = P_ay2510,
+  d_mat = D_ay2510[, 1:2],
+  e_mode = "rr",
+  C = 4
+)
+
+```
+
+Prepare the model:
+
+```{r}
+model_phd <- prepare_model(
+  df_list = df_phd,
+  assignment = "phd",
+  alpha = 2,
+  beta = 1,
+  phi = 1,
+  rho = 10,
+  t_max_y1 = 1,
+  e_max = 1,
+  C = 4
+)
+```
+
+Solve the model:
+
+```{r}
+phd_solution <- solve_assignment(
+  model = model_phd,
+  assignment = "phd",
+  solver = "glpk",
+  student_df = students_ay2510,
+  course_codes = demand_ay2510$course_code,
+  name_col = "student_id",
+  verbose = TRUE
+)
+
+soln_sem1  <- as_tibble(phd_solution$output) %>%
+  pivot_longer(cols=2:last_col(), names_to = "course_role", values_to = "work_units" ) %>%
+  filter(work_units > 0) %>%
+  separate_wider_delim(course_role, delim="-", names=c("course", "role"))
+```
+
+
+## 2520 allocation
+
+```{r}
+students_ay2520_org <- readRDS("data2520-phd_students.rds")
+tmp_students_ay2520 <- soln_sem1 %>% group_by(Name, role) %>% 
+  summarise(units = sum(work_units), .groups="drop") %>% 
+  pivot_wider(id_cols = "Name",
+              names_from = "role",
+              values_from="units", values_fill = 0) %>% 
+  mutate(g = g + e) %>% 
+  select(Name, g, t) %>% 
+  rename(student_id = Name, past_ta = t, past_gr= g)
+
+students_ay2520 <- left_join(tmp_students_ay2520, 
+                             select(students_ay2510, student_id, year)) %>% 
+  select(student_id, year, past_ta, past_gr)
+```
+
+Read in demand matrix:
+
+```{r}
+P_ay2520 <- readRDS("data2520-phd_pref.rds")
+D_ay2520 <- readRDS("data2520-phd_demand.rds")
+demand_ay2520 <- read.csv(
+  "data/raw/ay2520/demand.csv",
+  stringsAsFactors = FALSE
+)
+
+```
+
+Extract information. We need to make sure we only have 40 students, since 
+the preference matrix for sem 2 only has 40 rows.
+
+```{r}
+set.seed(5101)
+students_ay2520_sample <- sample_n(students_ay2520, size = 40)
+# S005 and S012 change to Y2
+students_ay2520_sample[students_ay2520_sample$student_id == "S005", "year"] <- 2
+students_ay2520_sample[students_ay2520_sample$student_id == "S012", "year"] <- 2
+
+df_phd <- extract_info(
+  assignment = "phd",
+  student_df = students_ay2520_sample[, c("student_id", "year", "past_ta", "past_gr")],
+  p_mat = P_ay2520,
+  d_mat = D_ay2520[, 1:2],
+  e_mode = "rr",
+  C = 4
+)
+
+```
+
+Prepare model
+
+```{r}
+model_phd <- prepare_model(
+  df_list = df_phd,
+  assignment = "phd",
+  alpha = 2,
+  beta = 1,
+  phi = 1,
+  rho = 10,
+  t_max_y1 = 1,
+  e_max = 1,
+  C = 4
+)
+
+```
+
+solve model:
+
+```{r}
+phd_solution <- solve_assignment(
+  model = model_phd,
+  assignment = "phd",
+  solver = "glpk",
+  student_df = students_ay2520_sample,
+  course_codes = demand_ay2520$course_code,
+  name_col = "student_id",
+  verbose = TRUE
+)
+
+soln_sem2  <- as_tibble(phd_solution$output) %>%
+  pivot_longer(cols=2:last_col(), names_to = "course_role", values_to = "work_units" ) %>%
+  filter(work_units > 0) %>%
+  separate_wider_delim(course_role, delim="-", names=c("course", "role"))
+```
+
+## Comparisons:
+
+```{r}
+wide_sem1 <- soln_sem1 %>% group_by(Name, role) %>% 
+  summarise(units = sum(work_units), .groups="drop") %>% 
+  pivot_wider(id_cols = "Name",
+              names_from = "role",
+              values_from="units", values_fill = 0) 
+
+wide_sem2 <- soln_sem2 %>% group_by(Name, role) %>% 
+  summarise(units = sum(work_units), .groups="drop") %>% 
+  pivot_wider(id_cols = "Name",
+              names_from = "role",
+              values_from="units", values_fill = 0)
+```
+
