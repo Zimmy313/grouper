@@ -211,6 +211,11 @@ body {
   width: 100%;
 }
 
+.run-optimisation-btn.is-running {
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .mode-card,
 .file-card,
 .settings-card {
@@ -412,10 +417,25 @@ body {
   overflow-wrap: anywhere;
 }
 
+.solution-picker {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  margin-bottom: 14px;
+}
+
+.solution-picker .shiny-input-container {
+  margin-bottom: 0;
+  max-width: none;
+  width: 100%;
+}
+
 @media (max-width: 991px) {
   .file-upload-grid,
   .settings-grid-4,
-  .metric-grid {
+  .metric-grid,
+  .solution-picker {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -424,7 +444,8 @@ body {
   .file-upload-grid,
   .settings-grid-2,
   .settings-grid-4,
-  .metric-grid {
+  .metric-grid,
+  .solution-picker {
     grid-template-columns: 1fr;
   }
 }
@@ -1194,12 +1215,37 @@ phd_ui <- function(id) {
               numericInput(ns("iteration_limit"), "Iteration limit (Gurobi)", value = 0, min = 0, step = 1),
               columns = 2
             )
+          ),
+          tabPanel(
+            "Gurobi Pool",
+            conditionalPanel(
+              condition = sprintf("input['%s'] == 'gurobi'", ns("solver")),
+              p(
+                class = "hint",
+                "When enabled, Gurobi searches for alternative allocations. PoolGap = 0 keeps the pool tied at the objective value."
+              ),
+              p(
+                class = "hint",
+                strong("PoolSearchMode: "),
+                "0 = no systematic pool search, 1 = opportunistic alternatives, 2 = systematic search. Mode 2 with many PoolSolutions can run much longer."
+              ),
+              settings_grid(
+                checkboxInput(ns("use_solution_pool"), "Find alternative allocations", value = FALSE),
+                numericInput(ns("pool_search_mode"), "PoolSearchMode", value = 2, min = 0, step = 1),
+                numericInput(ns("pool_solutions"), "PoolSolutions", value = 50, min = 1, step = 1),
+                numericInput(ns("pool_gap"), "PoolGap", value = 0, min = 0, step = 0.001)
+              )
+            ),
+            conditionalPanel(
+              condition = sprintf("input['%s'] != 'gurobi'", ns("solver")),
+              p(class = "hint", "Gurobi solution pools are ignored unless the selected solver is gurobi.")
+            )
           )
         )
       ),
       div(
         class = "action-row",
-        actionButton(ns("run_model"), "Run Optimisation", class = "btn btn-accent"),
+        actionButton(ns("run_model"), "Run Optimisation", class = "btn btn-accent run-optimisation-btn"),
         htmlOutput(ns("run_message"), class = "run-message")
       )
     ),
@@ -1211,6 +1257,11 @@ phd_ui <- function(id) {
           "3",
           "Results Overview",
           "Review the optimisation status and role spread before downloading outputs."
+        ),
+        div(
+          class = "solution-picker",
+          uiOutput(ns("solution_selector")),
+          DTOutput(ns("solution_table"))
         ),
         uiOutput(ns("metric_cards"))
       ),
@@ -1251,6 +1302,7 @@ phd_ui <- function(id) {
 
 phd_server <- function(id, template_path) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
     validated_data <- reactiveVal(NULL)
     run_data <- reactiveVal(NULL)
 
@@ -1263,6 +1315,16 @@ phd_server <- function(id, template_path) {
       }
       as.numeric(x)
     }
+
+    selected_solution <- reactive({
+      req(run_data())
+      alternatives <- run_data()$alternatives
+      idx <- suppressWarnings(as.integer(input$selected_solution))
+      if (length(idx) == 0 || is.na(idx) || idx < 1 || idx > length(alternatives)) {
+        idx <- 1L
+      }
+      alternatives[[idx]]
+    })
 
     observeEvent(list(input$current_file, input$past_file, input$single_semester), {
       validated_data(NULL)
@@ -1366,6 +1428,13 @@ phd_server <- function(id, template_path) {
     })
 
     observeEvent(input$run_model, {
+      on.exit(
+        session$sendCustomMessage(
+          "multirole-run-busy",
+          list(id = ns("run_model"), busy = FALSE, label = "Run Optimisation")
+        ),
+        add = TRUE
+      )
       req(validated_data())
 
       run_result <- tryCatch({
@@ -1423,42 +1492,19 @@ phd_server <- function(id, template_path) {
         roi_control <- make_roi_control(
           solver = input$solver,
           time_limit = input$time_limit,
-          iteration_limit = input$iteration_limit
+          iteration_limit = input$iteration_limit,
+          use_solution_pool = identical(input$solver, "gurobi") && isTRUE(input$use_solution_pool),
+          pool_search_mode = input$pool_search_mode,
+          pool_solutions = input$pool_solutions,
+          pool_gap = input$pool_gap
         )
         result <- ompr::solve_model(model, roi_control)
 
-        assignment_tbl <- grouper::assign_job(
+        build_multirole_run_outputs(
           model_result = result,
-          student_df = prep$students,
-          course_codes = prep$course_codes,
-          name_col = "Name"
-        )
-
-        alloc_summary <- summarise_assignment_from_job_output(assignment_tbl, prep$students)
-        pref_attainment <- compute_preference_attainment(
-          model_result = result,
-          p_ta_mat = prep$p_ta_mat,
-          p_gr_mat = prep$p_gr_mat,
-          total_ta_demand = sum(prep$demand$TA),
-          total_gr_demand = sum(prep$demand$GR)
-        )
-        student_diag <- compute_student_diagnostics(
-          alloc_summary = alloc_summary,
-          t1 = prep$df_list$t1,
-          g1 = prep$df_list$g1
-        )
-
-        list(
-          summary_tbl = compute_run_summary(result, settings = settings),
-          assignment_tbl = assignment_tbl,
-          preference_tbl = pref_attainment,
-          student_diag = student_diag,
-          workload_plot = plot_workload_distribution(
-            student_diag,
-            C = prep$df_list$C,
-            single_semester = prep$single_semester
-          ),
-          solver_status = as.character(result$status)
+          prep = prep,
+          settings = settings,
+          use_solution_pool = identical(input$solver, "gurobi") && isTRUE(input$use_solution_pool)
         )
       }, error = function(e) {
         run_message(
@@ -1478,12 +1524,17 @@ phd_server <- function(id, template_path) {
       if (input$solver != "gurobi" && ((input$time_limit > 0) || (input$iteration_limit > 0))) {
         solver_note <- " Time/iteration limits are applied only for Gurobi in this app."
       }
+      pool_note <- if (isTRUE(run_result$pool_enabled)) {
+        paste0(" ", run_result$pool_count, " unique allocation(s) available.")
+      } else {
+        ""
+      }
 
       run_message(
         paste0(
           "<span class='status-ok'>Run completed. Solver status: ",
-          htmltools::htmlEscape(run_result$solver_status),
-          ".", solver_note, "</span>"
+          htmltools::htmlEscape(run_result$alternatives[[1]]$solver_status),
+          ".", solver_note, pool_note, "</span>"
         )
       )
     })
@@ -1511,41 +1562,66 @@ phd_server <- function(id, template_path) {
     })
 
     output$run_summary <- renderDT({
-      req(run_data())
+      req(selected_solution())
       datatable(
-        run_data()$summary_tbl,
+        selected_solution()$summary_tbl,
         rownames = FALSE,
         options = list(dom = "t", ordering = FALSE)
       )
     })
 
     output$metric_cards <- renderUI({
+      req(selected_solution())
+      run_metric_cards(selected_solution()$summary_tbl)
+    })
+
+    output$solution_selector <- renderUI({
       req(run_data())
-      run_metric_cards(run_data()$summary_tbl)
+      choices <- stats::setNames(
+        as.character(seq_along(run_data()$alternatives)),
+        paste0("Solution ", seq_along(run_data()$alternatives))
+      )
+      selectInput(ns("selected_solution"), "Selected allocation", choices = choices, selected = "1")
+    })
+
+    output$solution_table <- renderDT({
+      req(run_data())
+      datatable(
+        run_data()$solution_tbl,
+        rownames = FALSE,
+        options = list(dom = "t", ordering = FALSE)
+      )
     })
 
     output$workload_plot <- renderPlot({
-      req(run_data())
-      run_data()$workload_plot
+      req(selected_solution())
+      selected_solution()$workload_plot
     })
 
     output$assignment_table <- renderDT({
-      req(run_data())
-      datatable(run_data()$assignment_tbl, options = list(scrollX = TRUE, pageLength = 12))
+      req(selected_solution())
+      datatable(selected_solution()$assignment_tbl, options = list(scrollX = TRUE, pageLength = 12))
     })
 
     output$preference_table <- renderDT({
-      req(run_data())
-      datatable(run_data()$preference_tbl, options = list(dom = "t", ordering = FALSE))
+      req(selected_solution())
+      datatable(selected_solution()$preference_tbl, options = list(dom = "t", ordering = FALSE))
     })
 
     output$download_assignment <- downloadHandler(
       filename = function() {
-        paste0("multirole_assignment_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".xlsx")
+        req(selected_solution())
+        paste0(
+          "multirole_assignment_solution_",
+          sprintf("%02d", selected_solution()$solution_id),
+          "_",
+          format(Sys.time(), "%Y%m%d_%H%M%S"),
+          ".xlsx"
+        )
       },
       content = function(file) {
-        req(run_data())
-        writexl::write_xlsx(list(allocation = run_data()$assignment_tbl), path = file)
+        req(selected_solution())
+        writexl::write_xlsx(list(allocation = selected_solution()$assignment_tbl), path = file)
       }
     )
   })
@@ -1565,7 +1641,44 @@ ui <- page_navbar(
     base_font = font_google("Source Sans 3"),
     heading_font = font_google("IBM Plex Sans")
   ),
-  header = tags$head(tags$style(HTML(global_styles)))
+  header = tags$head(
+    tags$style(HTML(global_styles)),
+    tags$script(HTML(
+      "function setMultiroleRunButton(btn, busy, label) {
+         if (!btn) return;
+         if (!btn.dataset.defaultLabel) {
+           btn.dataset.defaultLabel = btn.textContent.trim() || 'Run Optimisation';
+         }
+         if (busy) {
+           btn.disabled = true;
+           btn.classList.add('is-running');
+           btn.setAttribute('aria-busy', 'true');
+           btn.innerHTML = '<span class=\"spinner-border spinner-border-sm me-2\" role=\"status\" aria-hidden=\"true\"></span>Running...';
+         } else {
+           btn.disabled = false;
+           btn.classList.remove('is-running');
+           btn.removeAttribute('aria-busy');
+           btn.innerHTML = label || btn.dataset.defaultLabel;
+         }
+       }
+       document.addEventListener('click', function(event) {
+         var btn = event.target.closest('.run-optimisation-btn');
+         if (!btn) return;
+         window.setTimeout(function() { setMultiroleRunButton(btn, true); }, 0);
+       });
+       function registerMultiroleRunHandler() {
+         if (!window.Shiny || !Shiny.addCustomMessageHandler) return;
+         Shiny.addCustomMessageHandler('multirole-run-busy', function(message) {
+           setMultiroleRunButton(document.getElementById(message.id), message.busy, message.label);
+         });
+       }
+       if (window.Shiny && Shiny.addCustomMessageHandler) {
+         registerMultiroleRunHandler();
+       } else {
+         document.addEventListener('shiny:connected', registerMultiroleRunHandler, { once: true });
+       }"
+    ))
+  )
 )
 
 server <- function(input, output, session) {

@@ -233,7 +233,11 @@ prepare_multirole_run_inputs <- function(students, demand, previous_output = NUL
 
 # ---- Solver Control ----
 make_roi_control <- function(solver = c("gurobi", "glpk", "highs"),
-                             time_limit = 0, iteration_limit = 0) {
+                             time_limit = 0, iteration_limit = 0,
+                             use_solution_pool = FALSE,
+                             pool_search_mode = 2,
+                             pool_solutions = 50,
+                             pool_gap = 0) {
   solver <- match.arg(solver)
   plugin_pkg <- switch(
     solver,
@@ -252,6 +256,11 @@ make_roi_control <- function(solver = c("gurobi", "glpk", "highs"),
     if (is.numeric(iteration_limit) && length(iteration_limit) == 1 &&
         !is.na(iteration_limit) && iteration_limit > 0) {
       roi_args$IterationLimit <- as.integer(round(iteration_limit))
+    }
+    if (isTRUE(use_solution_pool)) {
+      roi_args$PoolSearchMode <- as.integer(round(pool_search_mode))
+      roi_args$PoolSolutions <- as.integer(round(pool_solutions))
+      roi_args$PoolGap <- pool_gap
     }
 
   }
@@ -505,6 +514,113 @@ run_metric_cards <- function(summary_tbl) {
     metric_card("Objective", summary_metric_value(summary_tbl, "Objective")),
     metric_card("TA Spread", summary_metric_value(summary_tbl, "TA spread")),
     metric_card("GR Spread", summary_metric_value(summary_tbl, "GR spread"))
+  )
+}
+
+make_result_from_pool_entry <- function(base_result, pool_entry) {
+  out <- base_result
+  out$solution <- stats::setNames(pool_entry$poolnx, names(base_result$solution))
+  out$objective_value <- as.numeric(pool_entry$objval)
+  out
+}
+
+gurobi_pool_results <- function(model_result) {
+  pool <- model_result$additional_solver_output$ROI$message$pool
+  if (is.null(pool) || length(pool) == 0) {
+    return(list(model_result))
+  }
+
+  lapply(pool, function(pool_entry) {
+    make_result_from_pool_entry(model_result, pool_entry)
+  })
+}
+
+allocation_key <- function(assignment_tbl) {
+  key_df <- assignment_tbl
+  key_df[] <- lapply(key_df, as.character)
+  key_df[is.na(key_df)] <- "<NA>"
+  paste(
+    paste(names(key_df), collapse = "|"),
+    paste(apply(key_df, 1, paste, collapse = "|"), collapse = ";"),
+    sep = "||"
+  )
+}
+
+build_multirole_solution_output <- function(model_result, prep, settings, solution_id = 1) {
+  assignment_tbl <- grouper::assign_job(
+    model_result = model_result,
+    student_df = prep$students,
+    course_codes = prep$course_codes,
+    name_col = "Name"
+  )
+
+  alloc_summary <- summarise_assignment_from_job_output(assignment_tbl, prep$students)
+  pref_attainment <- compute_preference_attainment(
+    model_result = model_result,
+    p_ta_mat = prep$p_ta_mat,
+    p_gr_mat = prep$p_gr_mat,
+    total_ta_demand = sum(prep$demand$TA),
+    total_gr_demand = sum(prep$demand$GR)
+  )
+  student_diag <- compute_student_diagnostics(
+    alloc_summary = alloc_summary,
+    t1 = prep$df_list$t1,
+    g1 = prep$df_list$g1
+  )
+  summary_tbl <- compute_run_summary(model_result, settings = settings)
+
+  list(
+    solution_id = solution_id,
+    objective_value = extract_objective_value(model_result),
+    summary_tbl = summary_tbl,
+    assignment_tbl = assignment_tbl,
+    preference_tbl = pref_attainment,
+    student_diag = student_diag,
+    workload_plot = plot_workload_distribution(
+      student_diag,
+      C = prep$df_list$C,
+      single_semester = prep$single_semester
+    ),
+    solver_status = as.character(model_result$status)
+  )
+}
+
+build_multirole_run_outputs <- function(model_result, prep, settings,
+                                        use_solution_pool = FALSE) {
+  result_list <- if (isTRUE(use_solution_pool)) {
+    gurobi_pool_results(model_result)
+  } else {
+    list(model_result)
+  }
+
+  alternatives <- lapply(seq_along(result_list), function(idx) {
+    build_multirole_solution_output(result_list[[idx]], prep, settings, idx)
+  })
+
+  keys <- vapply(alternatives, function(x) allocation_key(x$assignment_tbl), character(1))
+  alternatives <- alternatives[!duplicated(keys)]
+  alternatives <- lapply(seq_along(alternatives), function(idx) {
+    alternatives[[idx]]$solution_id <- idx
+    alternatives[[idx]]
+  })
+
+  solution_tbl <- do.call(rbind, lapply(alternatives, function(x) {
+    data.frame(
+      solution = paste0("Solution ", x$solution_id),
+      objective = summary_metric_value(x$summary_tbl, "Objective"),
+      ta_spread = summary_metric_value(x$summary_tbl, "TA spread"),
+      gr_spread = summary_metric_value(x$summary_tbl, "GR spread"),
+      status = x$solver_status,
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  }))
+
+  list(
+    alternatives = alternatives,
+    solution_tbl = solution_tbl,
+    pool_enabled = isTRUE(use_solution_pool),
+    pool_count = length(alternatives)
   )
 }
 
