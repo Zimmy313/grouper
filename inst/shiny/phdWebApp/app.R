@@ -79,18 +79,18 @@ ui <- fluidPage(
   # ---- Step 1: Upload & Validate ----
   div(
     class = "hero-banner",
-    h1("PhD Workload Allocation"),
-    p("Template-driven upload, strict validation, parameterized optimisation, and direct downloadable outputs.")
+    h1("Multi-role Workload Allocation"),
+    p("Template-driven upload, parameterized optimisation, and direct downloadable outputs.")
   ),
 
   # ---- Step 2: Parameter Selection & Run ----
   div(
     class = "panel-card",
-    h3("Step 1: Upload And Validate"),
-        p(
-          class = "hint",
-          "Use exactly two inputs: current_semester.xlsx (fixed tabs/columns) and previous assign_job output (XLSX)."
-        ),
+    h3("Step 1: Upload And Load"),
+    p(
+      class = "hint",
+      "Use the current semester template. Upload previous assign_job output unless single-semester mode is selected."
+    ),
     fluidRow(
       column(
         width = 6,
@@ -98,7 +98,7 @@ ui <- fluidPage(
       ),
       column(
         width = 6,
-        actionButton("validate_inputs", "Validate Inputs", class = "btn btn-primary")
+        actionButton("validate_inputs", "Load Inputs", class = "btn btn-primary")
       )
     ),
     br(),
@@ -107,11 +107,19 @@ ui <- fluidPage(
       "Current semester file (XLSX)",
       accept = c(".xlsx")
     ),
-        fileInput(
-          "past_file",
-          "Previous semester model output (XLSX)",
-          accept = c(".xlsx")
-        ),
+    checkboxInput(
+      "single_semester",
+      "Single-semester mode: use synthetic past workload (past TA = 0, past GR = C)",
+      value = FALSE
+    ),
+    conditionalPanel(
+      condition = "!input.single_semester",
+      fileInput(
+        "past_file",
+        "Previous semester model output (XLSX)",
+        accept = c(".xlsx")
+      )
+    ),
     htmlOutput("validation_message"),
     hr(),
     tabsetPanel(
@@ -149,22 +157,38 @@ ui <- fluidPage(
       tags$summary("Advanced Parameters"),
       br(),
       fluidRow(
-        column(width = 3, numericInput("t_max_y1", "t_max_y1", value = 1, min = 0, step = 1)),
-        column(width = 3, numericInput("alpha", "alpha", value = 2, min = 0, step = 0.1)),
-        column(width = 3, numericInput("beta", "beta", value = 1, min = 0, step = 0.1)),
+        column(width = 3, numericInput("alpha_ta", "alpha_ta", value = 2, min = 0, step = 0.1)),
+        column(width = 3, numericInput("alpha_gr", "alpha_gr", value = NA, min = 0, step = 0.1)),
+        column(width = 3, numericInput("beta_ta", "beta_ta", value = 1, min = 0, step = 0.1)),
+        column(width = 3, numericInput("beta_gr", "beta_gr", value = NA, min = 0, step = 0.1))
+      ),
+      fluidRow(
+        column(width = 3, numericInput("rho_ta", "rho_ta", value = 10, min = 0, step = 0.1)),
+        column(width = 3, numericInput("rho_gr", "rho_gr", value = NA, min = 0, step = 0.1)),
+        column(width = 3, selectInput("protected_year_ta", "protected_year_ta", choices = 1:4, selected = 1)),
+        column(width = 3, selectInput("protected_year_gr", "protected_year_gr", choices = 1:4, selected = 1))
+      ),
+      fluidRow(
+        column(width = 3, numericInput("ta_protected_max", "ta_protected_max", value = 1, min = 0, step = 1)),
+        column(width = 3, numericInput("gr_protected_max", "gr_protected_max", value = 1, min = 0, step = 1)),
+        column(width = 3, numericInput("ta_min", "ta_min", value = NA, min = 0, step = 1)),
+        column(width = 3, numericInput("ta_max", "ta_max", value = NA, min = 0, step = 1))
+      ),
+      fluidRow(
+        column(width = 3, numericInput("gr_min", "gr_min", value = NA, min = 0, step = 1)),
+        column(width = 3, numericInput("gr_max", "gr_max", value = NA, min = 0, step = 1)),
+        column(width = 3, numericInput("e_min", "e_min", value = NA, min = 0, step = 1)),
         column(width = 3, numericInput("phi", "phi", value = 1, min = 0, step = 0.1))
       ),
       fluidRow(
-        column(width = 3, numericInput("rho", "rho", value = 10, min = 0, step = 0.1)),
-        column(width = 3, numericInput("ta_min", "ta_min", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("ta_max", "ta_max", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("gr_min", "gr_min", value = NA, min = 0, step = 1))
+        column(width = 3, numericInput("s_year1", "s_year1", value = -1, step = 0.1)),
+        column(width = 3, numericInput("s_year2", "s_year2", value = 0, step = 0.1)),
+        column(width = 3, numericInput("s_year3", "s_year3", value = 1, step = 0.1)),
+        column(width = 3, numericInput("s_year4", "s_year4", value = 2, step = 0.1))
       ),
       fluidRow(
-        column(width = 3, numericInput("gr_max", "gr_max", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("e_min", "e_min", value = NA, min = 0, step = 1)),
-        column(width = 3, numericInput("time_limit", "Time limit (sec, Gurobi)", value = 0, min = 0, step = 1)),
-        column(width = 3, numericInput("iteration_limit", "Iteration limit (Gurobi)", value = 0, min = 0, step = 1))
+        column(width = 6, numericInput("time_limit", "Time limit (sec, Gurobi)", value = 0, min = 0, step = 1)),
+        column(width = 6, numericInput("iteration_limit", "Iteration limit (Gurobi)", value = 0, min = 0, step = 1))
       )
     ),
 
@@ -222,7 +246,7 @@ server <- function(input, output, session) {
   validated_data <- reactiveVal(NULL)
   run_data <- reactiveVal(NULL)
 
-  validation_message <- reactiveVal("<span class='status-warn'>Upload both files and click Validate Inputs.</span>")
+  validation_message <- reactiveVal("<span class='status-warn'>Upload the current semester file and click Load Inputs.</span>")
   run_message <- reactiveVal("<span class='status-warn'>No run has been executed yet.</span>")
 
   # ---- Utility: convert optional numeric input to NULL when blank ----
@@ -234,10 +258,10 @@ server <- function(input, output, session) {
   }
 
   # ---- Reset run state when uploads change ----
-  observeEvent(list(input$current_file, input$past_file), {
+  observeEvent(list(input$current_file, input$past_file, input$single_semester), {
     validated_data(NULL)
     run_data(NULL)
-    validation_message("<span class='status-warn'>Inputs changed. Click Validate Inputs again.</span>")
+    validation_message("<span class='status-warn'>Inputs changed. Click Load Inputs again.</span>")
     run_message("<span class='status-warn'>No run has been executed yet.</span>")
   }, ignoreInit = TRUE)
 
@@ -273,25 +297,38 @@ server <- function(input, output, session) {
     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
 
-  # ---- Validation step ----
+  # ---- Load step ----
   observeEvent(input$validate_inputs, {
     run_data(NULL)
     run_message("<span class='status-warn'>No run has been executed yet.</span>")
 
-    if (is.null(input$current_file$datapath) || is.null(input$past_file$datapath)) {
+    single_semester <- isTRUE(input$single_semester)
+    needs_past <- !single_semester
+
+    if (is.null(input$current_file$datapath) ||
+        (needs_past && is.null(input$past_file$datapath))) {
       validated_data(NULL)
-      validation_message("<span class='status-warn'>Please upload both files before validation.</span>")
+      validation_message("<span class='status-warn'>Please upload the required file(s) before validation.</span>")
       return()
     }
 
     out <- tryCatch({
       current <- validate_current_semester_file(input$current_file$datapath)
-      prev <- read_uploaded_table(input$past_file$datapath)
+      prev <- if (needs_past) {
+        read_uploaded_table(input$past_file$datapath)
+      } else {
+        NULL
+      }
 
-      list(students = current$students, demand = current$demand, past_output = prev)
+      list(
+        students = current$students,
+        demand = current$demand,
+        past_output = prev,
+        single_semester = single_semester
+      )
     }, error = function(e) {
       validation_message(
-        paste0("<span class='status-warn'>Validation failed: ", htmltools::htmlEscape(conditionMessage(e)), "</span>")
+        paste0("<span class='status-warn'>Input load failed: ", htmltools::htmlEscape(conditionMessage(e)), "</span>")
       )
       NULL
     })
@@ -304,10 +341,14 @@ server <- function(input, output, session) {
     validated_data(out)
     validation_message(
       paste0(
-        "<span class='status-ok'>Validation successful: ",
+        "<span class='status-ok'>Inputs loaded: ",
         nrow(out$students), " students, ",
         nrow(out$demand), " courses, ",
-        nrow(out$past_output), " rows in previous output.</span>"
+        if (out$single_semester) {
+          "single-semester mode.</span>"
+        } else {
+          paste0(nrow(out$past_output), " rows in previous output.</span>")
+        }
       )
     )
   })
@@ -317,36 +358,63 @@ server <- function(input, output, session) {
     req(validated_data())
 
     run_result <- tryCatch({
-      prep <- prepare_phd_run_inputs(
-        students = validated_data()$students,
-        demand = validated_data()$demand,
-        previous_output = validated_data()$past_output,
-        C = input$capacity
-      )
-
-      model <- grouper::prepare_model(
-        df_list = prep$df_list,
-        assignment = "phd",
-        t_max_y1 = as.numeric(input$t_max_y1),
+      s_scores <- c(input$s_year1, input$s_year2, input$s_year3, input$s_year4)
+      settings <- list(
+        ta_protected_max = to_nullable_number(input$ta_protected_max),
+        gr_protected_max = to_nullable_number(input$gr_protected_max),
         e_max = to_nullable_number(input$e_max),
         ta_min = to_nullable_number(input$ta_min),
         ta_max = to_nullable_number(input$ta_max),
         gr_min = to_nullable_number(input$gr_min),
         gr_max = to_nullable_number(input$gr_max),
         e_min = to_nullable_number(input$e_min),
-        alpha = as.numeric(input$alpha),
-        beta = as.numeric(input$beta),
-        phi = as.numeric(input$phi),
-        rho = as.numeric(input$rho),
-        C = as.numeric(input$capacity)
+        alpha_ta = to_nullable_number(input$alpha_ta),
+        alpha_gr = to_nullable_number(input$alpha_gr),
+        beta_ta = to_nullable_number(input$beta_ta),
+        beta_gr = to_nullable_number(input$beta_gr),
+        phi = to_nullable_number(input$phi),
+        rho_ta = to_nullable_number(input$rho_ta),
+        rho_gr = to_nullable_number(input$rho_gr),
+        protected_year_ta = as.integer(input$protected_year_ta),
+        protected_year_gr = as.integer(input$protected_year_gr)
       )
 
-      result <- solve_phd_model(
-        model = model,
+      prep <- prepare_multirole_run_inputs(
+        students = validated_data()$students,
+        demand = validated_data()$demand,
+        previous_output = validated_data()$past_output,
+        C = input$capacity,
+        single_semester = validated_data()$single_semester,
+        s = s_scores
+      )
+
+      model <- grouper::prepare_multirole_model(
+        df_list = prep$df_list,
+        ta_protected_max = settings$ta_protected_max,
+        gr_protected_max = settings$gr_protected_max,
+        e_max = settings$e_max,
+        ta_min = settings$ta_min,
+        ta_max = settings$ta_max,
+        gr_min = settings$gr_min,
+        gr_max = settings$gr_max,
+        e_min = settings$e_min,
+        alpha_ta = settings$alpha_ta,
+        alpha_gr = settings$alpha_gr,
+        beta_ta = settings$beta_ta,
+        beta_gr = settings$beta_gr,
+        phi = settings$phi,
+        rho_ta = settings$rho_ta,
+        rho_gr = settings$rho_gr,
+        protected_year_ta = settings$protected_year_ta,
+        protected_year_gr = settings$protected_year_gr
+      )
+
+      roi_control <- make_roi_control(
         solver = input$solver,
         time_limit = input$time_limit,
         iteration_limit = input$iteration_limit
       )
+      result <- ompr::solve_model(model, roi_control)
 
       assignment_tbl <- grouper::assign_job(
         model_result = result,
@@ -359,8 +427,10 @@ server <- function(input, output, session) {
       alloc_summary <- summarise_assignment_from_job_output(assignment_tbl, prep$students)
       pref_attainment <- compute_preference_attainment(
         model_result = result,
-        p_mat = prep$p_mat,
-        total_ta_demand = sum(prep$demand$TA)
+        p_ta_mat = prep$p_ta_mat,
+        p_gr_mat = prep$p_gr_mat,
+        total_ta_demand = sum(prep$demand$TA),
+        total_gr_demand = sum(prep$demand$GR)
       )
       student_diag <- compute_student_diagnostics(
         alloc_summary = alloc_summary,
@@ -369,11 +439,15 @@ server <- function(input, output, session) {
       )
 
       list(
-        summary_tbl = compute_run_summary(result),
+        summary_tbl = compute_run_summary(result, settings = settings),
         assignment_tbl = assignment_tbl,
         preference_tbl = pref_attainment,
         student_diag = student_diag,
-        workload_plot = plot_workload_distribution(student_diag),
+        workload_plot = plot_workload_distribution(
+          student_diag,
+          C = prep$df_list$C,
+          single_semester = prep$single_semester
+        ),
         solver_status = as.character(result$status)
       )
     }, error = function(e) {
@@ -416,6 +490,13 @@ server <- function(input, output, session) {
 
   output$past_preview <- renderDT({
     req(validated_data())
+    if (is.null(validated_data()$past_output)) {
+      return(datatable(
+        data.frame(note = "Single-semester mode uses synthetic past workload."),
+        rownames = FALSE,
+        options = list(dom = "t")
+      ))
+    }
     datatable(validated_data()$past_output, options = list(scrollX = TRUE, pageLength = 6))
   })
 
@@ -445,7 +526,7 @@ server <- function(input, output, session) {
 
   output$download_assignment <- downloadHandler(
     filename = function() {
-      paste0("phd_assignment_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".xlsx")
+      paste0("multirole_assignment_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".xlsx")
     },
     content = function(file) {
       req(run_data())

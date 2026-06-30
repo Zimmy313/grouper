@@ -22,68 +22,29 @@ clean_pref_code <- function(x) {
 }
 
 
-# ---- File Reading & Schema Validation ----
+# ---- File Reading & Template Checks ----
 read_uploaded_table <- function(path) {
-  ext <- tolower(tools::file_ext(path))
-  if (ext == "xlsx") {
-    return(as.data.frame(
-      readxl::read_excel(path, sheet = 1, .name_repair = "minimal"),
-      stringsAsFactors = FALSE,
-      check.names = FALSE
-    ))
-  }
-  stop("Unsupported file type. Please upload XLSX.")
+  as.data.frame(
+    readxl::read_excel(path, sheet = 1, .name_repair = "minimal"),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
 }
 
 validate_exact_columns <- function(df, expected_cols, label) {
-  actual <- names(df)
-  missing_cols <- setdiff(expected_cols, actual)
-  extra_cols <- setdiff(actual, expected_cols)
-
-  if (length(missing_cols) > 0 || length(extra_cols) > 0 || !identical(actual, expected_cols)) {
-    parts <- c()
-    if (length(missing_cols) > 0) {
-      parts <- c(parts, paste0("missing: ", paste(missing_cols, collapse = ", ")))
-    }
-    if (length(extra_cols) > 0) {
-      parts <- c(parts, paste0("extra: ", paste(extra_cols, collapse = ", ")))
-    }
-    if (length(parts) == 0) {
-      parts <- "column order does not match template"
-    }
-
-    stop(
-      label, " tab has invalid columns (", paste(parts, collapse = " | "),
-      "). Expected exactly: ", paste(expected_cols, collapse = ", "), "."
-    )
+  if (!identical(names(df), expected_cols)) {
+    stop(label, " tab must match the template columns.")
   }
 
   invisible(TRUE)
 }
 
 validate_current_semester_file <- function(path) {
-  ext <- tolower(tools::file_ext(path))
-  if (ext != "xlsx") {
-    stop("Current semester input must be an XLSX file.")
-  }
-
   expected_sheets <- c("students", "demand")
   sheet_names <- readxl::excel_sheets(path)
 
-  missing_sheets <- setdiff(expected_sheets, sheet_names)
-  extra_sheets <- setdiff(sheet_names, expected_sheets)
-  if (length(missing_sheets) > 0 || length(extra_sheets) > 0) {
-    parts <- c()
-    if (length(missing_sheets) > 0) {
-      parts <- c(parts, paste0("missing sheets: ", paste(missing_sheets, collapse = ", ")))
-    }
-    if (length(extra_sheets) > 0) {
-      parts <- c(parts, paste0("extra sheets: ", paste(extra_sheets, collapse = ", ")))
-    }
-    stop(
-      "Current semester file must contain exactly two sheets: students, demand (",
-      paste(parts, collapse = " | "), ")."
-    )
+  if (!setequal(sheet_names, expected_sheets) || length(sheet_names) != 2) {
+    stop("Current semester file must contain exactly the template sheets.")
   }
 
   students <- as.data.frame(
@@ -114,15 +75,9 @@ validate_current_semester_file <- function(path) {
 # ---- Core Parsing Helpers ----
 
 summarise_past_workload <- function(previous_output) {
-  if (!"Name" %in% names(previous_output)) {
-    stop("Previous semester output must contain a Name column.")
-  }
-
   ta_cols <- grep("-t$", names(previous_output), value = TRUE, ignore.case = TRUE)
   gr_cols <- grep("-g$", names(previous_output), value = TRUE, ignore.case = TRUE)
-  if (length(ta_cols) == 0 || length(gr_cols) == 0) {
-    stop("Previous semester output must contain course-role columns ending in '-t' and '-g'.")
-  }
+  stopifnot(length(ta_cols) > 0, length(gr_cols) > 0)
 
   ta_mat <- suppressWarnings(data.matrix(previous_output[, ta_cols, drop = FALSE]))
   gr_mat <- suppressWarnings(data.matrix(previous_output[, gr_cols, drop = FALSE]))
@@ -147,34 +102,9 @@ summarise_past_workload <- function(previous_output) {
     )
 }
 
-# Enforce model assumption on prior semester totals.
-# Rule: past_ta + past_gr must equal C for each current student.
-# If below C, pad deficit into past_gr. If above C, block run.
-enforce_past_workload_capacity <- function(students_joined, C) {
+# Pad previous workload to the semester capacity when the uploaded output is short.
+pad_past_workload_capacity <- function(students_joined, C) {
   past_total <- as.numeric(students_joined$past_ta) + as.numeric(students_joined$past_gr)
-  over_idx <- which(past_total > (C + 1e-8))
-
-  if (length(over_idx) > 0) {
-    over_details <- paste0(
-      students_joined$Name[over_idx],
-      " (total=",
-      format(round(past_total[over_idx], 3), trim = TRUE),
-      ")"
-    )
-    over_details <- paste(utils::head(over_details, 8), collapse = ", ")
-    if (length(over_idx) > 8) {
-      over_details <- paste0(over_details, ", ...")
-    }
-
-    stop(
-      "Previous semester workload exceeds C for ",
-      length(over_idx),
-      " student(s): ",
-      over_details,
-      ". Set C >= each student's prior total or fix previous output."
-    )
-  }
-
   deficit <- pmax(0, C - past_total)
   students_joined$past_gr <- as.numeric(students_joined$past_gr) + deficit
   students_joined$past_ta <- as.numeric(students_joined$past_ta)
@@ -213,10 +143,9 @@ build_preference_matrix <- function(students_clean, course_codes) {
 
 
 # ---- Model Input Assembly ----
-prepare_phd_run_inputs <- function(students, demand, previous_output, C = 4) {
-  if (!is.numeric(C) || length(C) != 1 || is.na(C) || C <= 0) {
-    stop("C must be a single positive number.")
-  }
+prepare_multirole_run_inputs <- function(students, demand, previous_output = NULL,
+                                         C = 4, single_semester = FALSE,
+                                         s = c(-1, 0, 1, 2)) {
   C <- as.integer(round(C))
 
   students_clean <- students %>%
@@ -228,17 +157,7 @@ prepare_phd_run_inputs <- function(students, demand, previous_output, C = 4) {
       second = clean_pref_code(.data$second),
       third = clean_pref_code(.data$third)
     )
-  if (any(duplicated(students_clean$student_id))) {
-    stop("students.student_id must be unique.")
-  }
-  if (any(is.na(students_clean$Name) | students_clean$Name == "")) {
-    stop("students.Name cannot be empty.")
-  }
-
   students_clean$name_key <- standardise_name(students_clean$Name)
-  if (any(duplicated(students_clean$name_key))) {
-    stop("Standardised student names are not unique; cannot safely match previous output by Name.")
-  }
   students_clean$year <- as.integer(round(students_clean$year))
 
   demand_clean <- demand %>%
@@ -248,49 +167,52 @@ prepare_phd_run_inputs <- function(students, demand, previous_output, C = 4) {
       GR = suppressWarnings(as.numeric(.data$GR))
     )
 
-  if (any(duplicated(demand_clean$course_code))) {
-    stop("demand.course_code must be unique.")
-  }
-
   demand_clean$TA <- as.integer(round(demand_clean$TA))
   demand_clean$GR <- as.integer(round(demand_clean$GR))
 
   ns <- nrow(students_clean)
   total_e <- ns * C - sum(demand_clean$TA) - sum(demand_clean$GR)
-  if (total_e < 0) {
-    stop(
-      "Computed E is negative (Ns*C - sum(TA) - sum(GR) = ",
-      total_e,
-      "). Reduce demand or increase C."
-    )
+
+  if (single_semester) {
+    students_joined <- students_clean
+    students_joined$past_ta <- 0
+    students_joined$past_gr <- C
+
+    student_input <- students_joined %>%
+      dplyr::transmute(
+        student_id = .data$student_id,
+        year = .data$year
+      )
+  } else {
+    past_summary <- summarise_past_workload(previous_output)
+    students_joined <- students_clean %>%
+      dplyr::left_join(past_summary, by = "name_key")
+
+    students_joined$past_ta[is.na(students_joined$past_ta)] <- 0
+    students_joined$past_gr[is.na(students_joined$past_gr)] <- 0
+    students_joined <- pad_past_workload_capacity(students_joined, C)
+
+    student_input <- students_joined %>%
+      dplyr::transmute(
+        student_id = .data$student_id,
+        year = .data$year,
+        past_ta = as.numeric(.data$past_ta),
+        past_gr = as.numeric(.data$past_gr)
+      )
   }
-
-  past_summary <- summarise_past_workload(previous_output)
-  students_joined <- students_clean %>%
-    dplyr::left_join(past_summary, by = "name_key")
-
-  students_joined$past_ta[is.na(students_joined$past_ta)] <- 0
-  students_joined$past_gr[is.na(students_joined$past_gr)] <- 0
-  students_joined <- enforce_past_workload_capacity(students_joined, C)
-
-  student_input <- students_joined %>%
-    dplyr::transmute(
-      student_id = .data$student_id,
-      year = .data$year,
-      past_ta = as.numeric(.data$past_ta),
-      past_gr = as.numeric(.data$past_gr)
-    )
 
   course_codes <- demand_clean$course_code
   p_mat <- build_preference_matrix(students_joined, course_codes)
 
-  # Reuse package function for model-aligned preprocessing + E allocation.
-  df_list <- grouper::extract_phd_info(
+  df_list <- grouper::extract_multirole_info(
     student_df = as.data.frame(student_input, stringsAsFactors = FALSE),
-    p_mat = p_mat,
     d_mat = as.matrix(demand_clean[, c("TA", "GR")]),
+    p_ta_mat = p_mat,
+    p_gr_mat = p_mat,
     e_mode = "rr",
-    C = C
+    C = C,
+    s = s,
+    single_semester = single_semester
   )
 
   demand_clean$E <- as.integer(round(df_list$d[, "E"]))
@@ -299,36 +221,31 @@ prepare_phd_run_inputs <- function(students, demand, previous_output, C = 4) {
     students = students_joined %>% dplyr::select("student_id", "Name", "year", "past_ta", "past_gr"),
     demand = demand_clean,
     course_codes = course_codes,
-    p_mat = p_mat,
+    p_ta_mat = p_mat,
+    p_gr_mat = p_mat,
     d_mat = df_list$d,
     df_list = df_list,
-    total_e = total_e
+    total_e = total_e,
+    single_semester = single_semester
   )
 }
 
 
-# ---- Solver Wrapper ----
-solve_phd_model <- function(model, solver = c("gurobi", "glpk", "highs"),
-                            time_limit = 0, iteration_limit = 0) {
+# ---- Solver Control ----
+make_roi_control <- function(solver = c("gurobi", "glpk", "highs"),
+                             time_limit = 0, iteration_limit = 0) {
   solver <- match.arg(solver)
-
   plugin_pkg <- switch(
     solver,
     gurobi = "ROI.plugin.gurobi",
     glpk = "ROI.plugin.glpk",
     highs = "ROI.plugin.highs"
   )
+  requireNamespace(plugin_pkg)
 
-  if (!requireNamespace(plugin_pkg, quietly = TRUE)) {
-    stop(
-      "Solver '", toupper(solver), "' requires package '", plugin_pkg,
-      "'. Install it and retry."
-    )
-  }
+  roi_args <- list(solver = solver, verbose = TRUE)
 
   if (solver == "gurobi") {
-    roi_args <- list(solver = solver, verbose = TRUE)
-
     if (is.numeric(time_limit) && length(time_limit) == 1 && !is.na(time_limit) && time_limit > 0) {
       roi_args$TimeLimit <- time_limit
     }
@@ -337,12 +254,9 @@ solve_phd_model <- function(model, solver = c("gurobi", "glpk", "highs"),
       roi_args$IterationLimit <- as.integer(round(iteration_limit))
     }
 
-    roi_ctl <- do.call(ompr.roi::with_ROI, roi_args)
-    return(ompr::solve_model(model, roi_ctl))
   }
 
-  roi_ctl <- ompr.roi::with_ROI(solver = solver, verbose = TRUE)
-  ompr::solve_model(model, roi_ctl)
+  do.call(ompr.roi::with_ROI, roi_args)
 }
 
 
@@ -352,10 +266,6 @@ summarise_assignment_from_job_output <- function(assignment_tbl, students_df) {
   ta_cols <- grep("-t$", names(assignment_tbl), value = TRUE, ignore.case = TRUE)
   gr_cols <- grep("-g$", names(assignment_tbl), value = TRUE, ignore.case = TRUE)
   e_cols <- grep("-e$", names(assignment_tbl), value = TRUE, ignore.case = TRUE)
-
-  if (length(ta_cols) == 0 || length(gr_cols) == 0 || length(e_cols) == 0) {
-    stop("assignment_tbl is missing one or more expected role columns (-t/-g/-e).")
-  }
 
   ta_total <- rowSums(suppressWarnings(data.matrix(assignment_tbl[, ta_cols, drop = FALSE])), na.rm = TRUE)
   gr_total <- rowSums(suppressWarnings(data.matrix(assignment_tbl[, gr_cols, drop = FALSE])), na.rm = TRUE)
@@ -373,17 +283,21 @@ summarise_assignment_from_job_output <- function(assignment_tbl, students_df) {
   )
 }
 
-compute_preference_attainment <- function(model_result, p_mat, total_ta_demand) {
-  ta_sol <- ompr::get_solution(model_result, X[i, j, r])
-  ta_sol <- ta_sol[ta_sol$r == 1 & ta_sol$value > 1e-8, c("i", "j", "value"), drop = FALSE]
+compute_role_preference_attainment <- function(solution, p_mat, role_id,
+                                               role_label, total_demand) {
+  role_sol <- solution[
+    solution$r == role_id & solution$value > 1e-8,
+    c("i", "j", "value"),
+    drop = FALSE
+  ]
 
   units <- c(First = 0, Second = 0, Third = 0, Unranked = 0)
 
-  if (nrow(ta_sol) > 0) {
-    for (k in seq_len(nrow(ta_sol))) {
-      i <- ta_sol$i[[k]]
-      j <- ta_sol$j[[k]]
-      v <- ta_sol$value[[k]]
+  if (nrow(role_sol) > 0) {
+    for (k in seq_len(nrow(role_sol))) {
+      i <- role_sol$i[[k]]
+      j <- role_sol$j[[k]]
+      v <- role_sol$value[[k]]
 
       score <- p_mat[[i, j]]
       if (is.na(score)) {
@@ -401,19 +315,42 @@ compute_preference_attainment <- function(model_result, p_mat, total_ta_demand) 
   }
 
   out <- data.frame(
+    role = role_label,
     preference_rank = c("First", "Second", "Third", "Unranked"),
-    TA_units = as.numeric(units[c("First", "Second", "Third", "Unranked")]),
+    units = as.numeric(units[c("First", "Second", "Third", "Unranked")]),
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
 
-  if (is.numeric(total_ta_demand) && length(total_ta_demand) == 1 && total_ta_demand > 0) {
-    out$pct_of_ta_demand <- round(100 * out$TA_units / total_ta_demand, 1)
+  if (is.numeric(total_demand) && length(total_demand) == 1 && total_demand > 0) {
+    out$pct_of_role_demand <- round(100 * out$units / total_demand, 1)
   } else {
-    out$pct_of_ta_demand <- NA_real_
+    out$pct_of_role_demand <- NA_real_
   }
 
   out
+}
+
+compute_preference_attainment <- function(model_result, p_ta_mat, p_gr_mat,
+                                          total_ta_demand, total_gr_demand) {
+  sol <- ompr::get_solution(model_result, X[i, j, r])
+
+  rbind(
+    compute_role_preference_attainment(
+      solution = sol,
+      p_mat = p_ta_mat,
+      role_id = 1,
+      role_label = "TA",
+      total_demand = total_ta_demand
+    ),
+    compute_role_preference_attainment(
+      solution = sol,
+      p_mat = p_gr_mat,
+      role_id = 2,
+      role_label = "GR",
+      total_demand = total_gr_demand
+    )
+  )
 }
 
 compute_student_diagnostics <- function(alloc_summary, t1, g1) {
@@ -424,14 +361,15 @@ compute_student_diagnostics <- function(alloc_summary, t1, g1) {
   student_df$current_GR <- as.numeric(student_df$GR)
   student_df$current_E <- as.numeric(student_df$E)
 
-  student_df$yearly_TA <- student_df$past_TA + student_df$current_TA
+  student_df$annual_TA <- student_df$past_TA + student_df$current_TA
+  student_df$annual_GR <- student_df$past_GR + student_df$current_GR
   student_df$current_total <- student_df$current_TA + student_df$current_GR + student_df$current_E
 
   out <- student_df[, c(
     "student_id", "student_name", "year",
     "past_TA", "past_GR",
     "current_TA", "current_GR", "current_E",
-    "current_total", "yearly_TA"
+    "current_total", "annual_TA", "annual_GR"
   )]
 
   out <- out[order(out$year, out$student_id), , drop = FALSE]
@@ -472,37 +410,79 @@ extract_objective_value <- function(model_result) {
   fallback[[1]]
 }
 
-compute_run_summary <- function(model_result) {
-  tmax <- safe_extract_scalar(ompr::get_solution(model_result, Tmax))
-  tmin <- safe_extract_scalar(ompr::get_solution(model_result, Tmin))
+safe_solution_scalar <- function(model_result, name) {
+  tryCatch(
+    switch(
+      name,
+      Tmax = safe_extract_scalar(ompr::get_solution(model_result, Tmax)),
+      Tmin = safe_extract_scalar(ompr::get_solution(model_result, Tmin)),
+      Gmax = safe_extract_scalar(ompr::get_solution(model_result, Gmax)),
+      Gmin = safe_extract_scalar(ompr::get_solution(model_result, Gmin)),
+      NA_real_
+    ),
+    error = function(e) NA_real_
+  )
+}
+
+component_status <- function(x) {
+  if (!is.null(x) && !is.na(x) && x > 0) {
+    return("active")
+  }
+  "disabled"
+}
+
+format_summary_value <- function(x) {
+  if (is.na(x)) {
+    return(NA_character_)
+  }
+  format(round(x, 4), trim = TRUE)
+}
+
+compute_run_summary <- function(model_result, settings = list()) {
+  tmax <- safe_solution_scalar(model_result, "Tmax")
+  tmin <- safe_solution_scalar(model_result, "Tmin")
+  gmax <- safe_solution_scalar(model_result, "Gmax")
+  gmin <- safe_solution_scalar(model_result, "Gmin")
   ta_spread <- if (!is.na(tmax) && !is.na(tmin)) tmax - tmin else NA_real_
+  gr_spread <- if (!is.na(gmax) && !is.na(gmin)) gmax - gmin else NA_real_
+
+  get_setting <- function(name) {
+    value <- settings[[name]]
+    if (is.null(value)) NA_real_ else value
+  }
 
   data.frame(
-    metric = c("Status", "Objective", "Tmax", "Tmin", "TA spread"),
+    metric = c(
+      "Status", "Objective",
+      "Tmax", "Tmin", "TA spread",
+      "Gmax", "Gmin", "GR spread",
+      "TA fairness", "GR fairness",
+      "TA preference", "GR preference",
+      "E scoring", "TA protection", "GR protection"
+    ),
     value = c(
       as.character(model_result$status),
-      format(round(extract_objective_value(model_result), 4), trim = TRUE),
-      format(round(tmax, 4), trim = TRUE),
-      format(round(tmin, 4), trim = TRUE),
-      format(round(ta_spread, 4), trim = TRUE)
+      format_summary_value(extract_objective_value(model_result)),
+      format_summary_value(tmax),
+      format_summary_value(tmin),
+      format_summary_value(ta_spread),
+      format_summary_value(gmax),
+      format_summary_value(gmin),
+      format_summary_value(gr_spread),
+      component_status(get_setting("alpha_ta")),
+      component_status(get_setting("alpha_gr")),
+      component_status(get_setting("beta_ta")),
+      component_status(get_setting("beta_gr")),
+      component_status(get_setting("phi")),
+      component_status(get_setting("rho_ta")),
+      component_status(get_setting("rho_gr"))
     ),
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
 }
 
-plot_workload_distribution <- function(student_diag) {
-  required_cols <- c(
-    "student_id", "student_name", "year",
-    "past_TA", "past_GR",
-    "current_TA", "current_GR", "current_E"
-  )
-
-  missing_cols <- setdiff(required_cols, names(student_diag))
-  if (length(missing_cols) > 0) {
-    stop("student_diag is missing columns: ", paste(missing_cols, collapse = ", "))
-  }
-
+plot_workload_distribution <- function(student_diag, C = 4, single_semester = FALSE) {
   plot_df <- student_diag[order(student_diag$year, student_diag$student_id), , drop = FALSE]
   plot_df$student_label <- paste0(plot_df$student_id, " - ", plot_df$student_name)
   plot_df$year <- factor(plot_df$year, levels = sort(unique(plot_df$year)))
@@ -533,7 +513,15 @@ plot_workload_distribution <- function(student_diag) {
     Sem1_GR = "#F2AA7A"
   )
 
-  sem2_is_four <- all(abs(plot_df$current_TA + plot_df$current_GR + plot_df$current_E - 4) < 1e-8)
+  current_is_capacity <- all(abs(plot_df$current_TA + plot_df$current_GR + plot_df$current_E - C) < 1e-8)
+  subtitle <- if (single_semester) {
+    paste0(
+      "Current semester allocation stacked below synthetic past workload ",
+      "(past TA = 0, past GR = C)"
+    )
+  } else {
+    "Current semester allocation stacked below past semester workload"
+  }
 
   p <- ggplot2::ggplot(
     long_df,
@@ -556,7 +544,7 @@ plot_workload_distribution <- function(student_diag) {
       x = "Student",
       y = "Workload Units",
       title = "Year-Long Workload Distribution by Student",
-      subtitle = "Current semester allocation stacked below past semester workload"
+      subtitle = subtitle
     ) +
     ggplot2::facet_wrap(~year, scales = "free_x", ncol = 4) +
     ggplot2::theme_minimal(base_size = 11) +
@@ -566,8 +554,8 @@ plot_workload_distribution <- function(student_diag) {
       legend.position = "top"
     )
 
-  if (sem2_is_four) {
-    p <- p + ggplot2::geom_hline(yintercept = 4, linetype = "dashed", color = "grey35")
+  if (current_is_capacity) {
+    p <- p + ggplot2::geom_hline(yintercept = C, linetype = "dashed", color = "grey35")
   }
 
   p
