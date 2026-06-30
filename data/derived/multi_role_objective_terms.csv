@@ -1,4 +1,4 @@
-Semester,Schedule,fairness_term,preference_term,seniority_e_term,y1_slack_term,objective_recalc,ta_spread,ta_pref_sum,seniority_e_sum,y1_slack_sum
+Semester,Schedule,ta_fairness_term,ta_preference_term,seniority_e_term,ta_protection_term,objective_recalc,ta_spread,ta_pref_sum,seniority_e_sum,ta_protected_slack_sum
 AY2420,Model,2,-159,-27,0,-184,1,159,27,0
 AY2420,Manual,10,-34,-35,0,-59,5,34,35,0
 AY2510,Model,2,-148,-58,0,-204,1,148,58,0

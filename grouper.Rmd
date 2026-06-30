@@ -437,19 +437,21 @@ supplies \(d_{jr}\), and a user-configurable score \(s_i\) guides E allocation.
 E demand may either be supplied or derived from total semester capacity and
 submitted TA and GR demand.
 
-The extractor aligns three input objects: 
+The extractor aligns three input objects:
 
-1. individual table
-2. optional role-specific preference matrices
-3. a role-demand matrix. 
+1. an individual table,
+2. optional role-specific preference matrices, and
+3. a role-demand matrix.
 
-The individual table supplies cohort year and previous TA and GR workload, 
-which are converted into the historical workload vectors (t_i^{(1)}) and (g_i^{(1)}). 
-The preference matrices supply (P^{\mathrm{TA}}{ij}) and (P^{\mathrm{GR}}{ij}).
-The demand matrix supplies (d_{jr}), the required number of units for task (j) 
-and role (r). A user-configurable score (s_i) is used to guide the allocation of E units. 
-E demand can either be supplied directly or derived from total semester capacity after 
-submitted TA and GR demand have been accounted for.
+The individual table supplies cohort year and previous TA and GR workload,
+which are converted into the historical workload vectors \(t_i^{(1)}\) and
+\(g_i^{(1)}\). The preference matrices supply
+\(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\). The demand matrix
+supplies \(d_{jr}\), the required number of units for task \(j\) and role
+\(r\). A user-configurable score \(s_i\) is used to guide the allocation of E
+units. E demand can either be supplied directly or derived from total semester
+capacity after submitted TA and GR demand have been accounted for.
+
 
 ### Objective
 

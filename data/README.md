@@ -28,8 +28,9 @@ course codes, or workbook metadata.
   totals.
 - `multi_role_objective_comparison.csv`: model and manual objective values under
   the same policy weights.
-- `multi_role_objective_terms.csv`: weighted objective-term breakdown for model
-  and manual schedules.
+- `multi_role_objective_terms.csv`: weighted TA fairness, TA preference,
+  seniority-E, and TA protection objective-term breakdown for model and manual
+  schedules.
 - `ay2520_distribution_long.csv`: student-level workload data used for the
   workload-distribution figure.
 

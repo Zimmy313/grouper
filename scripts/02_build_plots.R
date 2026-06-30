@@ -6,10 +6,10 @@ suppressPackageStartupMessages({
 })
 
 derived_dir <- "data/derived"
-fig_dir <- "figures"
-dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
-
 model_manual_colors <- c("Model" = "#0072B2", "Manual" = "#e61b00")
+save_pdf <- function(name, plot, width, height) {
+  ggsave(file.path("figures", name), plot, width = width, height = height, units = "in")
+}
 
 job_palette <- c(
   "TA" = "#0072B2",
@@ -17,7 +17,7 @@ job_palette <- c(
   "E" = "#56B4E9"
 )
 
-dist_long <- readr::read_csv(file.path(derived_dir, "ay2520_distribution_long.csv"), show_col_types = FALSE) |>
+dist_long <- read_csv(file.path(derived_dir, "ay2520_distribution_long.csv"), show_col_types = FALSE) |>
   mutate(
     student_order = as.integer(gsub("\\D", "", student_id)),
     student_order_key = as.character(student_order),
@@ -80,18 +80,14 @@ p_dist <- ggplot(dist_long, aes(x = student_plot, y = units, fill = stack_compon
     panel.grid.major.x = element_blank()
   )
 
-ggsave(
-  filename = file.path(fig_dir, "ay2520_distribution.pdf"),
-  plot = p_dist,
-  width = 8.4,
-  height = 4.8,
-  units = "in"
-)
+save_pdf("ay2520_distribution.pdf", p_dist, 8.4, 4.8)
 
-objective_long <- readr::read_csv(
+objective_compare <- read_csv(
   file.path(derived_dir, "multi_role_objective_comparison.csv"),
   show_col_types = FALSE
-) |>
+)
+
+objective_long <- objective_compare |>
   pivot_longer(
     cols = -Semester,
     names_to = "Schedule",
@@ -130,22 +126,13 @@ p_objective <- ggplot(
     panel.grid.major.x = element_blank()
   )
 
-ggsave(
-  filename = file.path(fig_dir, "multi_role_objective_comparison.pdf"),
-  plot = p_objective,
-  width = 6.6,
-  height = 4.0,
-  units = "in"
-)
+save_pdf("multi_role_objective_comparison.pdf", p_objective, 6.6, 4.0)
 
-objective_terms <- readr::read_csv(
+objective_terms <- read_csv(
   file.path(derived_dir, "multi_role_objective_terms.csv"),
   show_col_types = FALSE
 )
-largest_gap_semester <- readr::read_csv(
-  file.path(derived_dir, "multi_role_objective_comparison.csv"),
-  show_col_types = FALSE
-) |>
+largest_gap_semester <- objective_compare |>
   mutate(gap = Manual_objective - Model_objective) |>
   arrange(desc(abs(gap))) |>
   slice(1) |>
@@ -153,19 +140,30 @@ largest_gap_semester <- readr::read_csv(
 
 term_gap <- objective_terms |>
   filter(Semester == largest_gap_semester) |>
-  select(Schedule, fairness_term, preference_term, seniority_e_term, y1_slack_term) |>
+  select(
+    Schedule,
+    ta_fairness_term,
+    ta_preference_term,
+    seniority_e_term,
+    ta_protection_term
+  ) |>
   pivot_longer(-Schedule, names_to = "term", values_to = "value") |>
   pivot_wider(names_from = Schedule, values_from = value) |>
   mutate(
     manual_minus_model = Manual - Model,
     term = recode(
       term,
-      fairness_term = "Fairness",
-      preference_term = "Preference",
+      ta_fairness_term = "TA fairness",
+      ta_preference_term = "TA preference",
       seniority_e_term = "Seniority-E",
-      y1_slack_term = "Year-1 slack"
+      ta_protection_term = "Year-1 TA slack"
     ),
-    term = factor(term, levels = c("Preference", "Fairness", "Seniority-E", "Year-1 slack")),
+    term = factor(
+      term,
+      levels = c(
+        "TA preference", "TA fairness", "Seniority-E", "Year-1 TA slack"
+      )
+    ),
     direction = if_else(manual_minus_model >= 0, "Higher in manual", "Lower in manual"),
     label_hjust = if_else(manual_minus_model >= 0, -0.15, 1.15)
   )
@@ -193,10 +191,4 @@ p_terms <- ggplot(term_gap, aes(x = term, y = manual_minus_model, fill = directi
     plot.margin = margin(5.5, 28, 5.5, 5.5)
   )
 
-ggsave(
-  filename = file.path(fig_dir, "multi_role_objective_term_gap.pdf"),
-  plot = p_terms,
-  width = 6.8,
-  height = 3.8,
-  units = "in"
-)
+save_pdf("multi_role_objective_term_gap.pdf", p_terms, 6.8, 3.8)

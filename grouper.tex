@@ -96,9 +96,7 @@ within one extensible framework.
 
 Each \texttt{grouper} workflow is formulated as an integer or mixed-integer program.
 The objective describes the allocation goal, while the constraints define which
-allocations are feasible. The notation below follows the package vignettes so
-that the mathematical description can be compared directly with the detailed
-model documentation.
+allocations are feasible.
 
 \subsection{Diversity-based assignment}\label{diversity-based-assignment}
 
@@ -400,24 +398,56 @@ trade-off
 
 \subsubsection{Purpose and inputs}\label{purpose-and-inputs-2}
 
-The third model addresses a general multi-role workload allocation problem.
-Individuals receive discrete work units across several roles while the
-allocation satisfies task demand, annual workload requirements, and policy
-constraints. Doctoral teaching-workload allocation motivated the design:
-individuals may receive teaching assistantship (TA), grading (GR), and lighter
-residual support duties (E). The resulting formulation is not specific to that
-setting. TA and GR can each have their own preference, fairness, and
-protected-cohort policies, while E can be allocated according to a score such as
-seniority, experience, or eligibility.
+The third model addresses a general multi-role workload allocation problem
+that arises in higher-education departments. Individuals are assigned
+discrete work units across three roles:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  teaching assistantship (TA);
+\item
+  grading assignments and exams (GR); and
+\item
+  lighter extra duties such as invigilating exams, proctoring, and other administrative support work (E).
+\end{enumerate}
+
+The allocation satisfies task demand, individual capacity limits, and institutional
+policy constraints.
 
 The extractor aligns an individual table, optional role-specific preference
-matrices, and a role-demand matrix. The individual table supplies cohort year
+matrices, and a role-demand matrix.
+
+The individual table supplies cohort year
 and, when available, previous TA and GR workload. These become the historical
 workload vectors \(t_i^{(1)}\) and \(g_i^{(1)}\). The preference matrices
 supply \(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\), the demand matrix
 supplies \(d_{jr}\), and a user-configurable score \(s_i\) guides E allocation.
 E demand may either be supplied or derived from total semester capacity and
 submitted TA and GR demand.
+
+The extractor aligns three input objects:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  an individual table,
+\item
+  optional role-specific preference matrices, and
+\item
+  a role-demand matrix.
+\end{enumerate}
+
+The individual table supplies cohort year and previous TA and GR workload,
+which are converted into the historical workload vectors \(t_i^{(1)}\) and
+\(g_i^{(1)}\). The preference matrices supply
+\(P^{\mathrm{TA}}_{ij}\) and \(P^{\mathrm{GR}}_{ij}\). The demand matrix
+supplies \(d_{jr}\), the required number of units for task \(j\) and role
+\(r\). A user-configurable score \(s_i\) is used to guide the allocation of E
+units. E demand can either be supplied directly or derived from total semester
+capacity after submitted TA and GR demand have been accounted for.
 
 \subsubsection{Objective}\label{objective-2}
 
@@ -428,7 +458,7 @@ workload as
 
 \[
 T_i=t_i^{(1)}+\sum_jX_{ij,\mathrm{TA}},\qquad
-G_i=g_i^{(1)}+\sum_jX_{ij,\mathrm{GR}}.
+G_i=g_i^{(1)}+\sum_jX_{ij,\mathrm{GR}}
 \]
 
 Let \(Y_{\mathrm{TA}}\) and \(Y_{\mathrm{GR}}\) denote the cohorts protected
@@ -450,11 +480,16 @@ P^{\mathrm{GR}}_{ij}X_{ij,\mathrm{GR}}\\
 \end{aligned}
 \]
 
-The first two terms penalize annual TA and GR workload spread. The next two
-reward role-specific preference fit, the E term rewards allocation according to
-the supplied score, and the final terms penalize violations of the two
-protected-cohort soft limits. Each objective component is optional, so the
-formulation can represent policies that use only a subset of these criteria.
+The first two terms penalize the annual workload spread for TA and GR roles.
+The next two terms reward role-specific preference fit, while the fifth term
+rewards assigning E units according to the supplied priority score. The final
+two terms penalize violations of the protected-cohort soft limits for TA and GR.
+
+Each objective component is optional. By setting the corresponding hyperparameter
+to 0 or NULL, users can remove that component from the model during construction.
+This allows the same formulation to represent policies that use only a
+subset of the available criteria, without requiring users to rewrite the
+underlying optimization model.
 
 \subsubsection{Key constraints}\label{key-constraints-2}
 
@@ -467,8 +502,7 @@ Every task-role demand must be met exactly:
 Each individual's annual workload is fixed at \(2C\):
 
 \[
-\left(t_i^{(1)}+\sum_jX_{ij,\mathrm{TA}}\right)
-+\left(g_i^{(1)}+\sum_jX_{ij,\mathrm{GR}}\right)
+T_i + G_i
 +\sum_jX_{ij,\mathrm{E}}=2C,\quad \forall i. \tag{12}
 \]
 
@@ -504,25 +538,11 @@ Optional role-wide lower and upper bounds are imposed only when supplied:
 \ell_r\leq\sum_jX_{ijr}\leq u_r,\quad \forall i,r. \tag{15}
 \]
 
-The variable domains are
-
-\[
-X_{ijr}\in\mathbb{Z}_{\geq0},\qquad
-T_{\min},T_{\max},G_{\min},G_{\max}\geq0,\qquad
-w_i^{\mathrm{TA}},w_i^{\mathrm{GR}}\geq0. \tag{16}
-\]
-
 Historical workload allows the model to balance past and current-semester
 duties together. When previous workload is unavailable,
 \texttt{single\_semester\ =\ TRUE} generates uniform synthetic history with
 \(t_i^{(1)}=0\) and \(g_i^{(1)}=C\). This leaves \(C\) units per individual for
 the current allocation without changing GR workload spread.
-
-Setting an objective weight to zero or \texttt{NULL} disables that policy component.
-Preference and E expressions are omitted from the objective; disabling a
-fairness or protection term also omits its supporting variables and
-constraints. When a protection term is disabled, all individuals enter that
-role's fairness calculation if the corresponding fairness term remains active.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
@@ -693,13 +713,11 @@ and decision-ready allocation outputs.
 The multi-role workflow is selected for the detailed use case because it exposes
 the largest argument set and the richest interaction among demand, preferences,
 fairness, workload history, priority scores, and cohort protection. This section
-evaluates that workflow using institutional planning data from AY2420, AY2510,
-and AY2520. The notation
+evaluates that workflow using institutional planning data from the National University
+of Singapore, department of Data Sciece and Statistics for AY2420, AY2510, and AY2520. The notation
 follows the department's academic-year convention, where AY denotes academic
 year, the first two digits indicate the academic year, and the final two digits
-indicate the semester. For example, AY2510 refers to Semester 1 of Academic
-Year 2025--2026, while AY2520 refers to Semester 2 of the same academic year.
-Together, the three cases cover different cohort sizes, course offerings,
+indicate the semester. The three cases cover different cohort sizes, course offerings,
 and role-demand profiles, allowing us to assess the workflow across multiple
 operational settings and compare optimized schedules with the manual schedules
 used by the department. Student identifiers and course codes are anonymized
@@ -716,14 +734,24 @@ composition by year. AY2510 is the largest instance by both student
 and course count, while role demand and cohort structure vary across
 the three semesters.
 
-The generalized model permits independent GR fairness, preference, and
-protected-cohort terms. The institutional comparison retains the policy used in
-the original planning exercise: TA fairness, TA preferences, seniority-guided E
-allocation, and Year-1 TA protection are active, while the GR-specific objective
-terms are disabled. In particular, no GR preference term is evaluated because
-the retained manual records do not identify GR assignments by course. The
-comparison therefore demonstrates a TA-focused configuration of the general
-multi-role model rather than every available policy component.
+The allocation uses the policy configuration from
+the original departmental planning exercise:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  TA fairness
+\item
+  TA preference fit
+\item
+  seniority-guided E allocation
+\item
+  Year-1 TA protection
+\end{enumerate}
+
+This is a subset of the generalized model. In particular, no GR preference term
+is evaluated because it was not part of the department's operational policy in this case.
 
 \begin{table}[!h]
 
@@ -773,7 +801,7 @@ df_multirole <- extract_info(
 The resulting \texttt{df\_multirole} object is the standardized input contract used by
 the model-building stage. It contains the aligned TA preference matrix,
 role-demand matrix, semester capacity, seniority score, and past workload
-vectors; downstream code no longer needs to know the original file layout.
+vectors.
 
 The second step constructs the mixed-integer model. In this example, the policy
 weights are set to \texttt{alpha\_ta\ =\ 2}, \texttt{beta\_ta\ =\ 1}, \texttt{phi\ =\ 1}, and
@@ -820,16 +848,9 @@ multirole_solution <- solve_assignment(
 
 The returned object contains \texttt{model\_result}, which keeps the raw solver result
 for diagnostics, and \texttt{output}, which stores the allocation in a wide
-student-by-course-role table. The results are first summarized across all three
-semesters by comparing the optimized schedules with the manual schedules used by
-the department. Both are evaluated with the same objective expression. Because
-the model minimizes a weighted objective with no single natural unit, values
-should be compared only between schedules evaluated with the same policy
-weights. Figure
+student-by-course-role table. Figure
 \ref{fig:fig-multi-role-objective-comparison} plots the absolute objective
-value for the model and manual schedules so that all bars share a common
-positive orientation. All six raw values are negative; therefore, a taller bar
-represents a more negative, and hence lower, raw objective.
+value. A taller bar represents a more negative, and hence lower, objective value.
 
 \begin{figure}[!htbp]
 
@@ -842,14 +863,9 @@ represents a more negative, and hence lower, raw objective.
 
 \FloatBarrier
 
-The model obtains a lower weighted objective in all three semesters. This should
-be interpreted as a policy-consistent comparison rather than a general judgment
-on the department's manual allocation. Both schedules are scored using the same
-objective function, so each difference reflects the combined treatment of
-TA workload fairness, TA preference fit, seniority steering, and Year-1 TA
-protection under the stated policy weights. GR demand and total workload remain
-feasibility requirements, but no GR-specific objective term contributes to this
-comparison.
+Both schedules are scored using the same set of hyperparameters and it can
+be observed that the model obtains a lower weighted objective in all three semesters,
+indicating that the optimized allocation better satisfies the policy criteria.
 
 Figure \ref{fig:fig-ay2520-distribution} then shows how an optimized schedule is
 allocated at student level. For AY2520, it displays annual workload by student
@@ -868,12 +884,12 @@ carried into the annual balance.
 
 \FloatBarrier
 
-The dashed horizontal line marks the four-unit semester capacity. Since each bar
-combines current and past workload, bars reaching eight units represent a full
-two-semester workload target. Faceting by cohort year makes the Year-1 protection
-and seniority-based residual-support pattern easier to inspect. Year-1 students
-receive at most one current-semester TA unit, while residual-support units are
-assigned only to students in Years 2--4. Among Years 2--4, annual TA workload
+The dashed horizontal line marks the four-unit semester capacity. Faceting by
+cohort year makes the Year-1 protection
+and seniority-based residual-support pattern easier to inspect.
+
+Year-1 students receive at most one current-semester TA unit, while residual-support units are
+assigned only to students in Years 2 to 4. Among Years 2 to 4, annual TA workload
 ranges from one to four units, giving the three-unit spread reported for the
 baseline solution.
 
@@ -883,7 +899,7 @@ weighted objective terms.
 
 \begin{figure}[!htbp]
 
-{\centering \includegraphics[width=0.78\linewidth,alt={Horizontal bar chart showing AY2420 manual-minus-model weighted differences for TA preference, TA fairness, seniority residual support, and Year-1 TA slack terms.}]{figures/multi_role_objective_term_gap}
+{\centering \includegraphics[width=0.78\linewidth,alt={Horizontal bar chart showing AY2420 manual-minus-model weighted differences for TA preference, TA fairness, seniority residual support, and Year-1 TA slack terms.}]{figures/multi_role_objective_term_gap} 
 
 }
 
@@ -902,7 +918,7 @@ assignment space more systematically than an operational manual process.
 A one-at-a-time AY2520 sensitivity check was used to examine whether local
 changes to the objective weights alter the operational conclusions. In this
 example, changing \texttt{alpha\_ta} has the clearest effect on TA workload fairness
-because it directly penalizes the annual TA spread. In the local check, the
+because it directly penalizes the annual TA spread. The
 spread decreases from 5 units at \texttt{alpha\_ta\ =\ 1} to 3 units at the manuscript
 value \texttt{alpha\_ta\ =\ 2}, and to 2 units in the returned solution at
 \texttt{alpha\_ta\ =\ 4}. Local changes to \texttt{beta\_ta}, \texttt{phi}, and \texttt{rho\_ta} have smaller
@@ -910,19 +926,18 @@ visible effects because the baseline solution already achieves high TA
 preference attainment, assigns residual support toward senior students, and
 uses no Year-1 TA-overload slack. The sensitivity check therefore supports
 interpreting these active weights as local policy levers rather than universal
-tuning constants. The disabled GR weights are not varied because they are
-outside the institutional policy evaluated here.
+tuning constants.
 
 The reproducible benchmark repeated the AY2520 solve 30 times for each
 open-source solver. \texttt{GLPK} returned the same objective value,
 \(-182\), in all 30 runs with a mean
-runtime of 0.181 seconds and an observed
-range from 0.174 to
-0.241 seconds. \texttt{HiGHS} also returned
+runtime of 0.188 seconds and an observed
+range from 0.179 to
+0.238 seconds. \texttt{HiGHS} also returned
 objective value \(-182\) in all 30
-runs, with a mean runtime of 0.195
+runs, with a mean runtime of 0.198
 seconds and an observed range from 0.189
-to 0.243 seconds. These timings indicate
+to 0.238 seconds. These timings indicate
 that the example is small enough for either open-source backend to solve
 interactively.
 
@@ -1066,7 +1081,7 @@ combines prior workload, course demand, TA preferences, seniority-based priority
 and Year-1 TA protection, while leaving the optional GR objective terms
 disabled. Under the stated policy weights, the optimized schedules obtain lower
 objective values than the corresponding manual schedules. This comparison is
-specific to the encoded policy; the generalized model supports broader TA and
+specific to the encoded policy. The generalized model supports broader TA and
 GR configurations, while the first two workflows extend the same
 data-build-solve pattern to diversity balancing and preference-sensitive topic
 allocation.

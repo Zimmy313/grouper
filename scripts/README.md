@@ -1,6 +1,6 @@
 # Reproducibility scripts
 
-Run scripts from `LATEX/rj1/` in this order:
+Run scripts from root in this order:
 
 1. `Rscript scripts/01_build_results.R`
 2. `Rscript scripts/02_build_plots.R`
@@ -12,8 +12,9 @@ What each script does:
 
 - `01_build_results.R`: reads the cleaned anonymized AY2420, AY2510, and AY2520
   inputs in `data/raw/<semester>/`, runs the GLPK multi-role workload
-  optimization for all three semesters, and writes the manuscript result tables
-  plus AY2520 workload-distribution data to `data/derived/`.
+  optimization for all three semesters using the TA-focused manuscript policy,
+  and writes the result tables plus AY2520 workload-distribution data to
+  `data/derived/`.
 - `02_build_plots.R`: reads the retained derived data and writes
   `figures/ay2520_distribution.pdf` and
   `figures/multi_role_objective_comparison.pdf`, which compares absolute
@@ -24,8 +25,9 @@ What each script does:
 - `03_manual_objective.R`: reads the AY2520 raw inputs plus manual-allocation
   raw files, recomputes the manual objective under the manuscript parameters,
   and prints the objective components without writing results.
-- `04_hyperparameter_sensitivity.R`: varies `alpha`, `beta`, `phi`, and `rho`
-  one at a time around the AY2520 manuscript setting and prints sensitivity
-  summaries without writing results.
+- `04_hyperparameter_sensitivity.R`: varies `alpha_ta`, `beta_ta`, `phi`, and
+  `rho_ta` one at a time around the AY2520 manuscript setting and prints
+  sensitivity summaries without writing results.
 - `multirole_helpers.R`: shared helper functions used by the result and
-  sensitivity scripts.
+  sensitivity scripts. The empirical workflow uses `assignment = "multirole"`
+  with GR-specific objective terms disabled.
