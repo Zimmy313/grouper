@@ -121,7 +121,6 @@ prepare_preference_model <- function(df_list, yaml_list) {
     ompr::add_constraint(a[t,r]>=x[g,t,r], g=1:G, t=1:(B*n_topics), r=1:R) %>%
     ompr::add_constraint(a[t,r]<=ompr::sum_over(x[g,t,r], g=1:G), t=1:(B*n_topics), r=1:R) %>%
     ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)>=rmin, t=1:n_topics) %>%
-    # ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)<=rmax, t=1:n_topics) %>%
     # DEFINE CONSTRAINTS (BALANCED NO. OF REPETITIONS FOR SUBGROUPS)
     ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)==ompr::sum_over(a[(b*n_topics+t),r], r=1:R), t=1:n_topics, b=min(1,B-1):max(0,B-1)) %>%
     # DEFINE CONSTRAINTS (MIN AND MAX NO. OF STUDENTS PER TOPIC-REPETITION)
