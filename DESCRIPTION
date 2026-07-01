@@ -4,7 +4,7 @@ Title: Optimal Group Assignment and Workload Allocation
 Version: 0.7.3
 Authors@R: c(
     person("Vik", "Gopal", , "vik.gopal@nus.edu.sg", role = "aut"),
-    person("Kevin", "Lam", , "lamfy@nus.edu.sg", role = "aut"),
+    person("Kevin", "Lam", , "kevinlam@nus.edu.sg", role = "aut"),
     person("Ju", "Xue", , "rigi.jx@gmail.com", role = "ctb"),
     person("Mingyuan", "Zhang", , "mingyuan.z@nus.edu.sg", role = c("aut", "cre")),
     person("National University of Singapore", role = "cph")

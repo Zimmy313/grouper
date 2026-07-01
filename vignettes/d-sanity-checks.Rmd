@@ -50,7 +50,7 @@ dba_gc_ex001
 ```
 
 It is intuitive that an assignment into two groups of size two, based on the
-diversity of majors alone, should assign students 1 and 2 into the first 
+diversity of majors alone, should assign students 1 and 3 into the first 
 group and the remaining two students into another group.
 
 The corresponding YAML `dba_gc_ex001.yml` file for this exercise consists of the
@@ -114,8 +114,8 @@ assign_groups(
 )
 ```
 
-We can see that students 1 and 2 have been assigned to topic 1, repetition 1. Students 
-3 and 4 have been assigned to topic 2, repetition 1.
+We can see that students 2 and 3 have been assigned to topic 1, repetition 1. Students 
+1 and 4 have been assigned to topic 2, repetition 1.
 
 ## Dataset 001 (skills only)
 
@@ -157,7 +157,6 @@ m1a_alt <- prepare_model(
   w1 = 0.0,
   w2 = 1.0,
   n_topics = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,
@@ -241,7 +240,6 @@ m3_alt <- prepare_model(
   w1 = 1.0,
   w2 = 0.0,
   n_topics = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,
@@ -309,7 +307,6 @@ m4_alt <- prepare_model(
   w1 = 0.0,
   w2 = 1.0,
   n_topics = 2,
-  R = 1,
   nmin = c(2, 3),
   nmax = c(2, 3),
   rmin = 1,
@@ -390,7 +387,6 @@ m2_alt <- prepare_model(
   assignment = "preference",
   n_topics = 2,
   B = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,

@@ -1,5 +1,4 @@
 n_topics: 2
-R:  1
 nmin: [2, 3]
 nmax: [2, 3]
 rmin: 1

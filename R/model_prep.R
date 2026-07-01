@@ -635,7 +635,6 @@ prepare_model_params_from_dots <- function(assignment, dots) {
 
     return(list(
       n_topics = dots$n_topics,
-      R = dots$rmax,
       nmin = nmin,
       nmax = nmax,
       rmin = dots$rmin,
@@ -646,20 +645,19 @@ prepare_model_params_from_dots <- function(assignment, dots) {
   nmin <- matrix(
     data = dots$nmin,
     nrow = dots$B * dots$n_topics,
-    ncol = dots$R,
+    ncol = dots$rmax,
     byrow = TRUE
   )
   nmax <- matrix(
     data = dots$nmax,
     nrow = dots$B * dots$n_topics,
-    ncol = dots$R,
+    ncol = dots$rmax,
     byrow = TRUE
   )
 
   list(
     n_topics = dots$n_topics,
     B = dots$B,
-    R = dots$R,
     nmin = nmin,
     nmax = nmax,
     rmin = dots$rmin,
@@ -681,9 +679,9 @@ prepare_model_params_from_dots <- function(assignment, dots) {
 #'   `assignment = "diversity"`.
 #' @param ... Additional arguments:
 #'   * For `assignment = "diversity"` when `yaml_list` is `NULL`: supply
-#'     `n_topics`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+#'     `n_topics`, `nmin`, `nmax`, `rmin`, and `rmax`.
 #'   * For `assignment = "preference"` when `yaml_list` is `NULL`: supply
-#'     `n_topics`, `B`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+#'     `n_topics`, `B`, `nmin`, `nmax`, `rmin`, and `rmax`.
 #'   * For `assignment = "phd"`: passed to [prepare_phd_model()], including
 #'     `protected_year` when a cohort other than Year 1 should receive the soft
 #'     TA-load protection.

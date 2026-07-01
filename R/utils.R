@@ -23,13 +23,13 @@ compute_diversity <- function(id, dmat) {
 #' @keywords internal
 summary_dba <- function(df_result, df_list, id_col) {
   if(is.null(df_list$s)) {
-    df_result %>% group_by(topic, rep) %>%
-      summarise(n=n(),
+    df_result %>% dplyr::group_by(.data$topic, .data$rep) %>%
+      dplyr::summarise(n=dplyr::n(),
                 total_diversity = compute_diversity(.data[[id_col]], df_list$d),
                 .groups = "drop")
   } else {
-    df_result %>% group_by(topic, rep) %>%
-      summarise(n=n(),
+    df_result %>% dplyr::group_by(.data$topic, .data$rep) %>%
+      dplyr::summarise(n=dplyr::n(),
                 total_skill = sum(df_list$s[.data[[id_col]]]),
                 total_diversity = compute_diversity(.data[[id_col]], df_list$d),
                 .groups = "drop")
@@ -59,6 +59,8 @@ get_group_pref_score <- function(group_num, topic, subtopic, pref_mat, n_topics)
 #'   `assignment = "preference"`. Must contain `p` (preference matrix).
 #' @param n_topics Integer. Number of base topics.
 #'
+#' @importFrom rlang .data
+#'
 #' @returns A grouped summary tibble with columns `topic2`, `subtopic`, `rep`,
 #'   `n`, and `total_pref_score`.
 #' @keywords internal
@@ -71,8 +73,8 @@ summary_pba <- function(df_result, df_list, n_topics) {
                                                    n_topics = n_topics)
          )
    df_result %>%
-     group_by(topic2, subtopic, rep) %>%
-     summarise(n=n(), total_pref_score = sum(pref_scores), .groups="drop")
+     dplyr::group_by(.data$topic2, .data$subtopic, .data$rep) %>%
+     dplyr::summarise(n=dplyr::n(), total_pref_score = sum(.data$pref_scores), .groups="drop")
 }
 
 #' Convert a preference matrix to rank-based scores
