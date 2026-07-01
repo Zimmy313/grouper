@@ -1,3 +1,6 @@
+# grouper 0.7.3
+- Removed R from DBA and PBA models
+
 # grouper 0.7.2
 
 * Added `single_semester` extraction for multi-role allocations without prior
