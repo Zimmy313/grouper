@@ -602,9 +602,9 @@ prepare_multirole_model <- function(
 
 prepare_model_params_from_dots <- function(assignment, dots) {
   required_fields <- if (assignment == "diversity") {
-    c("n_topics", "R", "nmin", "nmax", "rmin", "rmax")
+    c("n_topics", "nmin", "nmax", "rmin", "rmax")
   } else {
-    c("n_topics", "B", "R", "nmin", "nmax", "rmin", "rmax")
+    c("n_topics", "B", "nmin", "nmax", "rmin", "rmax")
   }
 
   missing_fields <- required_fields[vapply(
@@ -623,19 +623,19 @@ prepare_model_params_from_dots <- function(assignment, dots) {
     nmin <- matrix(
       data = dots$nmin,
       nrow = dots$n_topics,
-      ncol = dots$R,
+      ncol = dots$rmax,
       byrow = TRUE
     )
     nmax <- matrix(
       data = dots$nmax,
       nrow = dots$n_topics,
-      ncol = dots$R,
+      ncol = dots$rmax,
       byrow = TRUE
     )
 
     return(list(
       n_topics = dots$n_topics,
-      R = dots$R,
+      R = dots$rmax,
       nmin = nmin,
       nmax = nmax,
       rmin = dots$rmin,

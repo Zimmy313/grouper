@@ -99,7 +99,6 @@ m1_alt <- prepare_model(
   w1 = 1.0,
   w2 = 0.0,
   n_topics = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,

@@ -21,18 +21,22 @@ knitr::opts_chunk$set(
 
 Consider a situation where an instructor wishes to divide students into groups.
 Each group will be allocated a topic $t$, from a pool of topics $1,\ldots,T$. It
-is possible that each topic $t$ is repeated $R_t$ times across the class. In
-total, there are $N$ students in the class.
+is possible that each topic $t$ is repeated a certain number of times across the
+class. Suppose that the maximum number of repetitions of a topic is 
+$r_{max}$. In total, there are $N$ students in the class.
 
 Suppose that students form their own groups, which they submit through a survey
-form. In total there are $G$ groups; each student appears in exactly 1 group.
+form. In total there are $G$ such self-formed groups; each student appears in
+exactly 1 group.
 
 In addition, we have the following information about each student:
 
 1.   Information that can be used to compute dissimilarities between pairs of 
-     students. Examples are: the major of the student (STEM vs. non-STEM), gender,
-     year-of-study, etc.
-2.   Information on the skill level pertinent to your class, or to the problem
+     students. Examples are: 
+     *  the major of the student (STEM vs. non-STEM), 
+     * gender, 
+     * year-of-study, etc.
+2.   Information on the skill level pertinent to the class, or to the problem
      they will be working on.
 
 This model allows you to maximise the diversity within a group and minimise the
@@ -44,7 +48,7 @@ The overall objective function can be written as:
 
 $$
 \max \quad w_1 \left( \sum_{i=1}^{N-1} \sum_{j=i+1}^N \sum_{t=1}^T 
-                      \sum_{r=1}^{R_t} z_{ijtr} \cdot d_{ij} \right) + 
+                      \sum_{r=1}^{r_{max}} z_{ijtr} \cdot d_{ij} \right) + 
            w_2 (s_{min} - s_{max})
 $$
 
@@ -72,7 +76,7 @@ This first constraint represents the need for each group to be assigned to exact
 topic-repetition combination:
 
 $$
-\sum_{t=1}^T \sum_{r=1}^{R_t} x_{gtr} = 1, \quad \forall g
+\sum_{t=1}^T \sum_{r=1}^{r_{max}} x_{gtr} = 1, \quad \forall g
 $$
 
 ## Defining $z_{ijtr}$
@@ -96,18 +100,22 @@ to set.
 \begin{eqnarray}
 a_{tr} &\ge&  x_{gtr},\quad \forall t,r \\
 a_{tr} &\le& \sum_{g=1}^G x_{gtr},\quad \forall t,r \\
-\sum_{r=1}^{R_t} a_{tr} &\ge& r_{min},\quad \forall t \\
-\sum_{r=1}^{R_t} a_{tr} &\le& r_{max},\quad \forall t
+\sum_{r=1}^{r_{max}} a_{tr} &\ge& r_{min},\quad \forall t \\
+\sum_{r=1}^{r_{max}} a_{tr} &\le& r_{max},\quad \forall t
 \end{eqnarray}
+
+Take note that the last constraint is automatically satisfied since {a_{tr}} is
+binary.
 
 ## Number of students per group
 
 A similar set of constraints are used to bound the number of students in each
-eventually assigned group.
+eventually assigned group. $n_{min}$ and $n_{max}$ are also input variables; they 
+dictate the bounds on the number of students in each assigned group.
 
 \begin{eqnarray}
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\ge& a_{tr} \cdot n^{min}_{tr}, \quad \forall t,r \\
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\le& a_{tr} \cdot n^{max}_{tr}, \quad \forall t,r 
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\ge& a_{tr} \cdot n_{min}, \quad \forall t,r \\
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\le& a_{tr} \cdot n_{max}, \quad \forall t,r 
 \end{eqnarray}
 
 ## Per-group skill levels
