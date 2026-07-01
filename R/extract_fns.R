@@ -553,12 +553,12 @@ extract_params_yaml <- function(fname, assignment=c("diversity", "preference")) 
     # MINIMUM NUMBER OF STUDENTS PER TOPIC
     nmin <- matrix(data=in_params$nmin,
                    nrow=B*in_params$n_topics,
-                   ncol=in_params$R, byrow=TRUE)
+                   ncol=in_params$rmax, byrow=TRUE)
 
     # MAXIMUM NUMBER OF STUDENTS PER TOPIC
     nmax <- matrix(data=in_params$nmax,
                    nrow=B*in_params$n_topics,
-                   ncol=in_params$R, byrow=TRUE)
+                   ncol=in_params$rmax, byrow=TRUE)
 
     return(list(n_topics = in_params$n_topics, B = B,
                 nmin=nmin, nmax = nmax,
