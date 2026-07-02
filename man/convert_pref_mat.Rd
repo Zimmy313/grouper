@@ -21,4 +21,3 @@ Transforms raw preference ranks so that higher values indicate stronger
 preference. A rank of 1 maps to \code{n_topics * B}, rank 2 to \code{n_topics * B - 1},
 and so on.
 }
-\keyword{internal}
