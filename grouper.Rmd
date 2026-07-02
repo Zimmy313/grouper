@@ -72,6 +72,7 @@ suppressPackageStartupMessages({
   library(ROI.plugin.glpk)
   library(dplyr)
   library(ggplot2)
+  library(tidyverse)
 })
 ```
 
@@ -526,7 +527,7 @@ Table: Parameter effect guide for the multi-role workload allocation model
 (directional, holding other settings fixed).
 
 
-# The `grouper` package
+# The `grouper` package {#sec-grouper-pkg-wrapper}
 
 Figure \@ref(fig:fig-package-architecture) summarizes the architecture of
 `grouper` as a domain-specific implementation layer for the allocation models
@@ -642,7 +643,133 @@ optimization infrastructure, whereas `grouper` provides a domain-specific layer
 that connects higher-education data, institutional policy, model construction,
 and decision-ready allocation outputs.
 
-# Multi-role workload allocation in practice
+# Constructed Datasets {#sec-constructed-data}
+
+In order to understand how \pkg{grouper} works, we demonstrate it's usage on two
+small and artificially constructed datasets in this section. This allows new users 
+to understand which arguments are important, and the role that they play.
+
+## Diversity-based assignment
+
+The dataset for this example `dba_gc_ex001` is available once the package is
+loaded. While the `id` column is strictly not necessary, it is good to include
+it. Inspection of the data should show that, if we needed to create two groups
+of students based on maximising the diversity of major only, then one group
+should comprise students 1 and 3, and the other should comprise students 2 and
+4.
+
+```{r}
+dba_gc_ex001
+```
+
+The next three lines of code demonstrate how to apply the DBA model to the above 
+dataset, using the functions described in \@ref(sec-grouper-pkg-wrapper).
+
+```{r}
+dba_ex1_list <- extract_info(assignment = "diversity", dframe = dba_gc_ex001, 
+                        demographic_cols = 2, skills = 3, self_formed_groups = 4 
+                        )
+
+dba_ex1_model <- prepare_model(dba_ex1_list, assignment = "diversity", 
+                               w1 = 1.0, w2 = 0.0, 
+                               n_topics = 2, nmin = 2, nmax = 2, rmin = 1, rmax = 1 )
+
+dba_ex1_result <- solve_model(dba_ex1_model, with_ROI(solver = "glpk"))
+```
+
+In order to retrieve the results in a usable format, with the assigned groupings 
+mapped to the original dataset, \CRANpkg{grouper} provides a convenience function
+`asssign_groups` to perform the required table join.
+
+```{r}
+dba_ex1_output_df <- assign_groups(model_result = dba_ex1_result,  
+                                   assignment = "diversity",  
+                                   dframe = dba_gc_ex001, 
+                                   group_names = "groups"
+                                   )
+```
+
+The final output dataset, displayed in \@ref(tab:constructed-dba-2), is
+identical to the original data `dba_gc_ex001` except for the columns `topic` and
+`rep`. The allocation agrees with the stated intuition that students 1 and 4
+should be assigned together.
+
+```{r constructed-dba-2, echo=FALSE}
+knitr::kable(dba_ex1_output_df, booktabs=TRUE,
+             col.names = c("topic", "rep", "group", "id", "major", "skill"),
+             caption = "The assigned groupings for the constructed DBA dataset. Students 2 and 3 have been assigned to topic 1 and students 1 and 4 to topic 2.") %>% 
+  kableExtra::kable_styling(latex_options = c("hold_position"))
+```
+
+## Preference-based assignment
+
+The second datasets comprises 8 students. Here is a listing of the dataset:
+
+```{r}
+pba_gc_ex002
+```
+
+Each student is in a self-formed group of size 2, indicated via the `grouping`
+column. Suppose that, for this set of students, the instructor wishes to assign
+students into two topics, with each topic having two sub-groups. This requires
+the preference matrix to have 4 columns - one for each topic-subgroup
+combination. Take note that the ordering of topics/subtopics should be:
+
+> T1S1, T2S1, T1S2, T2S2
+
+There should be 4 rows in the preference matrix - one for each self-formed
+group.
+
+```{r}
+pba_prefmat_ex002
+```
+
+In this case, it is possible to assign each self-formed group to its optimal
+choice of topic-subtopic combination. In our solution, we should see that group
+1 is assigned to subtopic 1 of topic 1, group 2 is assigned to sub-topic 1 of
+topic 2, and so on.
+
+```{r}
+pba_ex2_list <- extract_info(assignment = "preference", 
+                             dframe = pba_gc_ex002, self_formed_groups = 2, 
+                             pref_mat = pba_prefmat_ex002 
+                             )
+
+pba_ex2_model <- prepare_model(pba_ex2_list, assignment = "preference", 
+                               n_topics = 2, B = 2, nmin = 2, nmax = 2, 
+                               rmin = 1, rmax = 1 
+                               )
+
+pba_ex2_result <- solve_model(pba_ex2_model, with_ROI(solver = "glpk"))
+
+pba_ex2_output_df <- assign_groups(model_result = pba_ex2_result, 
+                                   assignment = "preference", 
+                                   dframe = pba_gc_ex002, 
+                                   params_list = list(n_topics = 2, B = 2), 
+                                   group_names = "grouping" 
+                                   )
+```
+
+As before, the purpose of the final line in the chunk is to merge the output with
+the original dataset. The allocation is shown in \@ref(tab:constructed-pba-2).
+
+```{r constructed-pba-2, echo=FALSE}
+tmp <- arrange(pba_ex2_output_df, topic2, subtopic)
+knitr::kable(tmp, booktabs=TRUE,
+             col.names = c("topic", "subtopic", "rep", "group", "size", "id"),
+             caption = "The assigned groupings for the constructed PBA dataset. The number of rows in this dataset is equal to the number of students in the course.") %>% 
+  kableExtra::kable_styling(latex_options = c("hold_position"))
+```
+
+More constructed examples can be found in the package vignettes.
+
+# Examples from Past Semesters {#sec-semester-data}
+
+## Diversity-based allocation
+
+
+
+## Multi-role workload allocation in practice
 
 This section evaluates the multi-role workload workflow using institutional
 planning data from AY2420, AY2510, and AY2520. The notation
@@ -874,7 +1001,7 @@ offsets the gap by 8 units and the Year-1 slack term is unchanged. In this
 sense, `grouper` makes allocation rules explicit and searches the feasible
 assignment space more systematically than an operational manual process.
 
-## Hyperparameter effectiveness
+### Hyperparameter effectiveness
 
 A one-at-a-time AY2520 sensitivity check was used to examine whether local
 changes to the objective weights alter the operational conclusions. In this
