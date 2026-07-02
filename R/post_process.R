@@ -59,6 +59,7 @@ assign_groups <- function(model_result,
                 dplyr::group_by(.data$topic2, .data$subtopic) %>%
                 dplyr::mutate(rep=match(.data$rep, unique(.data$rep)))
     out_df <- as.data.frame(dplyr::ungroup(out_df))
+    out_df <- dplyr::left_join(out_df, dframe, by=c("group" = group_names))
 
     return(out_df)
   } else {

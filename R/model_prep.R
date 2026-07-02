@@ -18,11 +18,12 @@ prepare_diversity_model <- function(df_list, yaml_list, w1 = 0.5, w2 = 0.5) {
   s <- df_list$s
 
   n_topics <- yaml_list$n_topics
-  R <- yaml_list$R
+  #R <- yaml_list$R
   nmin <- yaml_list$nmin
   nmax <- yaml_list$nmax
   rmin <- yaml_list$rmin
   rmax <- yaml_list$rmax
+  R <- rmax
 
   model <- ompr::MIPModel() %>%
     # DEFINE DECISION VARIABLES
@@ -99,31 +100,33 @@ prepare_preference_model <- function(df_list, yaml_list) {
   n <- df_list$n
   p <- df_list$p
 
-  T <- yaml_list$n_topics
+  n_topics <- yaml_list$n_topics
   B <- yaml_list$B
-  R <- yaml_list$R
   nmin <- yaml_list$nmin
   nmax <- yaml_list$nmax
   rmin <- yaml_list$rmin
   rmax <- yaml_list$rmax
+  # R <- yaml_list$R
+  R <- rmax
 
   ompr::MIPModel() %>%
     # DEFINE DECISION VARIABLES
-    ompr::add_variable(x[g,t,r], g=1:G, t=1:(B*T), r=1:R, type="binary") %>%
-    ompr::add_variable(a[t,r], t=1:(B*T), r=1:R, type="binary") %>%
+    ompr::add_variable(x[g,t,r], g=1:G, t=1:(B*n_topics), r=1:R, type="binary") %>%
+    ompr::add_variable(a[t,r], t=1:(B*n_topics), r=1:R, type="binary") %>%
     # DEFINE OBJECTIVE FUNCTION
-    ompr::set_objective(ompr::sum_over(x[g,t,r]*n[g]*p[g,t], g=1:G, t=1:(B*T), r=1:R), "max") %>%
+    ompr::set_objective(ompr::sum_over(x[g,t,r]*n[g]*p[g,t], g=1:G, t=1:(B*n_topics), r=1:R), "max") %>%
     # DEFINE CONSTRAINTS (EACH GROUP ASSIGNED A TOPIC-REP)
-    ompr::add_constraint(ompr::sum_over(x[g,t,r], t=1:(B*T), r=1:R)==1, g=1:G) %>%
+    ompr::add_constraint(ompr::sum_over(x[g,t,r], t=1:(B*n_topics), r=1:R)==1, g=1:G) %>%
     # DEFINE CONSTRAINTS (MIN NO. OF REPETITIONS PER TOPIC)
-    ompr::add_constraint(a[t,r]>=x[g,t,r], g=1:G, t=1:(B*T), r=1:R) %>%
-    ompr::add_constraint(a[t,r]<=ompr::sum_over(x[g,t,r], g=1:G), t=1:(B*T), r=1:R) %>%
-    ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)>=rmin, t=1:T) %>%
+    ompr::add_constraint(a[t,r]>=x[g,t,r], g=1:G, t=1:(B*n_topics), r=1:R) %>%
+    ompr::add_constraint(a[t,r]<=ompr::sum_over(x[g,t,r], g=1:G), t=1:(B*n_topics), r=1:R) %>%
+    ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)>=rmin, t=1:n_topics) %>%
     # DEFINE CONSTRAINTS (BALANCED NO. OF REPETITIONS FOR SUBGROUPS)
-    ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)==ompr::sum_over(a[(b*T+t),r], r=1:R), t=1:T, b=min(1,B-1):max(0,B-1)) %>%
+    ompr::add_constraint(ompr::sum_over(a[t,r], r=1:R)==ompr::sum_over(a[(b*n_topics+t),r], r=1:R), t=1:n_topics, b=min(1,B-1):max(0,B-1)) %>%
     # DEFINE CONSTRAINTS (MIN AND MAX NO. OF STUDENTS PER TOPIC-REPETITION)
-    ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)>=a[t,r]*nmin[t,r], t=1:(B*T), r=1:R) %>%
-    ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)<=a[t,r]*nmax[t,r], t=1:(B*T), r=1:R)
+    ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)>=a[t,r]*nmin[t,r], t=1:(B*n_topics), r=1:R) %>%
+    ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N,
+    g=1:G)<=a[t,r]*nmax[t,r], t=1:(B*n_topics), r=1:R)
 }
 
 
@@ -599,9 +602,9 @@ prepare_multirole_model <- function(
 
 prepare_model_params_from_dots <- function(assignment, dots) {
   required_fields <- if (assignment == "diversity") {
-    c("n_topics", "R", "nmin", "nmax", "rmin", "rmax")
+    c("n_topics", "nmin", "nmax", "rmin", "rmax")
   } else {
-    c("n_topics", "B", "R", "nmin", "nmax", "rmin", "rmax")
+    c("n_topics", "B", "nmin", "nmax", "rmin", "rmax")
   }
 
   missing_fields <- required_fields[vapply(
@@ -620,19 +623,18 @@ prepare_model_params_from_dots <- function(assignment, dots) {
     nmin <- matrix(
       data = dots$nmin,
       nrow = dots$n_topics,
-      ncol = dots$R,
+      ncol = dots$rmax,
       byrow = TRUE
     )
     nmax <- matrix(
       data = dots$nmax,
       nrow = dots$n_topics,
-      ncol = dots$R,
+      ncol = dots$rmax,
       byrow = TRUE
     )
 
     return(list(
       n_topics = dots$n_topics,
-      R = dots$R,
       nmin = nmin,
       nmax = nmax,
       rmin = dots$rmin,
@@ -643,20 +645,19 @@ prepare_model_params_from_dots <- function(assignment, dots) {
   nmin <- matrix(
     data = dots$nmin,
     nrow = dots$B * dots$n_topics,
-    ncol = dots$R,
+    ncol = dots$rmax,
     byrow = TRUE
   )
   nmax <- matrix(
     data = dots$nmax,
     nrow = dots$B * dots$n_topics,
-    ncol = dots$R,
+    ncol = dots$rmax,
     byrow = TRUE
   )
 
   list(
     n_topics = dots$n_topics,
     B = dots$B,
-    R = dots$R,
     nmin = nmin,
     nmax = nmax,
     rmin = dots$rmin,
@@ -678,9 +679,9 @@ prepare_model_params_from_dots <- function(assignment, dots) {
 #'   `assignment = "diversity"`.
 #' @param ... Additional arguments:
 #'   * For `assignment = "diversity"` when `yaml_list` is `NULL`: supply
-#'     `n_topics`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+#'     `n_topics`, `nmin`, `nmax`, `rmin`, and `rmax`.
 #'   * For `assignment = "preference"` when `yaml_list` is `NULL`: supply
-#'     `n_topics`, `B`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+#'     `n_topics`, `B`, `nmin`, `nmax`, `rmin`, and `rmax`.
 #'   * For `assignment = "phd"`: passed to [prepare_phd_model()], including
 #'     `protected_year` when a cohort other than Year 1 should receive the soft
 #'     TA-load protection.
