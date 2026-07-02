@@ -767,6 +767,52 @@ More constructed examples can be found in the package vignettes.
 
 ## Diversity-based allocation
 
+The final author of this paper teaches an interdisciplinary course together
+with a colleague from the English Language department. Students first learn
+about data science and linguistics in lectures. Then, in small groups, they
+discuss chosen topics from the viewpoint of linguistics and data
+science/statistics. As such, it is necessary to create groups with a good
+balance of Data Science and Statistics (dsds) majors, and non-dsds majors.
+
+Students in the course are divided into small tutorial groups of approximately 25 to 30 students. 
+Each group is then divided into groups of 4 to 5 to discuss chosen topics. 
+When the course was run, we did not have \CRANpkg{grouper} available. Going back to the 
+course composition, we used grouper to understand how much optimal the outcome could 
+have been. Figure \@ref(fig:dba-past-1) shows the resulting comparison.
+
+```{r dba-past-1, echo=FALSE, fig.align='center', fig.cap='Comparison between grouper allocation and manual allocation for diversity-based groupings in an interdisciplinary course. The top row corresponds to the outcomes if grouper had been available to carry out the allocation. The bottom row consists of the manual allocation outcomes. Notice that group 2 in the manual assignment was heavily imbalanced.', out.width='70%', fig.pos='ht'}
+knitr::include_graphics("figures/dba_past_semesters_allocation.png")
+```
+
+It is clear that the routine does a fairer assignment. Note that, as there are 5
+such tutorial groupings, this assignment has to be carried out five times.
+
+## Preference-based allocation
+
+In the "Statement of Need" section, we mentioned a Data Science course that
+requires allocating students into project teams with 2 sub-groups: one
+sub-group typically develops a user-interface; and the other works on data
+analysis. The table below shows how `grouper` could have benefited us if it had
+been used over the four semesters the course was taught.
+
+Consider the first semester we ran the course (row 1): the enrolment was
+62 and there were 4 topic titles to be allocated (with some permitted
+repetitions). In the manual allocation carried out, the average
+preference of the self-formed groups was 8.16. *If we could have used
+`grouper`*, the mean preference for this same group of students would
+have been 9.47 (higher is better).
+
+| Sem | manual_pref | grouper_pref | class_size | n_topics | n_project_teams |
+|-----|-------------|--------------|------------|----------|-----------------|
+| 1   |  8.16       |  9.47        | 62         | 4        | 7               |
+| 2   | 13.10       | 13.30        | 108        | 7        | 13              |
+| 3   | 12.70       | 13.50        | 89         | 7        | 11              |
+| 4   |  9.48       |  9.66        | 151        | 5        | 18              |
+
+![Preference-based groupings](pba_example_ds.png)
+
+It is clear that `grouper` would have improved the overall preference if we had
+access to it.
 
 
 ## Multi-role workload allocation in practice
