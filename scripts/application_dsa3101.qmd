@@ -9,7 +9,6 @@ library(ompr)
 library(ompr.roi)
 library(ROI.plugin.gurobi)
 library(ROI.plugin.glpk)
-library(ROI.plugin.highs)
 library(tidyverse)
 ```
 
@@ -26,12 +25,13 @@ could not find a solution because there were not enough students to form groups 
 group_comp_df1 <- readRDS("../data/derived/data005-composition.rds")
 group_pref_mat1 <- readRDS("../data/derived/data005-preference.rds")[, -c(1,6)]
 
-df_list <- extract_student_info(group_comp_df1, "preference",  
-                                self_formed_groups = 2,  
-                                pref_mat = group_pref_mat1)
+df_list <- extract_info(dframe=group_comp_df1, assignment="preference",  
+                        self_formed_groups = 2,  
+                        pref_mat = group_pref_mat1)
 mdl2_5 <- prepare_model(df_list, assignment="preference", n_topics=4, B=2, 
                         nmin=3, nmax=5, rmin=1, rmax=2)
 result <- solve_model(mdl2_5, with_ROI(solver="glpk", verbose=TRUE))
+#result <- solve_model(mdl2_5, with_ROI(solver="gurobi", verbose=TRUE))
 
 groupr_assigned_df1 <- assign_groups(result, assignment = "preference",  
                                      dframe=group_comp_df1, 
@@ -39,15 +39,15 @@ groupr_assigned_df1 <- assign_groups(result, assignment = "preference",
                                      group_names="group_id")
 total_pref <- summary_pba(groupr_assigned_df1, df_list, 4)
 
-# Extract the preference that each group had for the grouper-assigned topic
-n_groups <- NROW(group_pref_mat1)
-preference_alloc_topic <- rep(0, n_groups)
-for(jj in 1:n_groups){
-  group_id <- groupr_assigned_df1$group[jj]
-  allocated_topic <- ((groupr_assigned_df1$subtopic-1)*4 + (groupr_assigned_df1$topic2))[jj]
-  preference_alloc_topic[jj] <- group_pref_mat1[group_id, allocated_topic]
-}
-groupr_assigned_df1$pref_for_allocated_topic <- preference_alloc_topic
+# # Extract the preference that each group had for the grouper-assigned topic
+# n_groups <- NROW(group_pref_mat1)
+# preference_alloc_topic <- rep(0, n_groups)
+# for(jj in 1:n_groups){
+#   group_id <- groupr_assigned_df1$group[jj]
+#   allocated_topic <- ((groupr_assigned_df1$subtopic-1)*4 + (groupr_assigned_df1$topic2))[jj]
+#   preference_alloc_topic[jj] <- group_pref_mat1[group_id, allocated_topic]
+# }
+# groupr_assigned_df1$pref_for_allocated_topic <- preference_alloc_topic
 
 # Extract the manually allocated topics.
 allocated_df1 <- readRDS("../data/derived/data005-allocated.rds")
@@ -55,7 +55,7 @@ allocated_df1 <- readRDS("../data/derived/data005-allocated.rds")
 # Calculate mean preference over students
 allocated_pref_mean_2120 <- sum(allocated_df1$pref_for_allocated_topic*allocated_df1$size)/sum(allocated_df1$size)
 # 8.16
-groupr_pref_mean_2120 <-  sum(groupr_assigned_df1$pref_for_allocated_topic*groupr_assigned_df1$size)/sum(groupr_assigned_df1$size)
+groupr_pref_mean_2120 <- sum(total_pref$total_pref_score)/NROW(group_comp_df1)
 # 9.47
 
 #groupr_assigned_df1 %>% select(1,2,3) %>% 
@@ -66,18 +66,21 @@ groupr_pref_mean_2120 <-  sum(groupr_assigned_df1$pref_for_allocated_topic*group
 ## Semester 2210
 
 ```{r}
-group_comp_df1 <- readRDS("data006-composition.rds")
-group_pref_mat1 <- readRDS("data006-preference.rds")
-allocated_df1 <- readRDS("data006-allocated.rds")
+group_comp_df1 <- readRDS("../data/derived/data006-composition.rds")
+group_pref_mat1 <- readRDS("../data/derived/data006-preference.rds")
+allocated_df1 <- readRDS("../data/derived/data006-allocated.rds")
 
-df_list <- extract_student_info(group_comp_df1, "preference",  
-                                self_formed_groups = 2,  
-                                pref_mat = group_pref_mat1)
-yaml_list <- extract_params_yaml("mdl02_input06.yml", "preference")
-mdl2_6 <- prepare_model(df_list, yaml_list, "preference")
-result <- solve_model(mdl2_6, with_ROI(solver="gurobi"))
+df_list <- extract_info(dframe=group_comp_df1, assignment="preference",  
+                        self_formed_groups = 2,  
+                        pref_mat = group_pref_mat1)
+#yaml_list <- extract_params_yaml("mdl02_input06.yml", "preference")
+mdl2_6 <- prepare_model(df_list, assignment="preference", n_topics=7, B=2, 
+                        nmin=3, nmax=5, rmin=1, rmax=3)
+result <- solve_model(mdl2_6, with_ROI(solver="gurobi", verbose=TRUE))
+result <- solve_model(mdl2_6, with_ROI(solver="glpk", verbose=TRUE))
 groupr_assigned_df1 <- assign_groups(result, assignment = "preference",  
-                                     dframe=group_comp_df1, yaml_list, 
+                                     dframe=group_comp_df1, 
+                                     params_list = list(n_topics=7, B=2),
                                      group_names="group_id")
 
 n_groups <- NROW(group_pref_mat1)
