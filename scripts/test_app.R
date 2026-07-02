@@ -18,5 +18,6 @@ m1 <- prepare_model(df_list, yaml_list, "diversity", w1=1.0)
 # tm limit in milliseconds
 # https://cran.r-universe.dev/Rglpk/doc/manual.html
 #result <- solve_model(m1, with_ROI(solver="glpk", verbose=TRUE, tm_limit=100))
+result <- solve_model(m1, with_ROI(solver="glpk", verbose=TRUE, presolve=TRUE, tm_limit=5000))
 
 assigned_groups <- assign_groups(result, "diversity", df1, yaml_list, "student_id")
