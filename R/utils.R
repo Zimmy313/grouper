@@ -4,7 +4,8 @@
 #' @param dmat Numeric distance matrix (students × students).
 #'
 #' @returns Scalar: sum of upper-triangle distances among `id`.
-#' @keywords internal
+#'
+#' @export
 compute_diversity <- function(id, dmat) {
   sum(dmat[id, id])/2
 }
@@ -20,7 +21,8 @@ compute_diversity <- function(id, dmat) {
 #'
 #' @returns A grouped summary tibble with columns `topic`, `rep`, `n`, and
 #'   `total_diversity` (plus `total_skill` when `df_list$s` is present).
-#' @keywords internal
+#'
+#' @export
 summary_dba <- function(df_result, df_list, id_col) {
   if(is.null(df_list$s)) {
     df_result %>% dplyr::group_by(.data$topic, .data$rep) %>%
@@ -45,7 +47,8 @@ summary_dba <- function(df_result, df_list, id_col) {
 #' @param n_topics Integer. Number of base topics.
 #'
 #' @returns Scalar preference score.
-#' @keywords internal
+#'
+#' @export
 get_group_pref_score <- function(group_num, topic, subtopic, pref_mat, n_topics) {
   col_num <- (subtopic - 1)*n_topics + topic
   pref_mat[group_num, col_num]
@@ -63,7 +66,8 @@ get_group_pref_score <- function(group_num, topic, subtopic, pref_mat, n_topics)
 #'
 #' @returns A grouped summary tibble with columns `topic2`, `subtopic`, `rep`,
 #'   `n`, and `total_pref_score`.
-#' @keywords internal
+#'
+#' @export
 summary_pba <- function(df_result, df_list, n_topics) {
    df_result$pref_scores <- mapply(get_group_pref_score,
                                    group_num = df_result$group,
@@ -88,7 +92,8 @@ summary_pba <- function(df_result, df_list, n_topics) {
 #' @param B Integer. Number of subtopic subgroups per topic.
 #'
 #' @returns Numeric matrix of the same dimensions as `pref_mat`.
-#' @keywords internal
+#'
+#' @export
 convert_pref_mat <- function(pref_mat, n_topics, B) {
   t(apply(pref_mat, 1, function(x) n_topics*B - (x-1)))
 }
