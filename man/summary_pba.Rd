@@ -22,4 +22,3 @@ A grouped summary tibble with columns \code{topic2}, \code{subtopic}, \code{rep}
 \description{
 Summarise a PBA result by topic-subtopic-repetition group
 }
-\keyword{internal}

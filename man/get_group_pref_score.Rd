@@ -23,4 +23,3 @@ Scalar preference score.
 \description{
 Look up a group's preference score for a topic-subtopic combination
 }
-\keyword{internal}

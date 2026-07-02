@@ -23,4 +23,3 @@ A grouped summary tibble with columns \code{topic}, \code{rep}, \code{n}, and
 \description{
 Summarise a DBA result by topic-repetition group
 }
-\keyword{internal}

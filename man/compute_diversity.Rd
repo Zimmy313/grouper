@@ -17,4 +17,3 @@ Scalar: sum of upper-triangle distances among \code{id}.
 \description{
 Compute total pairwise diversity for a set of students
 }
-\keyword{internal}
