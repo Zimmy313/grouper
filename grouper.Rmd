@@ -158,7 +158,7 @@ package provides a comparable orchestration layer for diversity-based student
 grouping, preference-based topic allocation, and multi-role workload allocation
 within one extensible framework.
 
-# Mathematical allocation models
+# Mathematical allocation models {#sec-math-models}
 
 Each `grouper` workflow is formulated as an integer or mixed-integer program.
 The objective describes the allocation goal, while the constraints define which
@@ -645,30 +645,31 @@ and decision-ready allocation outputs.
 
 # Constructed Datasets {#sec-constructed-data}
 
-In order to understand how \pkg{grouper} works, we demonstrate it's usage on two
+In order to understand how \CRANpkg{grouper} works, we demonstrate it's usage on two
 small and artificially constructed datasets in this section. This allows new users 
-to understand which arguments are important, and the role that they play.
+to understand the arguments and workflow better.
 
 ## Diversity-based assignment
 
-The dataset for this example `dba_gc_ex001` is available once the package is
-loaded. While the `id` column is strictly not necessary, it is good to include
-it. Inspection of the data should show that, if we needed to create two groups
-of students based on maximising the diversity of major only, then one group
-should comprise students 1 and 3, and the other should comprise students 2 and
-4.
+The dataset for this example `dba_gc_ex001` is available with the package.  The
+scenario here is that there are four students (hence four rows), each in their
+own individual group. The goal is to divide the four students into two groups,
+with each group having maximal diversity, as measured by their majors. It
+should be clear from inspection of the data that one group should comprise
+students 1 and 3, and the other should comprise students 2 and 4.  While the
+`id` column is strictly not necessary for \CRANpkg{grouper} to work, it is good
+to include it.
 
 ```{r}
 dba_gc_ex001
 ```
 
 The next three lines of code demonstrate how to apply the DBA model to the above 
-dataset, using the functions described in \@ref(sec-grouper-pkg-wrapper).
+dataset, using the functions described earlier in Section \@ref(sec-grouper-pkg-wrapper).
 
 ```{r}
 dba_ex1_list <- extract_info(assignment = "diversity", dframe = dba_gc_ex001, 
-                        demographic_cols = 2, skills = 3, self_formed_groups = 4 
-                        )
+                        demographic_cols = 2, skills = 3, self_formed_groups = 4)
 
 dba_ex1_model <- prepare_model(dba_ex1_list, assignment = "diversity", 
                                w1 = 1.0, w2 = 0.0, 
@@ -679,14 +680,12 @@ dba_ex1_result <- solve_model(dba_ex1_model, with_ROI(solver = "glpk"))
 
 In order to retrieve the results in a usable format, with the assigned groupings 
 mapped to the original dataset, \CRANpkg{grouper} provides a convenience function
-`asssign_groups` to perform the required table join.
+`assign_groups()` to perform the required table join.
 
 ```{r}
 dba_ex1_output_df <- assign_groups(model_result = dba_ex1_result,  
-                                   assignment = "diversity",  
-                                   dframe = dba_gc_ex001, 
-                                   group_names = "groups"
-                                   )
+                                   assignment = "diversity", dframe = dba_gc_ex001, 
+                                   group_names = "groups")
 ```
 
 The final output dataset, displayed in \@ref(tab:constructed-dba-2), is
@@ -715,30 +714,27 @@ students into two topics, with each topic having two sub-groups. This requires
 the preference matrix to have 4 columns - one for each topic-subgroup
 combination. Take note that the ordering of topics/subtopics should be:
 
-> T1S1, T2S1, T1S2, T2S2
+> Topic1-Subtopic1, Topic2-Subtopic1, Topic1-Subtopic2, Topic2-Subtopic2
 
-There should be 4 rows in the preference matrix - one for each self-formed
-group.
+There are 4 rows in the preference matrix - one for each self-formed group.
 
 ```{r}
 pba_prefmat_ex002
 ```
 
-In this case, it is possible to assign each self-formed group to its optimal
-choice of topic-subtopic combination. In our solution, we should see that group
-1 is assigned to subtopic 1 of topic 1, group 2 is assigned to sub-topic 1 of
-topic 2, and so on.
+In this toy example, it is possible to assign each self-formed group to its
+optimal choice of topic-subtopic combination. In our solution, we should see
+that group 1 is assigned to subtopic 1 of topic 1, group 2 is assigned to
+sub-topic 1 of topic 2, and so on.
 
 ```{r}
 pba_ex2_list <- extract_info(assignment = "preference", 
                              dframe = pba_gc_ex002, self_formed_groups = 2, 
-                             pref_mat = pba_prefmat_ex002 
-                             )
+                             pref_mat = pba_prefmat_ex002 )
 
 pba_ex2_model <- prepare_model(pba_ex2_list, assignment = "preference", 
                                n_topics = 2, B = 2, nmin = 2, nmax = 2, 
-                               rmin = 1, rmax = 1 
-                               )
+                               rmin = 1, rmax = 1 )
 
 pba_ex2_result <- solve_model(pba_ex2_model, with_ROI(solver = "glpk"))
 
@@ -746,12 +742,11 @@ pba_ex2_output_df <- assign_groups(model_result = pba_ex2_result,
                                    assignment = "preference", 
                                    dframe = pba_gc_ex002, 
                                    params_list = list(n_topics = 2, B = 2), 
-                                   group_names = "grouping" 
-                                   )
+                                   group_names = "grouping" )
 ```
 
 As before, the purpose of the final line in the chunk is to merge the output with
-the original dataset. The allocation is shown in \@ref(tab:constructed-pba-2).
+the original dataset. The allocation is shown in Table \@ref(tab:constructed-pba-2).
 
 ```{r constructed-pba-2, echo=FALSE}
 tmp <- arrange(pba_ex2_output_df, topic2, subtopic)
@@ -780,7 +775,7 @@ When the course was run, we did not have \CRANpkg{grouper} available. Going back
 course composition, we used grouper to understand how much optimal the outcome could 
 have been. Figure \@ref(fig:dba-past-1) shows the resulting comparison.
 
-```{r dba-past-1, echo=FALSE, fig.align='center', fig.cap='Comparison between grouper allocation and manual allocation for diversity-based groupings in an interdisciplinary course. The top row corresponds to the outcomes if grouper had been available to carry out the allocation. The bottom row consists of the manual allocation outcomes. Notice that group 2 in the manual assignment was heavily imbalanced.', out.width='70%', fig.pos='ht'}
+```{r dba-past-1, echo=FALSE, fig.align='center', fig.cap='Comparison between grouper allocation and manual allocation for diversity-based groupings in an interdisciplinary course. The top row corresponds to the outcomes if grouper had been available to carry out the allocation. The bottom row consists of the manual allocation outcomes. Notice that group 2 in the manual assignment was heavily imbalanced.', out.width='85%', fig.pos='ht'}
 knitr::include_graphics("figures/dba_past_semesters_allocation.png")
 ```
 
@@ -802,18 +797,26 @@ preference of the self-formed groups was 8.16. *If we could have used
 `grouper`*, the mean preference for this same group of students would
 have been 9.47 (higher is better).
 
-| Sem | manual_pref | grouper_pref | class_size | n_topics | n_project_teams |
-|-----|-------------|--------------|------------|----------|-----------------|
-| 1   |  8.16       |  9.47        | 62         | 4        | 7               |
-| 2   | 13.10       | 13.30        | 108        | 7        | 13              |
-| 3   | 12.70       | 13.50        | 89         | 7        | 11              |
-| 4   |  9.48       |  9.66        | 151        | 5        | 18              |
+```{r pba-past-1, echo=FALSE}
+pba_pref_df <- tibble(sem = 1:4,
+		      manual = c(8.16, 13.10, 12.70, 9.48),
+		      grouper = c(9.47, 13.30, 13.50, 9.66),
+		      class_size = c(62L, 108L, 89L, 151L),
+		      n_topics = c(4L,7L,7L,5L),
+		      n_project_teams = c(7L,13L,11L,18L))
+knitr::kable(pba_pref_df, booktabs=TRUE,
+             col.names = c("Semester", "Manual score", "Grouper score", 
+			   "Class size", "No. topics", "No. project teams"),
+             caption = "Breakdown of preference scores (per student). If grouper had been available, allocation could have been carried out in a more optimal manner, and much quicker!") %>% 
+  kableExtra::kable_styling(font_size = 9, latex_options = c("hold_position"))
+```
 
-![Preference-based groupings](pba_example_ds.png)
+```{r pba-past-2, echo=FALSE, fig.align='center', fig.cap='Comparison between grouper allocation and manual allocation for preference-based groupings. The red line corresponds to mean preference scores if grouper had been available to carry out the allocation. The green line corresponds to mean preference scores from the actual manual allocations. While the improvement may not appear to be substantial, one must take note that the manual allocation process could take 4 - 5 days, while grouper takes minutes.', out.width='85%', fig.pos='ht'}
+knitr::include_graphics("figures/pba_past_semesters_allocation.png")
+```
 
 It is clear that `grouper` would have improved the overall preference if we had
 access to it.
-
 
 ## Multi-role workload allocation in practice
 

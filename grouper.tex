@@ -10,7 +10,8 @@
 Grouper is an R package for formulating and solving allocation problems that arise in higher education. The package provides three mixed-integer optimization workflows. They cover diversity-based assignment of students to groups and topics, preference-based assignment of self-formed groups to topic slots, and multi-role workload allocation under fairness, preference, and priority constraints. Existing optimization tools in R provide powerful low-level modeling and solver interfaces, but instructors and administrators often need formulations that connect institutional rules to interpretable allocation outputs. Grouper addresses this gap through policy-aware mathematical models, structured input formats, configurable constraints and objective weights, and a stable API pattern across assignment settings. Users can adapt group-size limits, topic capacities, preference weights, workload caps, fairness terms, and priority rules without rewriting the underlying model code. This paper presents the models, package design, implementation, and a detailed workflow demonstration, illustrating how Grouper can support reproducible and transparent allocation decisions in higher-education institutions.
 }
 
-\section{Introduction}\label{introduction}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
 
 Allocation problems are a recurring feature of higher education. Instructors and
 administrators routinely need to assign students to groups, topics, supervisors,
@@ -50,7 +51,8 @@ approaches. We then present the three allocation models, describe how the packag
 implements them, and use the multi-role workload workflow as the detailed
 reproducible demonstration on departmental planning data.
 
-\subsection{Related work}\label{related-work}
+\hypertarget{related-work}{%
+\subsection{Related work}\label{related-work}}
 
 Optimization-based allocation has a long history in higher-education planning.
 Student-project allocation, group formation, and workload distribution can often
@@ -92,7 +94,8 @@ package provides a comparable orchestration layer for diversity-based student
 grouping, preference-based topic allocation, and multi-role workload allocation
 within one extensible framework.
 
-\section{Mathematical allocation models}\label{mathematical-allocation-models}
+\hypertarget{sec-math-models}{%
+\section{Mathematical allocation models}\label{sec-math-models}}
 
 Each \texttt{grouper} workflow is formulated as an integer or mixed-integer program.
 The objective describes the allocation goal, while the constraints define which
@@ -100,9 +103,11 @@ allocations are feasible. The notation below follows the package vignettes so
 that the mathematical description can be compared directly with the detailed
 model documentation.
 
-\subsection{Diversity-based assignment}\label{diversity-based-assignment}
+\hypertarget{diversity-based-assignment}{%
+\subsection{Diversity-based assignment}\label{diversity-based-assignment}}
 
-\subsubsection{Purpose and inputs}\label{purpose-and-inputs}
+\hypertarget{purpose-and-inputs}{%
+\subsubsection{Purpose and inputs}\label{purpose-and-inputs}}
 
 Consider \(N\) students arranged into \(G\) self-formed groups. Each group is
 assigned to one of \(T\) topics, and topic \(t\) may have \(R_t\) repetitions.
@@ -116,7 +121,8 @@ The extractor constructs \(m_{ig}\), which equals one when student \(i\) belongs
 to self-formed group \(g\), the pairwise dissimilarity values \(d_{ij}\), and
 the optional skill values \(s_i\).
 
-\subsubsection{Objective}\label{objective}
+\hypertarget{objective}{%
+\subsubsection{Objective}\label{objective}}
 
 \[
 \max \quad w_1 \left(
@@ -132,7 +138,8 @@ between their maximum and minimum total skill. The non-negative weights \(w_1\)
 and \(w_2\) determine the relative priority of the two terms and are normally
 chosen to sum to one. If skill is not supplied, the second term is omitted.
 
-\subsubsection{Key constraints}\label{key-constraints}
+\hypertarget{key-constraints}{%
+\subsubsection{Key constraints}\label{key-constraints}}
 
 Let
 
@@ -221,9 +228,9 @@ the skill spread. Inactive candidate repetitions are excluded from this
 comparison.
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
 \caption{Parameter effect guide for the diversity-based assignment model
 (directional, holding other settings fixed).}\tabularnewline
 \toprule\noalign{}
@@ -258,9 +265,11 @@ trade-off
 \texttt{R} (\(R_t\)) & provides more candidate repetitions & increases model size and only adds flexibility when repetition bounds permit their use \\
 \end{longtable}
 
-\subsection{Preference-based assignment}\label{preference-based-assignment}
+\hypertarget{preference-based-assignment}{%
+\subsection{Preference-based assignment}\label{preference-based-assignment}}
 
-\subsubsection{Purpose and inputs}\label{purpose-and-inputs-1}
+\hypertarget{purpose-and-inputs-1}{%
+\subsubsection{Purpose and inputs}\label{purpose-and-inputs-1}}
 
 Unlike the diversity-based model, which assigns groups according to student
 attributes and the desired composition of the final slots, this model is used
@@ -279,7 +288,8 @@ The user supplies the student data, self-formed-group column, and preference
 matrix. The extractor obtains \(m_{ig}\), group sizes \(n_g\), and preference
 scores \(p_{tg}\), where higher values indicate stronger preferences.
 
-\subsubsection{Objective}\label{objective-1}
+\hypertarget{objective-1}{%
+\subsubsection{Objective}\label{objective-1}}
 
 \[
 \max\sum_{g=1}^{G}\sum_{t=1}^{BT}\sum_{r=1}^{R_t}
@@ -291,7 +301,8 @@ topic-subgroup combination \(t\). Multiplication by \(n_g\) means that an
 assignment affecting a larger group contributes more to total student-level
 preference satisfaction.
 
-\subsubsection{Key constraints}\label{key-constraints-1}
+\hypertarget{key-constraints-1}{%
+\subsubsection{Key constraints}\label{key-constraints-1}}
 
 Every self-formed group must be assigned exactly once:
 
@@ -360,9 +371,9 @@ Thus, every active repetition must contain at least \(n_{tr}^{\min}\) and at
 most \(n_{tr}^{\max}\) students, while inactive repetitions remain empty.
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
 \caption{Parameter effect guide for the preference-based assignment model
 (directional, holding other settings fixed).}\tabularnewline
 \toprule\noalign{}
@@ -396,9 +407,11 @@ trade-off
 \texttt{rmax} & permits more repetitions & increases flexibility but may fragment allocations \\
 \end{longtable}
 
-\subsection{Multi-role workload allocation}\label{multi-role-workload-allocation}
+\hypertarget{multi-role-workload-allocation}{%
+\subsection{Multi-role workload allocation}\label{multi-role-workload-allocation}}
 
-\subsubsection{Purpose and inputs}\label{purpose-and-inputs-2}
+\hypertarget{purpose-and-inputs-2}{%
+\subsubsection{Purpose and inputs}\label{purpose-and-inputs-2}}
 
 The third model addresses a general multi-role workload allocation problem.
 Individuals receive discrete work units across several roles while the
@@ -417,7 +430,8 @@ the demand matrix supplies \(d_{jr}\). Residual-role demand may either be
 provided or derived from total semester workload and submitted TA and grading
 demand.
 
-\subsubsection{Objective}\label{objective-2}
+\hypertarget{objective-2}{%
+\subsubsection{Objective}\label{objective-2}}
 
 Let \(X_{ijr}\) be the non-negative integer units of role \(r\) assigned to
 individual \(i\) for task \(j\). Let \(Y_1\) denote the protected subgroup and
@@ -438,7 +452,8 @@ term penalizes violations of the protected subgroup's soft role-\(A\) limit.
 Role \(B\) is governed by demand and workload constraints rather than a direct
 objective reward.
 
-\subsubsection{Key constraints}\label{key-constraints-2}
+\hypertarget{key-constraints-2}{%
+\subsubsection{Key constraints}\label{key-constraints-2}}
 
 Every task-role demand must be met exactly:
 
@@ -495,9 +510,9 @@ from the optimization criterion without removing any associated feasibility
 constraints.
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
 \caption{Parameter effect guide for the multi-role workload allocation model
 (directional, holding other settings fixed).}\tabularnewline
 \toprule\noalign{}
@@ -532,7 +547,8 @@ trade-off
 \texttt{ta\_max}, \texttt{gr\_max}, \texttt{e\_max} & raises the permitted maximum for the corresponding role & weakly enlarges the feasible set and may allow greater concentration \\
 \end{longtable}
 
-\section{\texorpdfstring{The \texttt{grouper} package}{The grouper package}}\label{the-grouper-package}
+\hypertarget{sec-grouper-pkg-wrapper}{%
+\section{\texorpdfstring{The \texttt{grouper} package}{The grouper package}}\label{sec-grouper-pkg-wrapper}}
 
 Figure \ref{fig:fig-package-architecture} summarizes the architecture of
 \texttt{grouper} as a domain-specific implementation layer for the allocation models
@@ -551,7 +567,8 @@ reproducibility together with an allocation table for operational use.
 \caption{High-level package architecture.}\label{fig:fig-package-architecture}
 \end{figure}
 
-\subsection{Wrapper contract}\label{wrapper-contract}
+\hypertarget{wrapper-contract}{%
+\subsection{Wrapper contract}\label{wrapper-contract}}
 
 Each stage in Figure \ref{fig:fig-package-architecture} is exposed through a
 high-level wrapper, with model-specific functions available underneath for
@@ -561,7 +578,8 @@ use, while retaining granular control over input preparation, model
 construction, solver choice, and post-processing when a local policy requires
 it.
 
-\subsubsection{\texorpdfstring{\texttt{extract\_info()}}{extract\_info()}}\label{extract_info}
+\hypertarget{extract_info}{%
+\subsubsection{\texorpdfstring{\texttt{extract\_info()}}{extract\_info()}}\label{extract_info}}
 
 The \texttt{extract\_info()} function standardizes raw inputs into the list structure
 used by the model builders. For \texttt{assignment\ =\ "diversity"}, it accepts the
@@ -591,7 +609,8 @@ df <- extract_info(
 )
 \end{verbatim}
 
-\subsubsection{\texorpdfstring{\texttt{prepare\_model()}}{prepare\_model()}}\label{prepare_model}
+\hypertarget{prepare_model}{%
+\subsubsection{\texorpdfstring{\texttt{prepare\_model()}}{prepare\_model()}}\label{prepare_model}}
 
 The \texttt{prepare\_model()} function converts standardized inputs and policy
 parameters into an \texttt{ompr} mixed-integer optimization model. For diversity-based
@@ -618,7 +637,8 @@ m <- prepare_model(
 )
 \end{verbatim}
 
-\subsubsection{\texorpdfstring{\texttt{solve\_assignment()}}{solve\_assignment()}}\label{solve_assignment}
+\hypertarget{solve_assignment}{%
+\subsubsection{\texorpdfstring{\texttt{solve\_assignment()}}{solve\_assignment()}}\label{solve_assignment}}
 
 The \texttt{solve\_assignment()} function solves a prepared model and converts the raw
 solver solution into an allocation output. The function uses \texttt{ompr.roi} to call
@@ -653,7 +673,254 @@ optimization infrastructure, whereas \texttt{grouper} provides a domain-specific
 that connects higher-education data, institutional policy, model construction,
 and decision-ready allocation outputs.
 
-\section{Multi-role workload allocation in practice}\label{multi-role-workload-allocation-in-practice}
+\hypertarget{sec-constructed-data}{%
+\section{Constructed Datasets}\label{sec-constructed-data}}
+
+In order to understand how \CRANpkg{grouper} works, we demonstrate it's usage on two
+small and artificially constructed datasets in this section. This allows new users
+to understand the arguments and workflow better.
+
+\hypertarget{diversity-based-assignment-1}{%
+\subsection{Diversity-based assignment}\label{diversity-based-assignment-1}}
+
+The dataset for this example \texttt{dba\_gc\_ex001} is available with the package. The
+scenario here is that there are four students (hence four rows), each in their
+own individual group. The goal is to divide the four students into two groups,
+with each group having maximal diversity, as measured by their majors. It
+should be clear from inspection of the data that one group should comprise
+students 1 and 3, and the other should comprise students 2 and 4. While the
+\texttt{id} column is strictly not necessary for \CRANpkg{grouper} to work, it is good
+to include it.
+
+\begin{verbatim}
+dba_gc_ex001
+\end{verbatim}
+
+\begin{verbatim}
+#>   id major skill groups
+#> 1  1     A     1      1
+#> 2  2     A     1      2
+#> 3  3     B     3      3
+#> 4  4     B     3      4
+\end{verbatim}
+
+The next three lines of code demonstrate how to apply the DBA model to the above
+dataset, using the functions described earlier in Section \ref{sec-grouper-pkg-wrapper}.
+
+\begin{verbatim}
+dba_ex1_list <- extract_info(assignment = "diversity", dframe = dba_gc_ex001, 
+                        demographic_cols = 2, skills = 3, self_formed_groups = 4)
+
+dba_ex1_model <- prepare_model(dba_ex1_list, assignment = "diversity", 
+                               w1 = 1.0, w2 = 0.0, 
+                               n_topics = 2, nmin = 2, nmax = 2, rmin = 1, rmax = 1 )
+
+dba_ex1_result <- solve_model(dba_ex1_model, with_ROI(solver = "glpk"))
+\end{verbatim}
+
+In order to retrieve the results in a usable format, with the assigned groupings
+mapped to the original dataset, \CRANpkg{grouper} provides a convenience function
+\texttt{assign\_groups()} to perform the required table join.
+
+\begin{verbatim}
+dba_ex1_output_df <- assign_groups(model_result = dba_ex1_result,  
+                                   assignment = "diversity", dframe = dba_gc_ex001, 
+                                   group_names = "groups")
+\end{verbatim}
+
+The final output dataset, displayed in \ref{tab:constructed-dba-2}, is
+identical to the original data \texttt{dba\_gc\_ex001} except for the columns \texttt{topic} and
+\texttt{rep}. The allocation agrees with the stated intuition that students 1 and 4
+should be assigned together.
+
+\begin{table}[!h]
+\centering
+\caption{\label{tab:constructed-dba-2}The assigned groupings for the constructed DBA dataset. Students 2 and 3 have been assigned to topic 1 and students 1 and 4 to topic 2.}
+\centering
+\begin{tabular}[t]{rrrrlr}
+\toprule
+topic & rep & group & id & major & skill\\
+\midrule
+1 & 1 & 2 & 2 & A & 1\\
+1 & 1 & 3 & 3 & B & 3\\
+2 & 1 & 1 & 1 & A & 1\\
+2 & 1 & 4 & 4 & B & 3\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\hypertarget{preference-based-assignment-1}{%
+\subsection{Preference-based assignment}\label{preference-based-assignment-1}}
+
+The second datasets comprises 8 students. Here is a listing of the dataset:
+
+\begin{verbatim}
+pba_gc_ex002
+\end{verbatim}
+
+\begin{verbatim}
+#>   id grouping
+#> 1  1        1
+#> 2  2        1
+#> 3  3        2
+#> 4  4        2
+#> 5  5        3
+#> 6  6        3
+#> 7  7        4
+#> 8  8        4
+\end{verbatim}
+
+Each student is in a self-formed group of size 2, indicated via the \texttt{grouping}
+column. Suppose that, for this set of students, the instructor wishes to assign
+students into two topics, with each topic having two sub-groups. This requires
+the preference matrix to have 4 columns - one for each topic-subgroup
+combination. Take note that the ordering of topics/subtopics should be:
+
+\begin{quote}
+Topic1-Subtopic1, Topic2-Subtopic1, Topic1-Subtopic2, Topic2-Subtopic2
+\end{quote}
+
+There are 4 rows in the preference matrix - one for each self-formed group.
+
+\begin{verbatim}
+pba_prefmat_ex002
+\end{verbatim}
+
+\begin{verbatim}
+#>      col1 col2 col3 col4
+#> [1,]    4    3    2    1
+#> [2,]    3    4    2    1
+#> [3,]    1    2    4    3
+#> [4,]    1    2    3    4
+\end{verbatim}
+
+In this toy example, it is possible to assign each self-formed group to its
+optimal choice of topic-subtopic combination. In our solution, we should see
+that group 1 is assigned to subtopic 1 of topic 1, group 2 is assigned to
+sub-topic 1 of topic 2, and so on.
+
+\begin{verbatim}
+pba_ex2_list <- extract_info(assignment = "preference", 
+                             dframe = pba_gc_ex002, self_formed_groups = 2, 
+                             pref_mat = pba_prefmat_ex002 )
+
+pba_ex2_model <- prepare_model(pba_ex2_list, assignment = "preference", 
+                               n_topics = 2, B = 2, nmin = 2, nmax = 2, 
+                               rmin = 1, rmax = 1 )
+
+pba_ex2_result <- solve_model(pba_ex2_model, with_ROI(solver = "glpk"))
+
+pba_ex2_output_df <- assign_groups(model_result = pba_ex2_result, 
+                                   assignment = "preference", 
+                                   dframe = pba_gc_ex002, 
+                                   params_list = list(n_topics = 2, B = 2), 
+                                   group_names = "grouping" )
+\end{verbatim}
+
+As before, the purpose of the final line in the chunk is to merge the output with
+the original dataset. The allocation is shown in Table \ref{tab:constructed-pba-2}.
+
+\begin{table}[!h]
+\centering
+\caption{\label{tab:constructed-pba-2}The assigned groupings for the constructed PBA dataset. The number of rows in this dataset is equal to the number of students in the course.}
+\centering
+\begin{tabular}[t]{rrrrrr}
+\toprule
+topic & subtopic & rep & group & size & id\\
+\midrule
+1 & 1 & 1 & 1 & 2 & 1\\
+1 & 1 & 1 & 1 & 2 & 2\\
+1 & 2 & 1 & 3 & 2 & 5\\
+1 & 2 & 1 & 3 & 2 & 6\\
+2 & 1 & 1 & 2 & 2 & 3\\
+\addlinespace
+2 & 1 & 1 & 2 & 2 & 4\\
+2 & 2 & 1 & 4 & 2 & 7\\
+2 & 2 & 1 & 4 & 2 & 8\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+More constructed examples can be found in the package vignettes.
+
+\hypertarget{sec-semester-data}{%
+\section{Examples from Past Semesters}\label{sec-semester-data}}
+
+\hypertarget{diversity-based-allocation}{%
+\subsection{Diversity-based allocation}\label{diversity-based-allocation}}
+
+The final author of this paper teaches an interdisciplinary course together
+with a colleague from the English Language department. Students first learn
+about data science and linguistics in lectures. Then, in small groups, they
+discuss chosen topics from the viewpoint of linguistics and data
+science/statistics. As such, it is necessary to create groups with a good
+balance of Data Science and Statistics (dsds) majors, and non-dsds majors.
+
+Students in the course are divided into small tutorial groups of approximately 25 to 30 students.
+Each group is then divided into groups of 4 to 5 to discuss chosen topics.
+When the course was run, we did not have \CRANpkg{grouper} available. Going back to the
+course composition, we used grouper to understand how much optimal the outcome could
+have been. Figure \ref{fig:dba-past-1} shows the resulting comparison.
+
+\begin{figure}[ht]
+
+{\centering \includegraphics[width=0.85\linewidth]{figures/dba_past_semesters_allocation} 
+
+}
+
+\caption{Comparison between grouper allocation and manual allocation for diversity-based groupings in an interdisciplinary course. The top row corresponds to the outcomes if grouper had been available to carry out the allocation. The bottom row consists of the manual allocation outcomes. Notice that group 2 in the manual assignment was heavily imbalanced.}\label{fig:dba-past-1}
+\end{figure}
+
+It is clear that the routine does a fairer assignment. Note that, as there are 5
+such tutorial groupings, this assignment has to be carried out five times.
+
+\hypertarget{preference-based-allocation}{%
+\subsection{Preference-based allocation}\label{preference-based-allocation}}
+
+In the ``Statement of Need'' section, we mentioned a Data Science course that
+requires allocating students into project teams with 2 sub-groups: one
+sub-group typically develops a user-interface; and the other works on data
+analysis. The table below shows how \texttt{grouper} could have benefited us if it had
+been used over the four semesters the course was taught.
+
+Consider the first semester we ran the course (row 1): the enrolment was
+62 and there were 4 topic titles to be allocated (with some permitted
+repetitions). In the manual allocation carried out, the average
+preference of the self-formed groups was 8.16. \emph{If we could have used
+\texttt{grouper}}, the mean preference for this same group of students would
+have been 9.47 (higher is better).
+
+\begin{table}[!h]
+\centering
+\caption{\label{tab:pba-past-1}Breakdown of preference scores (per student). If grouper had been available, allocation could have been carried out in a more optimal manner, and much quicker!}
+\centering
+\fontsize{9}{11}\selectfont
+\begin{tabular}[t]{rrrrrr}
+\toprule
+Semester & Manual score & Grouper score & Class size & No. topics & No. project teams\\
+\midrule
+1 & 8.16 & 9.47 & 62 & 4 & 7\\
+2 & 13.10 & 13.30 & 108 & 7 & 13\\
+3 & 12.70 & 13.50 & 89 & 7 & 11\\
+4 & 9.48 & 9.66 & 151 & 5 & 18\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+
+{\centering \includegraphics[width=0.85\linewidth]{figures/pba_past_semesters_allocation} 
+
+}
+
+\caption{Comparison between grouper allocation and manual allocation for preference-based groupings. The red line corresponds to mean preference scores if grouper had been available to carry out the allocation. The green line corresponds to mean preference scores from the actual manual allocations. While the improvement may not appear to be substantial, one must take note that the manual allocation process could take 4 - 5 days, while grouper takes minutes.}\label{fig:pba-past-2}
+\end{figure}
+
+It is clear that \texttt{grouper} would have improved the overall preference if we had
+access to it.
+
+\hypertarget{multi-role-workload-allocation-in-practice}{%
+\subsection{Multi-role workload allocation in practice}\label{multi-role-workload-allocation-in-practice}}
 
 This section evaluates the multi-role workload workflow using institutional
 planning data from AY2420, AY2510, and AY2520. The notation
@@ -843,7 +1110,8 @@ offsets the gap by 8 units and the Year-1 slack term is unchanged. In this
 sense, \texttt{grouper} makes allocation rules explicit and searches the feasible
 assignment space more systematically than an operational manual process.
 
-\subsection{Hyperparameter effectiveness}\label{hyperparameter-effectiveness}
+\hypertarget{hyperparameter-effectiveness}{%
+\subsubsection{Hyperparameter effectiveness}\label{hyperparameter-effectiveness}}
 
 A one-at-a-time AY2520 sensitivity check was used to examine whether local
 changes to the objective weights alter the operational conclusions. In this
@@ -870,7 +1138,8 @@ to 0.248 seconds. These timings indicate
 that the example is small enough for either open-source backend to solve
 interactively.
 
-\section{Web frontend}\label{web-frontend}
+\hypertarget{web-frontend}{%
+\section{Web frontend}\label{web-frontend}}
 
 \texttt{grouper} also ships with a \texttt{shiny} \citep{R-shiny} frontend for users who prefer a
 browser-based workflow over direct R scripting. The unified application is stored
@@ -943,7 +1212,8 @@ separate model implementation. Solver availability still depends on installed
 sensitive student information, so the application should be run in an
 institutionally controlled environment with appropriate access restrictions.
 
-\section{Discussion}\label{discussion}
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
 
 \texttt{grouper} is designed for higher-education allocation settings where policy
 rules are explicit, repeated across offerings, and difficult to manage reliably
@@ -990,7 +1260,8 @@ handling, and configuration parsing. This modular design avoids embedding a
 custom solver in \texttt{grouper}, but solver availability, installation, and licensing
 remain deployment considerations.
 
-\section{Conclusion}\label{conclusion}
+\hypertarget{conclusion}{%
+\section{Conclusion}\label{conclusion}}
 
 \texttt{grouper} provides three mathematical models and a consistent R workflow for
 recurring allocation problems in higher education. Diversity-based assignment
