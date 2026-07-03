@@ -1,11 +1,19 @@
-# Load libraries
+# Script for reproducing analyses on DBA for previous semester
+# This model was used to form groups in an interdisciplinary course, with the
+# objective of maximising diversity.
 #
+# In these cases, the Gurobi commercial solver tended to find the optimal
+# solution faster than glpk. The figure in the paper was generated using the
+# solution from Gurobi.
+#
+# Set working directory to be scripts/ before running.
+
 library(grouper)
 library(ompr)
 library(ompr.roi)
 library(ROI.plugin.gurobi)
+library(ROI.plugin.glpk)
 library(tidyverse)
-
 
 df1 <- readRDS("../data/derived/dba_ex3_composition.rds")
 df_list <- extract_info("diversity",
@@ -13,7 +21,11 @@ df_list <- extract_info("diversity",
                         self_formed_groups = 1)
 m1 <- prepare_model(df_list, assignment="diversity", w1=1.0, n_topics=5,
                     nmin=4, nmax=5, rmin=1, rmax=1)
+
+# Choose your solver here:
 result <- solve_model(m1, with_ROI(solver="gurobi", verbose=TRUE))
+# tm_limit in milliseconds, https://cran.r-universe.dev/Rglpk/doc/manual.html
+result <- solve_model(m1, with_ROI(solver="glpk", verbose=TRUE, tm_limit=5e3))
 
 assigned_groups <- assign_groups(result, assignment="diversity",
                                  dframe=df1, group_names="student_id")
