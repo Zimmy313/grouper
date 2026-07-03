@@ -136,11 +136,11 @@ groupr_pref_mean_2310 <- sum(total_pref$total_pref_score)/NROW(group_comp_df1)
 # Consolidating comparisons
 dsa_tbl <- tibble(
        iteration = c(1,2,3,4),
-       manual_pref = c(allocated_pref_mean_2120,
+       manual = c(allocated_pref_mean_2120,
                        allocated_pref_mean_2210,
                        allocated_pref_mean_2220,
                        allocated_pref_mean_2310),
-       grouper_pref = c(groupr_pref_mean_2120,
+       grouper = c(groupr_pref_mean_2120,
                        groupr_pref_mean_2210,
                        groupr_pref_mean_2220,
                        groupr_pref_mean_2310),
@@ -149,7 +149,7 @@ dsa_tbl <- tibble(
        n_project_teams = c(7, 13 , 11, 18)
          )
 
-dsa_tbl %>% pivot_longer(cols=c("manual_pref", "grouper_pref"),
+dsa_tbl %>% pivot_longer(cols=c("manual", "grouper"),
                          names_to = "assignment_type",
                          values_to="mean_preference") %>%
   ggplot(aes(x=iteration)) +
