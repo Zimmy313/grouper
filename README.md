@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/Zimmy313/grouper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Zimmy313/grouper/actions/workflows/R-CMD-check.yaml)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grouper)](https://cran.r-project.org/package=grouper)
 <!-- badges: end -->
 
 The goal of grouper is to make it easier for an instructor to do student or workload allocations.
