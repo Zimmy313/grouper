@@ -2,7 +2,6 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/Zimmy313/grouper/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Zimmy313/grouper/actions/workflows/R-CMD-check.yaml)
-[!Download count](https://cranlogs.r-pkg.org/badges/autoharp)
 <!-- badges: end -->
 
 The goal of grouper is to make it easier for an instructor to do student or workload allocations.
