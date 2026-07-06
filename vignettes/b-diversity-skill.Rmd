@@ -120,13 +120,17 @@ dictate the bounds on the number of students in each assigned group.
 
 ## Per-group skill levels
 
-We aim to maintain the skill level within each group using the following
-constraints.
+We aim to maintain the skill level within each active group using the following
+constraints. Let $M=\sum_{i=1}^N s_i$.
 
 \begin{eqnarray}
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} \cdot s_i &\ge& s_{min}, \quad \forall t,r \\
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} \cdot s_i + M(1-a_{tr}) &\ge& s_{min}, \quad \forall t,r \\
 \sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} \cdot s_i &\le& s_{max}, \quad \forall t,r \\
 \end{eqnarray}
+
+When $a_{tr}=1$, the lower bound applies to the total skill in that active
+topic-repetition combination. When $a_{tr}=0$, the Big-M term relaxes the lower
+bound so inactive combinations do not force $s_{min}$ to zero.
 
 ## Binary and non-negativity constraints
 

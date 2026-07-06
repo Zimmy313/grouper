@@ -105,6 +105,34 @@ test_that("prepare_model wrapper dispatches", {
 
 })
 
+test_that("inactive diversity repetitions do not force zero skill minimum", {
+  skip_if_not_installed("ompr.roi")
+  skip_if_not_installed("ROI.plugin.glpk")
+
+  div_df <- extract_student_info(
+    dba_gc_ex001,
+    assignment = "diversity",
+    self_formed_groups = 4,
+    demographic_cols = 2,
+    skills = 3
+  )
+  model <- prepare_model(
+    div_df,
+    assignment = "diversity",
+    w1 = 0,
+    w2 = 1,
+    n_topics = 2,
+    nmin = 2,
+    nmax = 2,
+    rmin = 1,
+    rmax = 2
+  )
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = "glpk"))
+
+  expect_equal(as.numeric(ompr::get_solution(result, smin)), 4)
+  expect_equal(as.numeric(ompr::get_solution(result, smax)), 4)
+})
+
 test_that("custom seniority scores do not redefine year-based model groups", {
   default_df <- extract_phd_info(
     student_df = multirole_students_ex001,

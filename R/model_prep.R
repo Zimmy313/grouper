@@ -52,6 +52,7 @@ prepare_diversity_model <- function(df_list, yaml_list, w1 = 0.5, w2 = 0.5) {
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)>=a[t,r]*nmin[t,r], t=1:n_topics, r=1:R) %>%
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)<=a[t,r]*nmax[t,r], t=1:n_topics, r=1:R)
   } else {
+    M <- sum(s)
     model <- model %>%
       ompr::add_variable(smin, type="continuous", lb=0) %>%
       ompr::add_variable(smax, type="continuous", lb=0) %>%
@@ -76,7 +77,7 @@ prepare_diversity_model <- function(df_list, yaml_list, w1 = 0.5, w2 = 0.5) {
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)>=a[t,r]*nmin[t,r], t=1:n_topics, r=1:R) %>%
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r], i=1:N, g=1:G)<=a[t,r]*nmax[t,r], t=1:n_topics, r=1:R) %>%
       # DEFINE CONSTRAINTS (SKILL VARIABILITY)
-      ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r]*s[i], i=1:N, g=1:G)>=smin, t=1:n_topics, r=1:R) %>%
+      ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r]*s[i], i=1:N, g=1:G) + M*(1-a[t,r])>=smin, t=1:n_topics, r=1:R) %>%
       ompr::add_constraint(ompr::sum_over(m[i,g]*x[g,t,r]*s[i], i=1:N, g=1:G)<=smax, t=1:n_topics, r=1:R)
   }
 
