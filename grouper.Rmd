@@ -337,7 +337,7 @@ $r_{min}$ and $r_{max}$. A topic may contain \(B\) subgroups, giving \(BT\)
 topic-subgroup combinations.  This setting arises in the allocation of
 pre-determined project topics, case studies, supervisors, lab rotations,
 presentation themes, and tutorial or project streams. The concept of sub-topics
-is specific to our use-case (see Section \@ref(sec-pba-real-life), but it is
+is specific to our use-case (see Section \@ref(sec-pba-real-life)), but it is
 not necessary. By setting $B=1$, it is possible to use this \pkg{grouper} model
 in a more traditional setting.
 
@@ -576,28 +576,28 @@ Table \@ref(tab:multirole-param-guide) for a summary of inputs.
 ```{r multirole-param-guide, echo=FALSE}
 multirole_param_guide <- tibble::tribble(
   ~parameter, ~if_increased, ~trade_off,
-  "`alpha_ta`, `alpha_gr`",
+  "alpha_ta, alpha_gr",
   "Increases the penalty on annual workload spread for the corresponding role",
   "Can improve role-specific fairness at the expense of preference, priority, or protection terms",
-  "`beta_ta`, `beta_gr`",
+  "beta_ta, beta_gr",
   "Increases the reward for the corresponding role's preference scores",
   "Can improve role-specific preference attainment at the expense of other objective terms",
-  "`phi`",
+  "phi",
   "Increases the reward for assigning E to individuals with larger scores",
   "Can improve priority alignment at the expense of the other objective terms",
-  "`rho_ta`, `rho_gr`",
+  "rho_ta, rho_gr",
   "Makes the corresponding protected-cohort slack more expensive",
   "Discourages overload but does not alter feasibility because slack remains available",
-  "`ta_protected_max`, `gr_protected_max`",
+  "ta_protected_max, gr_protected_max",
   "Raises the corresponding protected cohort's soft threshold",
   "Weakens protection and can reduce the slack penalty; formal feasibility is unchanged",
-  "`C`",
+  "C",
   "Raises every individual's required annual workload from 2C",
   "Requires two additional workload units per person for each unit increase and may cause infeasibility if aggregate demand is incompatible",
-  "`ta_min`, `gr_min`, `e_min`",
+  "ta_min, gr_min, e_min",
   "Raises the required minimum for the corresponding role",
   "Tightens feasibility and forces more of that role onto every individual",
-  "`ta_max`, `gr_max`, `e_max`",
+  "ta_max, gr_max, e_max",
   "Raises the permitted maximum for the corresponding role",
   "Weakly enlarges the feasible set and may allow greater concentration"
 )
