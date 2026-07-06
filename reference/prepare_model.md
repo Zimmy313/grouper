@@ -45,10 +45,10 @@ prepare_model(
   Additional arguments:
 
   - For `assignment = "diversity"` when `yaml_list` is `NULL`: supply
-    `n_topics`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+    `n_topics`, `nmin`, `nmax`, `rmin`, and `rmax`.
 
   - For `assignment = "preference"` when `yaml_list` is `NULL`: supply
-    `n_topics`, `B`, `R`, `nmin`, `nmax`, `rmin`, and `rmax`.
+    `n_topics`, `B`, `nmin`, `nmax`, `rmin`, and `rmax`.
 
   - For `assignment = "phd"`: passed to
     [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md),

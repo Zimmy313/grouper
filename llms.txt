@@ -37,7 +37,7 @@ shiny::runApp().
 ## Contact
 
 For more details, please contact Vik Gopal <vik.gopal@nus.edu.sg>, Kevin
-Lam <lamfy@u.nus.edu> or Mingyuan Zhang <mingyuan.z@nus.edu.sg>
+Lam <kevinlam@nus.edu.sg> or Mingyuan Zhang <mingyuan.z@nus.edu.sg>
 
 # Package index
 
@@ -62,6 +62,16 @@ Lam <lamfy@u.nus.edu> or Mingyuan Zhang <mingyuan.z@nus.edu.sg>
   : Prepare the preference-based assignment model
 - [`assign_groups()`](https://Zimmy313.github.io/grouper/reference/assign_groups.md)
   : Assigns model result to the original data frame.
+- [`compute_diversity()`](https://Zimmy313.github.io/grouper/reference/compute_diversity.md)
+  : Compute total pairwise diversity for a set of students
+- [`convert_pref_mat()`](https://Zimmy313.github.io/grouper/reference/convert_pref_mat.md)
+  : Convert a preference matrix to rank-based scores
+- [`get_group_pref_score()`](https://Zimmy313.github.io/grouper/reference/get_group_pref_score.md)
+  : Look up a group's preference score for a topic-subtopic combination
+- [`summary_dba()`](https://Zimmy313.github.io/grouper/reference/summary_dba.md)
+  : Summarise a DBA result by topic-repetition group
+- [`summary_pba()`](https://Zimmy313.github.io/grouper/reference/summary_pba.md)
+  : Summarise a PBA result by topic-subtopic-repetition group
 
 ## Multi-role Workload Allocation
 

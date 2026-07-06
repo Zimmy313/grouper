@@ -18,13 +18,13 @@ Source:
 [`DESCRIPTION`](https://github.com/Zimmy313/grouper/blob/main/DESCRIPTION)
 
 Gopal V, Lam K, Zhang M (2026). *grouper: Optimal Group Assignment and
-Workload Allocation*. R package version 0.7.2,
+Workload Allocation*. R package version 0.7.3,
 <https://Zimmy313.github.io/grouper/>.
 
     @Manual{,
       title = {grouper: Optimal Group Assignment and Workload Allocation},
       author = {Vik Gopal and Kevin Lam and Mingyuan Zhang},
       year = {2026},
-      note = {R package version 0.7.2},
+      note = {R package version 0.7.3},
       url = {https://Zimmy313.github.io/grouper/},
     }

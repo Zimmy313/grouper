@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">grouper</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,22 +82,28 @@ from a pool of topics
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>T</mi></mrow><annotation encoding="application/x-tex">1,\ldots,T</annotation></semantics></math>.
 It is possible that each topic
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
-is repeated
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>R</mi><mi>t</mi></msub><annotation encoding="application/x-tex">R_t</annotation></semantics></math>
-times across the class. In total, there are
+is repeated a certain number of times across the class. Suppose that the
+maximum number of repetitions of a topic is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><annotation encoding="application/x-tex">r_{max}</annotation></semantics></math>.
+In total, there are
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
 students in the class.</p>
 <p>Suppose that students form their own groups, which they submit
 through a survey form. In total there are
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
-groups; each student appears in exactly 1 group.</p>
+such self-formed groups; each student appears in exactly 1 group.</p>
 <p>In addition, we have the following information about each
 student:</p>
 <ol style="list-style-type: decimal">
 <li>Information that can be used to compute dissimilarities between
-pairs of students. Examples are: the major of the student (STEM
-vs. non-STEM), gender, year-of-study, etc.</li>
-<li>Information on the skill level pertinent to your class, or to the
+pairs of students. Examples are:
+<ul>
+<li>the major of the student (STEM vs. non-STEM),</li>
+<li>gender,</li>
+<li>year-of-study, etc.</li>
+</ul>
+</li>
+<li>Information on the skill level pertinent to the class, or to the
 problem they will be working on.</li>
 </ol>
 <p>This model allows you to maximise the diversity within a group and
@@ -107,9 +113,9 @@ minimise the difference in skill within groups.</p>
 <h2 id="objective-function">Objective function<a class="anchor" aria-label="anchor" href="#objective-function"></a>
 </h2>
 <p>The overall objective function can be written as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mspace width="1.0em"></mspace><msub><mi>w</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mi>i</mi><mo>+</mo><mn>1</mn></mrow><mi>N</mi></munderover><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>R</mi><mi>t</mi></msub></munderover><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>⋅</mo><msub><mi>d</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>w</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><mo>−</mo><msub><mi>s</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mspace width="1.0em"></mspace><msub><mi>w</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></munderover><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mi>i</mi><mo>+</mo><mn>1</mn></mrow><mi>N</mi></munderover><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></munderover><msub><mi>z</mi><mrow><mi>i</mi><mi>j</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>⋅</mo><msub><mi>d</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>w</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><mo>−</mo><msub><mi>s</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
 \max \quad w_1 \left( \sum_{i=1}^{N-1} \sum_{j=i+1}^N \sum_{t=1}^T 
-                      \sum_{r=1}^{R_t} z_{ijtr} \cdot d_{ij} \right) + 
+                      \sum_{r=1}^{r_{max}} z_{ijtr} \cdot d_{ij} \right) + 
            w_2 (s_{min} - s_{max})
 </annotation></semantics></math></p>
 <p>where
@@ -140,8 +146,8 @@ the difference between them, ensuring all groups have a similar range of
 total skill.</p>
 <p>This first constraint represents the need for each group to be
 assigned to exactly one topic-repetition combination:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>R</mi><mi>t</mi></msub></munderover><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">
-\sum_{t=1}^T \sum_{r=1}^{R_t} x_{gtr} = 1, \quad \forall g
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mi>T</mi></munderover><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></munderover><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">
+\sum_{t=1}^T \sum_{r=1}^{r_{max}} x_{gtr} = 1, \quad \forall g
 </annotation></semantics></math></p>
 </div>
 <div class="section level3">
@@ -170,21 +176,28 @@ repetitions for each topic.
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><annotation encoding="application/x-tex">r_{max}</annotation></semantics></math>
 are input variables that the instructor needs to set.</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≥</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≤</mo></mtd><mtd columnalign="left" style="text-align: left"><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>R</mi><mi>t</mi></msub></munderover><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≥</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>r</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>R</mi><mi>t</mi></msub></munderover><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≤</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{eqnarray}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≥</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≤</mo></mtd><mtd columnalign="left" style="text-align: left"><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></munderover><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≥</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>r</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>r</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></munderover><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≤</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>r</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{eqnarray}
 a_{tr} &amp;\ge&amp;  x_{gtr},\quad \forall t,r \\
 a_{tr} &amp;\le&amp; \sum_{g=1}^G x_{gtr},\quad \forall t,r \\
-\sum_{r=1}^{R_t} a_{tr} &amp;\ge&amp; r_{min},\quad \forall t \\
-\sum_{r=1}^{R_t} a_{tr} &amp;\le&amp; r_{max},\quad \forall t
+\sum_{r=1}^{r_{max}} a_{tr} &amp;\ge&amp; r_{min},\quad \forall t \\
+\sum_{r=1}^{r_{max}} a_{tr} &amp;\le&amp; r_{max},\quad \forall t
 \end{eqnarray}</annotation></semantics></math></p>
+<p>Take note that the last constraint is automatically satisfied since
+{a_{tr}} is binary.</p>
 </div>
 <div class="section level3">
 <h3 id="number-of-students-per-group">Number of students per group<a class="anchor" aria-label="anchor" href="#number-of-students-per-group"></a>
 </h3>
 <p>A similar set of constraints are used to bound the number of students
-in each eventually assigned group.</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><msub><mi>m</mi><mrow><mi>i</mi><mi>g</mi></mrow></msub><mo>⋅</mo><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≥</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub><mo>⋅</mo><msubsup><mi>n</mi><mrow><mi>t</mi><mi>r</mi></mrow><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><msub><mi>m</mi><mrow><mi>i</mi><mi>g</mi></mrow></msub><mo>⋅</mo><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≤</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub><mo>⋅</mo><msubsup><mi>n</mi><mrow><mi>t</mi><mi>r</mi></mrow><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msubsup><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{eqnarray}
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &amp;\ge&amp; a_{tr} \cdot n^{min}_{tr}, \quad \forall t,r \\
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &amp;\le&amp; a_{tr} \cdot n^{max}_{tr}, \quad \forall t,r 
+in each eventually assigned group.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><annotation encoding="application/x-tex">n_{min}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><annotation encoding="application/x-tex">n_{max}</annotation></semantics></math>
+are also input variables; they dictate the bounds on the number of
+students in each assigned group.</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><msub><mi>m</mi><mrow><mi>i</mi><mi>g</mi></mrow></msub><mo>⋅</mo><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≥</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub><mo>⋅</mo><msub><mi>n</mi><mrow><mi>m</mi><mi>i</mi><mi>n</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><munderover><mo>∑</mo><mrow><mi>g</mi><mo>=</mo><mn>1</mn></mrow><mi>G</mi></munderover><msub><mi>m</mi><mrow><mi>i</mi><mi>g</mi></mrow></msub><mo>⋅</mo><msub><mi>x</mi><mrow><mi>g</mi><mi>t</mi><mi>r</mi></mrow></msub></mtd><mtd columnalign="center" style="text-align: center"><mo>≤</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>a</mi><mrow><mi>t</mi><mi>r</mi></mrow></msub><mo>⋅</mo><msub><mi>n</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><mo>∀</mo><mi>t</mi><mo>,</mo><mi>r</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{eqnarray}
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &amp;\ge&amp; a_{tr} \cdot n_{min}, \quad \forall t,r \\
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &amp;\le&amp; a_{tr} \cdot n_{max}, \quad \forall t,r 
 \end{eqnarray}</annotation></semantics></math></p>
 </div>
 <div class="section level3">

@@ -7,9 +7,9 @@ groups. Each group will be allocated a topic $`t`$, from a pool of
 topics $`1,\ldots,T`$. However, each project team assigned to topic
 would comprise $`B`$ sub-groups or sub-teams. Thus, in essence, there
 would be $`BT`$ topics to be assigned to student groups. It is also
-possible that each topic $`t`$ is repeated $`R_t`$ times across the
-class. Note that the more common case, where there is only one sub-group
-per topic, can be easily attained by setting $`B=1`$.
+possible that each topic $`t`$ is repeated (at most $`r_{max}`$ times)
+across the class. Note that the more common case, where there is only
+one sub-group per topic, can be easily attained by setting $`B=1`$.
 
 In total, there are $`N`$ students in the class. Suppose that students
 form their own groups, which they submit through a survey form. In total
@@ -25,7 +25,7 @@ This model allows you to maximise the preference scores for each group.
 ## Objective function
 
 ``` math
-\max \sum_{g=1}^G \sum_{t=1}^{BT} \sum_{r=1}^{R_t} x_{gtr} \cdot n_g \cdot p_{tg}
+\max \sum_{g=1}^G \sum_{t=1}^{BT} \sum_{r=1}^{r_{max}} x_{gtr} \cdot n_g \cdot p_{tg}
 ```
 
 where $`p_{tg}`$ corresponds to the preference score that group $`g`$
@@ -52,17 +52,17 @@ The first constraint ensures that each group is assigned to exactly one
 topic $`t`$, where $`t \in \{1, \; \ldots, \; BT \}`$.
 
 ``` math
-\sum_{t=1}^{BT} \sum_{r=1}^{R_t} x_{gtr} = 1, \quad \forall g
+\sum_{t=1}^{BT} \sum_{r=1}^{r_{max}} x_{gtr} = 1, \quad \forall g
 ```
 
 ### Number of repetitions per topic
 
 This set of constraints serve to regulate the total number of
-repetitions for each topic. $`r_{min}`$ and $`r_{max} = R_t`$ are input
+repetitions for each topic. $`r_{min}`$ and $`r_{max}`$ are input
 variables that the instructor needs to set.
 
 $`a_{tr}`$ is a binary decision variable which indicates if repetition
-$`r`$ of topic $`t`$ is “live”, where $`r \in \{1 , \ldots, R_t\}`$.
+$`r`$ of topic $`t`$ is “live”, where $`r \in \{1 , \ldots, r_{max}\}`$.
 
 ``` math
 \begin{eqnarray}
@@ -77,7 +77,7 @@ a_{tr} &\ge& r_{min}, \quad \forall t \in \{1,2,\ldots,T \}
 The next constraint ensures that there is an equal number of subgroups
 for each “live” repetition of a topic.
 ``` math
-\sum_{r=1}^{R} a_{tr} = \sum_{r=1}^R a_{(bT+t)r}, \quad \forall t \in \{1,2,\ldots,T \},\; \min(1,B-1)\le b \le \max(0, B-1)
+\sum_{r=1}^{r_{max}} a_{tr} = \sum_{r=1}^{r_{max}} a_{(bT+t)r}, \quad \forall t \in \{1,2,\ldots,T \},\; \min(1,B-1)\le b \le \max(0, B-1)
 ```
 
 This is where we can see that the ordering of all sub-groups in the
@@ -95,8 +95,8 @@ each eventually assigned group.
 
 ``` math
 \begin{eqnarray}
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\ge& a_{tr} \cdot n_{tr}^{min}, \quad \forall t \in \{1,2,\ldots,BT \},\;r \\
-\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\le& a_{tr} \cdot n_{tr}^{max}, \quad \forall t \in \{1,2,\ldots,BT \},\;r 
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\ge& a_{tr} \cdot n_{min}, \quad \forall t \in \{1,2,\ldots,BT \},\;r \\
+\sum_{i=1}^N \sum_{g=1}^G m_{ig} \cdot x_{gtr} &\le& a_{tr} \cdot n_{max}, \quad \forall t \in \{1,2,\ldots,BT \},\;r 
 \end{eqnarray}
 ```
 

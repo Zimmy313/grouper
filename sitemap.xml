@@ -13,6 +13,8 @@
 <url><loc>https://Zimmy313.github.io/grouper/news/index.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/assign_groups.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/assign_job.html</loc></url>
+<url><loc>https://Zimmy313.github.io/grouper/reference/compute_diversity.html</loc></url>
+<url><loc>https://Zimmy313.github.io/grouper/reference/convert_pref_mat.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/dba_gc_ex001.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/dba_gc_ex003.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/dba_gc_ex004.html</loc></url>
@@ -21,6 +23,7 @@
 <url><loc>https://Zimmy313.github.io/grouper/reference/extract_params_yaml.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/extract_phd_info.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/extract_student_info.html</loc></url>
+<url><loc>https://Zimmy313.github.io/grouper/reference/get_group_pref_score.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/index.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/multirole_demand_ex001.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/multirole_prefmat_ex001.html</loc></url>
@@ -34,5 +37,7 @@
 <url><loc>https://Zimmy313.github.io/grouper/reference/prepare_phd_model.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/prepare_preference_model.html</loc></url>
 <url><loc>https://Zimmy313.github.io/grouper/reference/solve_assignment.html</loc></url>
+<url><loc>https://Zimmy313.github.io/grouper/reference/summary_dba.html</loc></url>
+<url><loc>https://Zimmy313.github.io/grouper/reference/summary_pba.html</loc></url>
 </urlset>
 

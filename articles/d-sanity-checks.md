@@ -48,14 +48,13 @@ dba_gc_ex001
 ```
 
 It is intuitive that an assignment into two groups of size two, based on
-the diversity of majors alone, should assign students 1 and 2 into the
+the diversity of majors alone, should assign students 1 and 3 into the
 first group and the remaining two students into another group.
 
 The corresponding YAML `dba_gc_ex001.yml` file for this exercise
 consists of the following lines:
 
     n_topics:  2
-    R:  1
     nmin: 2
     nmax: 2
     rmin: 1
@@ -106,7 +105,6 @@ m1_alt <- prepare_model(
   w1 = 1.0,
   w2 = 0.0,
   n_topics = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,
@@ -127,8 +125,8 @@ assign_groups(
 #> 4     2   1     3  3     B     3
 ```
 
-We can see that students 1 and 2 have been assigned to topic 1,
-repetition 1. Students 3 and 4 have been assigned to topic 2, repetition
+We can see that students 2 and 3 have been assigned to topic 1,
+repetition 1. Students 1 and 4 have been assigned to topic 2, repetition
 1.
 
 ### Dataset 001 (skills only)
@@ -182,7 +180,6 @@ m1a_alt <- prepare_model(
   w1 = 0.0,
   w2 = 1.0,
   n_topics = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,
@@ -309,7 +306,6 @@ m3_alt <- prepare_model(
   w1 = 1.0,
   w2 = 0.0,
   n_topics = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,
@@ -433,7 +429,6 @@ m4_alt <- prepare_model(
   w1 = 0.0,
   w2 = 1.0,
   n_topics = 2,
-  R = 1,
   nmin = c(2, 3),
   nmax = c(2, 3),
   rmin = 1,
@@ -539,11 +534,15 @@ result2 <- solve_model(m2, with_ROI(solver="glpk"))
 assign_groups(result2, assignment = "preference", 
               dframe=pba_gc_ex002, yaml_ex002_list, 
               group_names="grouping")
-#>   topic2 subtopic rep group size
-#> 1      1        1   1     1    2
-#> 2      2        1   1     2    2
-#> 3      1        2   1     3    2
-#> 4      2        2   1     4    2
+#>   topic2 subtopic rep group size id
+#> 1      1        1   1     1    2  1
+#> 2      1        1   1     1    2  2
+#> 3      2        1   1     2    2  3
+#> 4      2        1   1     2    2  4
+#> 5      1        2   1     3    2  5
+#> 6      1        2   1     3    2  6
+#> 7      2        2   1     4    2  7
+#> 8      2        2   1     4    2  8
 ```
 
 Alternative workflow (wrapper + direct parameters):
@@ -562,7 +561,6 @@ m2_alt <- prepare_model(
   assignment = "preference",
   n_topics = 2,
   B = 2,
-  R = 1,
   nmin = 2,
   nmax = 2,
   rmin = 1,
@@ -577,11 +575,15 @@ assign_groups(
   params_list = list(n_topics = 2, B = 2),
   group_names = "grouping"
 )
-#>   topic2 subtopic rep group size
-#> 1      1        1   1     1    2
-#> 2      2        1   1     2    2
-#> 3      1        2   1     3    2
-#> 4      2        2   1     4    2
+#>   topic2 subtopic rep group size id
+#> 1      1        1   1     1    2  1
+#> 2      1        1   1     1    2  2
+#> 3      2        1   1     2    2  3
+#> 4      2        1   1     2    2  4
+#> 5      1        2   1     3    2  5
+#> 6      1        2   1     3    2  6
+#> 7      2        2   1     4    2  7
+#> 8      2        2   1     4    2  8
 ```
 
 ## Multi-role Workload Assignment
