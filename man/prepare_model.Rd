@@ -30,9 +30,9 @@ compatibility. If supplied, this list is used directly. Ignored for
 \item{...}{Additional arguments:
 \itemize{
 \item For \code{assignment = "diversity"} when \code{yaml_list} is \code{NULL}: supply
-\code{n_topics}, \code{R}, \code{nmin}, \code{nmax}, \code{rmin}, and \code{rmax}.
+\code{n_topics}, \code{nmin}, \code{nmax}, \code{rmin}, and \code{rmax}.
 \item For \code{assignment = "preference"} when \code{yaml_list} is \code{NULL}: supply
-\code{n_topics}, \code{B}, \code{R}, \code{nmin}, \code{nmax}, \code{rmin}, and \code{rmax}.
+\code{n_topics}, \code{B}, \code{nmin}, \code{nmax}, \code{rmin}, and \code{rmax}.
 \item For \code{assignment = "phd"}: passed to \code{\link[=prepare_phd_model]{prepare_phd_model()}}, including
 \code{protected_year} when a cohort other than Year 1 should receive the soft
 TA-load protection.
