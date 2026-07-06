@@ -280,20 +280,21 @@ self-formed groups must lie between \(n_{min}\) and \(n_{max}\), which
 correspond to the number of students each final group should contain.
 
 When skill balancing is used, \(s_{\min}\) and \(s_{\max}\) bound the total
-skill assigned to each active topic-repetition combination:
+skill assigned to each active topic-repetition combination. Let
+\(M=\sum_{i=1}^{N}s_i\):
 
 $$
 \begin{aligned}
-\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}s_i&\geq s_{\min},\\
+\sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}s_i+M(1-a_{tr})&\geq s_{\min},\\
 \sum_{i=1}^{N}\sum_{g=1}^{G}m_{ig}x_{gtr}s_i&\leq s_{\max},
 \end{aligned}
-\quad \forall t,r\text{ with }a_{tr}=1. \tag{5}
+\quad \forall t,r. \tag{5}
 $$
 
 These bounds make \(s_{\min}\) and \(s_{\max}\) the lowest and highest total
 skill among active slots. Maximizing \(s_{\min}-s_{\max}\) therefore minimizes
 the skill spread. Inactive candidate repetitions are excluded from this
-comparison. 
+comparison because \(M(1-a_{tr})\) relaxes the lower bound when \(a_{tr}=0\).
 
 For easy reference, Table \@ref(tab:dba-param-guide) lists the input parameters
 for this model, along with explanations of how they impact the final group
@@ -424,7 +425,7 @@ $$
 The membership matrix converts group-level assignments into student counts.
 Thus, every active repetition must contain at least \(n_{min}\) and at
 most \(n_{max}\) students, while inactive repetitions remain empty. Table
-\@ref(tab:pba-param-guide) summarises the inputs for the diversity-based allocation
+\@ref(tab:pba-param-guide) summarises the inputs for the preference-based assignment
 model.
 
 ```{r pba-param-guide, echo=FALSE}
@@ -782,13 +783,13 @@ dba_ex1_output_df <- assign_groups(model_result = dba_ex1_result,
 
 The final output dataset, displayed in Table \@ref(tab:constructed-dba-2), is
 identical to the original data `dba_gc_ex001` except for the columns `topic` and
-`rep`. The allocation agrees with the stated intuition that students 1 and 4
+`rep`. The allocation agrees with the stated intuition that students 1 and 3
 should be assigned together.
 
 ```{r constructed-dba-2, echo=FALSE}
 knitr::kable(dba_ex1_output_df, booktabs=TRUE,
              col.names = c("topic", "rep", "group", "id", "major", "skill"),
-             caption = "The assigned groupings for the constructed DBA dataset. Students 2 and 3 have been assigned to topic 1 and students 1 and 4 to topic 2.") %>% 
+             caption = "The assigned groupings for the constructed DBA dataset. Students 2 and 4 have been assigned to topic 1 and students 1 and 3 to topic 2.") %>% 
   kableExtra::kable_styling(latex_options = c("hold_position"))
 ```
 
