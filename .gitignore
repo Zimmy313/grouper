@@ -24,3 +24,6 @@
 
 *.html
 *.pdf
+
+grouper.R
+grouper.tex
