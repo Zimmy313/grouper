@@ -33,6 +33,11 @@ reference:
   - prepare_diversity_model
   - prepare_preference_model
   - assign_groups
+  - compute_diversity
+  - convert_pref_mat
+  - get_group_pref_score
+  - summary_dba
+  - summary_pba
 - title: Multi-role Workload Allocation
   contents:
   - extract_multirole_info
