@@ -333,8 +333,8 @@ each group should be placed rather than which student profiles should be
 brought together.
 
 Consider \(N\) students arranged into \(G\) self-formed groups. Each group is
-assigned to a topic \(t\) from \(T\) base topics, where $T$ lies between
-$r_{min}$ and $r_{max}$. A topic may contain \(B\) subgroups, giving \(BT\)
+assigned to a topic \(t\) from \(T\) base topics. 
+A topic may contain \(B\) subgroups, giving \(BT\)
 topic-subgroup combinations.  This setting arises in the allocation of
 pre-determined project topics, case studies, supervisors, lab rotations,
 presentation themes, and tutorial or project streams. The concept of sub-topics
@@ -928,9 +928,7 @@ Table \@ref(tab:multi-role-dataset-summary) summarizes the size and
 structure of each semester instance. Students and Courses describe
 the scale of the assignment problem, while TA, GR, and E report the
 required units for teaching assistantship, grading, and residual support,
-respectively. In this use case, TA is the
-preference-sensitive role, GR is primarily demand-driven, and E is
-assigned according to seniority. The columns Y1--Y4 show the cohort
+respectively. The columns Y1--Y4 show the cohort
 composition by year. AY2510 is the largest instance by both student
 and course count, while role demand and cohort structure vary across
 the three semesters.
@@ -948,21 +946,25 @@ knitr::kable(
 )
 ```
 
-The allocation uses the policy configuration from 
-the original departmental planning exercise: 
+The departmental policy uses a TA-focused subset of the generalized multi-role
+objective:
 
-1. TA fairness
-2. TA preference fit
-3. seniority-guided E allocation
-4. Year-1 TA protection
+$$
+\begin{aligned}
+\min\quad
+&\alpha_{\mathrm{TA}}(T_{\max}-T_{\min})
+-\beta_{\mathrm{TA}}\sum_{i,j}
+P^{\mathrm{TA}}_{ij}X_{ij,\mathrm{TA}}
+-\phi\sum_{i,j}s_iX_{ij,\mathrm{E}}
++\rho_{\mathrm{TA}}\sum_{i\in Y_1}w_i^{\mathrm{TA}}.
+\end{aligned}\tag{16}
+$$
 
-This is a subset of the generalized model. In particular, no GR preference term 
-is evaluated because it was not part of the department's operational policy in this case.
-
-The same wrapper workflow is applied to all three semesters. To avoid repeating
-nearly identical code, AY2520 is used only to demonstrate the input,
-model-building, and solving steps and to show one student-level workload
-distribution.
+Here \(Y_1\) denotes Year-1 students, who receive soft TA-load protection.
+The objective balances annual TA workload, rewards TA preference fit, assigns
+residual support according to seniority scores, and penalizes Year-1 TA overload.
+GR demand remains part of the feasibility constraints but is not assigned a
+separate objective term in this policy configuration.
 
 All three cases are formulated as two-semester workload problems. The current
 semester is optimized, while previous-semester TA and grading loads are supplied
@@ -1097,7 +1099,6 @@ carried into the annual balance.
 
 ```{r fig-ay2520-distribution, fig.cap="AY2520 model workload distribution by anonymized student and cohort year.", fig.alt="Stacked bar chart faceted by year showing AY2520 current and past workload components for anonymized students.", out.width="0.8\\linewidth", fig.pos="!htbp", echo=FALSE}
 knitr::include_graphics("figures/ay2520_distribution.pdf")
-```
 ```
 
 The dashed horizontal line marks the four-unit semester capacity. Faceting by 
