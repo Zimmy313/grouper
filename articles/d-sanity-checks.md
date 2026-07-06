@@ -150,9 +150,9 @@ assign_groups(result3, assignment = "diversity", dframe=dba_gc_ex001,
               group_names="groups")
 #>   topic rep group id major skill
 #> 1     1   1     2  2     A     1
-#> 2     1   1     3  3     B     3
+#> 2     1   1     4  4     B     3
 #> 3     2   1     1  1     A     1
-#> 4     2   1     4  4     B     3
+#> 4     2   1     3  3     B     3
 
 get_solution(result3, smin)
 #> smin 
@@ -196,9 +196,9 @@ assign_groups(
 )
 #>   topic rep group id major skill
 #> 1     1   1     2  2     A     1
-#> 2     1   1     3  3     B     3
+#> 2     1   1     4  4     B     3
 #> 3     2   1     1  1     A     1
-#> 4     2   1     4  4     B     3
+#> 4     2   1     3  3     B     3
 
 get_solution(result3_skill_alt, smin)
 #> smin 
@@ -387,26 +387,26 @@ m4 <- prepare_model(df_ex004_list, yaml_ex004_list, w1=0.0, w2=1.0)
 result <- solve_model(m4, with_ROI(solver="glpk", verbose=TRUE))
 #> <SOLVER MSG>  ----
 #> GLPK Simplex Optimizer 5.0
-#> 89 rows, 34 columns, 234 non-zeros
+#> 89 rows, 34 columns, 236 non-zeros
 #>       0: obj =  -0.000000000e+00 inf =   7.000e+00 (7)
 #>      28: obj =  -4.000000000e+00 inf =   4.441e-16 (0)
-#> *    29: obj =  -4.440892099e-16 inf =   4.441e-16 (0)
+#> *    31: obj =  -2.220446049e-15 inf =   2.220e-16 (0)
 #> OPTIMAL LP SOLUTION FOUND
 #> GLPK Integer Optimizer 5.0
-#> 89 rows, 34 columns, 234 non-zeros
+#> 89 rows, 34 columns, 236 non-zeros
 #> 32 integer variables, all of which are binary
 #> Integer optimization begins...
 #> Long-step dual simplex will be used
-#> +    29: mip =     not found yet <=              +inf        (1; 0)
-#> +    40: >>>>>   0.000000000e+00 <=   0.000000000e+00   0.0% (3; 0)
-#> +    40: mip =   0.000000000e+00 <=     tree is empty   0.0% (0; 5)
+#> +    31: mip =     not found yet <=              +inf        (1; 0)
+#> +    36: >>>>>  -4.884981308e-15 <=   0.000000000e+00  26.1% (2; 0)
+#> +    36: mip =  -4.884981308e-15 <=     tree is empty   0.0% (0; 3)
 #> INTEGER OPTIMAL SOLUTION FOUND
 #> <!SOLVER MSG> ----
 assign_groups(result, "diversity", dba_gc_ex004, group_names="self_groups")
 #>   topic rep group id python
-#> 1     1   1     2  2      1
+#> 1     1   1     1  1      1
 #> 2     1   1     5  5      3
-#> 3     2   1     1  1      1
+#> 3     2   1     2  2      1
 #> 4     2   1     3  3      1
 #> 5     2   1     4  4      2
 ```
@@ -438,19 +438,19 @@ m4_alt <- prepare_model(
 result4_alt <- solve_model(m4_alt, with_ROI(solver = "glpk", verbose = TRUE))
 #> <SOLVER MSG>  ----
 #> GLPK Simplex Optimizer 5.0
-#> 89 rows, 34 columns, 234 non-zeros
+#> 89 rows, 34 columns, 236 non-zeros
 #>       0: obj =  -0.000000000e+00 inf =   7.000e+00 (7)
 #>      28: obj =  -4.000000000e+00 inf =   4.441e-16 (0)
-#> *    29: obj =  -4.440892099e-16 inf =   4.441e-16 (0)
+#> *    31: obj =  -2.220446049e-15 inf =   2.220e-16 (0)
 #> OPTIMAL LP SOLUTION FOUND
 #> GLPK Integer Optimizer 5.0
-#> 89 rows, 34 columns, 234 non-zeros
+#> 89 rows, 34 columns, 236 non-zeros
 #> 32 integer variables, all of which are binary
 #> Integer optimization begins...
 #> Long-step dual simplex will be used
-#> +    29: mip =     not found yet <=              +inf        (1; 0)
-#> +    40: >>>>>   0.000000000e+00 <=   0.000000000e+00   0.0% (3; 0)
-#> +    40: mip =   0.000000000e+00 <=     tree is empty   0.0% (0; 5)
+#> +    31: mip =     not found yet <=              +inf        (1; 0)
+#> +    36: >>>>>  -4.884981308e-15 <=   0.000000000e+00  26.1% (2; 0)
+#> +    36: mip =  -4.884981308e-15 <=     tree is empty   0.0% (0; 3)
 #> INTEGER OPTIMAL SOLUTION FOUND
 #> <!SOLVER MSG> ----
 assign_groups(
@@ -460,9 +460,9 @@ assign_groups(
   group_names = "self_groups"
 )
 #>   topic rep group id python
-#> 1     1   1     2  2      1
+#> 1     1   1     1  1      1
 #> 2     1   1     5  5      3
-#> 3     2   1     1  1      1
+#> 3     2   1     2  2      1
 #> 4     2   1     3  3      1
 #> 5     2   1     4  4      2
 ```
