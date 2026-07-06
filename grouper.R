@@ -161,6 +161,6 @@ highs_runtime <- runtime_summary |> filter(Solver == "highs")
 knitr::include_graphics("figures/grouper_webapp_home.png")
 
 
-## ----fig-grouper-webapp-multirole-results, fig.cap="Multi-role workload results view.", fig.alt="Screenshot of the grouper Shiny multi-role workload results view after a successful optimization run.", out.width="0.86\\linewidth", fig.pos="!htbp", echo=FALSE----
+## ----fig-grouper-webapp-multirole-results, fig.cap="Multi-role workload run summary and workload distribution view.", fig.alt="Screenshot of the grouper Shiny multi-role workload run summary and workload distribution after a successful optimization run.", out.width="0.86\\linewidth", fig.pos="!htbp", echo=FALSE----
 knitr::include_graphics("figures/grouper_webapp_multirole_results.png")
 

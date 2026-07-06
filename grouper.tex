@@ -988,25 +988,31 @@ exporting the resulting assignment.
 
 \FloatBarrier
 
-The multi-role workload tab validates uploaded files, normalizes prior
-workload, and then runs the same multi-role optimization model described in the
-workflow section. Its controls expose the workload constraints and policy
-settings needed for the operational interface; direct R users can access the
-full generalized argument set, including independent TA and GR terms and
-single-semester extraction. After a successful run, the app displays solver
-status, objective diagnostics, a workload-distribution plot, preference
-attainment, and the wide assignment table produced by \texttt{assign\_job()}.
+The multi-role workload tab validates the current-semester template and, unless
+single-semester mode is selected, a previous \texttt{assign\_job()} output. It
+standardizes names and course codes, pads prior workload to the semester
+capacity when needed, and supports synthetic history in single-semester mode.
+The tab constructs the workload input with \texttt{extract\_multirole\_info()}, builds the
+optimization model with \texttt{prepare\_multirole\_model()}, solves it through an
+ROI-backed \texttt{ompr} call, and formats the wide output table with \texttt{assign\_job()}.
+Its controls expose independent TA and GR weights, protection settings, role
+bounds, E seniority scores, solver controls, and single-semester mode. Direct R
+users can still access the full lower-level API, including separate TA and GR
+preference matrices and other extraction choices. After a successful run, the
+app displays solver status, objective diagnostics, a workload-distribution plot,
+preference attainment, and the assignment table.
 
-The assignment table can be downloaded as an XLSX file for further processing
-or record-keeping for all three workflows.
+DBA and PBA outputs can be downloaded as CSV files, while the multi-role
+assignment table can be downloaded as an XLSX file for further processing or
+record-keeping.
 
 \begin{figure}[!htbp]
 
-{\centering \includegraphics[width=0.86\linewidth,alt={Screenshot of the grouper Shiny multi-role workload results view after a successful optimization run.}]{figures/grouper_webapp_multirole_results} 
+{\centering \includegraphics[width=0.86\linewidth,alt={Screenshot of the grouper Shiny multi-role workload run summary and workload distribution after a successful optimization run.}]{figures/grouper_webapp_multirole_results} 
 
 }
 
-\caption{Multi-role workload results view.}\label{fig:fig-grouper-webapp-multirole-results}
+\caption{Multi-role workload run summary and workload distribution view.}\label{fig:fig-grouper-webapp-multirole-results}
 \end{figure}
 
 \FloatBarrier
