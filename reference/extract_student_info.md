@@ -2,11 +2,8 @@
 
 Converts a dataframe with information on students to a list of
 parameters. This list forms one half of the inputs to prepare_model().
-The remaining model parameters can come from
-[`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
-or be supplied directly to
-[`prepare_model()`](https://Zimmy313.github.io/grouper/reference/prepare_model.md)
-for non-YAML workflows.
+The remaining model parameters can come from \[extract_params_yaml()\]
+or be supplied directly to \[prepare_model()\] for non-YAML workflows.
 
 ## Usage
 
@@ -76,38 +73,24 @@ extract_student_info(
 For the diversity-based assignment model, this function returns a list
 containing:
 
-- N: number of students
-
-- G: number of self-formed groups
-
-- m: a (student x groups) matrix, indicating group membership for each
-  student.
-
-- d: dissimilarity matrix, NxN
-
-- s: skills vector for each individual student (possibly NULL)
+\* N: number of students \* G: number of self-formed groups \* m: a
+(student x groups) matrix, indicating group membership for each student.
+\* d: dissimilarity matrix, NxN \* s: skills vector for each individual
+student (possibly NULL)
 
 For the preference-based assignment model, this function returns a list
 containing:
 
-- N: number of students
-
-- G: number of self-formed groups
-
-- m: a (student x groups) matrix, indicating group membership for each
-  student.
-
-- n: a vector of length G, with the number of students in each
-  self-formed group.
-
-- p: The preference matrix from the input argument.
+\* N: number of students \* G: number of self-formed groups \* m: a
+(student x groups) matrix, indicating group membership for each student.
+\* n: a vector of length G, with the number of students in each
+self-formed group. \* p: The preference matrix from the input argument.
 
 ## Details
 
 For the diversity-based assignment, the demographic variables are
 converted into an NxN dissimilarity matrix. By default, the
-dissimilarity metric used is the Gower distance
-[`cluster::daisy()`](https://rdrr.io/pkg/cluster/man/daisy.html).
+dissimilarity metric used is the Gower distance \[cluster::daisy()\].
 
 For the preference-based assignment, the preference matrix indicates the
 preference that each group has for the project topics. For this model,

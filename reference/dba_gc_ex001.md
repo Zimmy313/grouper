@@ -10,18 +10,12 @@ dba_gc_ex001
 
 ## Format
 
-### `dba_gc_ex001`
+\## \`dba_gc_ex001\` A data frame with 4 rows and 4 columns.
 
-A data frame with 4 rows and 4 columns.
-
-- id: the student id of each students, simply the integers 1 to 4.
-
-- major: the primary major of each student.
-
-- skill: the skill level of each student.
-
-- groups: the self-formed groups submitted by each student. In this
-  case, student is in his/her own group.
+\* id: the student id of each students, simply the integers 1 to 4. \*
+major: the primary major of each student. \* skill: the skill level of
+each student. \* groups: the self-formed groups submitted by each
+student. In this case, student is in his/her own group.
 
 ## Source
 

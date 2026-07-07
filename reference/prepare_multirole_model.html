@@ -80,13 +80,13 @@ while balancing role-specific workload, preferences, and cohort protection.</p>
 
 
 <dl><dt id="arg-df-list">df_list<a class="anchor" aria-label="anchor" href="#arg-df-list"></a></dt>
-<dd><p>A model input list from <code><a href="extract_multirole_info.html">extract_multirole_info()</a></code>.</p></dd>
+<dd><p>A model input list from [extract_multirole_info()].</p></dd>
 
 
 <dt id="arg-ta-protected-max-gr-protected-max">ta_protected_max, gr_protected_max<a class="anchor" aria-label="anchor" href="#arg-ta-protected-max-gr-protected-max"></a></dt>
 <dd><p>Non-negative soft upper limits on
 current-semester TA or GR workload for the corresponding protected cohort.
-A value may be <code>NULL</code> when the corresponding <code>rho_*</code> term is disabled.</p></dd>
+A value may be `NULL` when the corresponding `rho_*` term is disabled.</p></dd>
 
 
 <dt id="arg-e-max">e_max<a class="anchor" aria-label="anchor" href="#arg-e-max"></a></dt>
@@ -132,19 +132,19 @@ identifying the TA- and GR-protected cohorts.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <code>ompr</code> model.</p>
+    <p>An `ompr` model.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Any objective weight set to <code>NULL</code> or zero is disabled. Disabled preference
+    <p>Any objective weight set to `NULL` or zero is disabled. Disabled preference
 and E terms are omitted from the objective. Disabling a spread term also
 omits its two spread variables and fairness constraints. Disabling a
 protection penalty omits that role's slack variables and soft-limit
 constraints, and includes every individual in that role's fairness spread.</p>
-<p>When a preference term is active, the corresponding <code>P_ta</code> or <code>P_gr</code>
-element must be present in <code>df_list</code>.
-Semester capacity is read from <code>df_list$C</code>, as supplied to
-<code><a href="extract_multirole_info.html">extract_multirole_info()</a></code>. Annual total workload is fixed at <code>2 * C</code>.</p>
+<p>When a preference term is active, the corresponding `P_ta` or `P_gr`
+element must be present in `df_list`.
+Semester capacity is read from `df_list$C`, as supplied to
+[extract_multirole_info()]. Annual total workload is fixed at `2 * C`.</p>
     </div>
 
     <div class="section level2">

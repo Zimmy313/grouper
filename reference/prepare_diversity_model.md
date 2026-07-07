@@ -12,15 +12,13 @@ prepare_diversity_model(df_list, yaml_list, w1 = 0.5, w2 = 0.5)
 
 - df_list:
 
-  The output list from
-  [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md)
-  for `assignment = "diversity"`.
+  The output list from \[extract_student_info()\] for \`assignment =
+  "diversity"\`.
 
 - yaml_list:
 
-  The output list from
-  [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md)
-  for `assignment = "diversity"`.
+  The output list from \[extract_params_yaml()\] for \`assignment =
+  "diversity"\`.
 
 - w1, w2:
 

@@ -11,12 +11,10 @@ multirole_prefmat_ex001
 
 ## Format
 
-### `multirole_prefmat_ex001`
+\## \`multirole_prefmat_ex001\` A matrix with 4 rows and 4 columns.
 
-A matrix with 4 rows and 4 columns.
-
-Rows correspond to individuals in `multirole_students_ex001`, and
-columns correspond to rows of `multirole_demand_ex001`.
+Rows correspond to individuals in \`multirole_students_ex001\`, and
+columns correspond to rows of \`multirole_demand_ex001\`.
 
 Preference scores are encoded as 3 (first choice), 2 (second choice),
 and 1 (third choice). Unranked courses are encoded as -99.

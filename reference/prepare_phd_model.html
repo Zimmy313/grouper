@@ -76,7 +76,7 @@ across students and courses.</p>
 
 
 <dl><dt id="arg-df-list">df_list<a class="anchor" aria-label="anchor" href="#arg-df-list"></a></dt>
-<dd><p>A list of model inputs, typically from <code><a href="extract_phd_info.html">extract_phd_info()</a></code>.
+<dd><p>A list of model inputs, typically from [extract_phd_info()].
 Required elements are:</p><ul><li><p><code>Ns</code>: number of students</p></li>
 <li><p><code>Nj</code>: number of courses</p></li>
 <li><p><code>P</code>: preference matrix <code>[i, j]</code></p></li>
@@ -121,8 +121,8 @@ current semester.</p></dd>
 
 
 <dt id="arg-phi">phi<a class="anchor" aria-label="anchor" href="#arg-phi"></a></dt>
-<dd><p>Objective weight on the score-weighted E term. When <code>phi &gt; 0</code>,
-larger values in <code>df_list$s</code> make E allocation more attractive.</p></dd>
+<dd><p>Objective weight on the score-weighted E term. When `phi &gt; 0`,
+larger values in `df_list$s` make E allocation more attractive.</p></dd>
 
 
 <dt id="arg-rho">rho<a class="anchor" aria-label="anchor" href="#arg-rho"></a></dt>
@@ -151,7 +151,7 @@ Year 1.</p></dd>
     <p>Index alignment is critical: <code>P[i, j]</code>, <code>d[j, ]</code>, <code>s[i]</code>,
 <code>year[i]</code>, <code>t1[i]</code>, and <code>g1[i]</code> must refer to the same
 student/course ordering. Protection and TA fairness groups are based on
-<code>year</code>; <code>s</code> is used only in the E-allocation objective term.</p>
+`year`; `s` is used only in the E-allocation objective term.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -28,8 +28,7 @@ prepare_phd_model(
 
 - df_list:
 
-  A list of model inputs, typically from
-  [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md).
+  A list of model inputs, typically from \[extract_phd_info()\].
   Required elements are:
 
   - `Ns`: number of students
@@ -82,8 +81,8 @@ prepare_phd_model(
 
 - phi:
 
-  Objective weight on the score-weighted E term. When `phi > 0`, larger
-  values in `df_list$s` make E allocation more attractive.
+  Objective weight on the score-weighted E term. When \`phi \> 0\`,
+  larger values in \`df_list\$s\` make E allocation more attractive.
 
 - rho:
 
@@ -110,5 +109,5 @@ An `ompr` model object ready for
 
 Index alignment is critical: `P[i, j]`, `d[j, ]`, `s[i]`, `year[i]`,
 `t1[i]`, and `g1[i]` must refer to the same student/course ordering.
-Protection and TA fairness groups are based on `year`; `s` is used only
-in the E-allocation objective term.
+Protection and TA fairness groups are based on \`year\`; \`s\` is used
+only in the E-allocation objective term.

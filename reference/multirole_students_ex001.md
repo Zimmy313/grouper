@@ -11,21 +11,13 @@ multirole_students_ex001
 
 ## Format
 
-### `multirole_students_ex001`
+\## \`multirole_students_ex001\` A data frame with 4 rows and 5 columns.
 
-A data frame with 4 rows and 5 columns.
+\* student_id: unique individual id. \* year: cohort or year, encoded
+from 1 to 4. \* past_ta: previous-semester TA workload units. \*
+past_gr: previous-semester GR workload units. \* Name: individual name.
 
-- student_id: unique individual id.
-
-- year: cohort or year, encoded from 1 to 4.
-
-- past_ta: previous-semester TA workload units.
-
-- past_gr: previous-semester GR workload units.
-
-- Name: individual name.
-
-In this toy dataset, `past_ta + past_gr = 4` for every individual.
+In this toy dataset, \`past_ta + past_gr = 4\` for every individual.
 
 ## Source
 

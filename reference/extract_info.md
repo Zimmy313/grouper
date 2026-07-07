@@ -1,10 +1,7 @@
 # Extract model inputs (wrapper)
 
-Wrapper around
-[`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md),
-[`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md),
-and
-[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
+Wrapper around \[extract_student_info()\], \[extract_phd_info()\], and
+\[extract_multirole_info()\].
 
 ## Usage
 
@@ -19,8 +16,8 @@ extract_info(
 
 - assignment:
 
-  Character string indicating model type. Must be one of `"diversity"`,
-  `"preference"`, `"phd"`, or `"multirole"`.
+  Character string indicating model type. Must be one of
+  \`"diversity"\`, \`"preference"\`, \`"phd"\`, or \`"multirole"\`.
 
 - ...:
 
@@ -35,73 +32,38 @@ A model input list from the corresponding extraction function.
 
 Explicit argument guide by assignment:
 
-- For `assignment = "diversity"`, `extract_info()` forwards `...` to
-  [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md).
+\- For \`assignment = "diversity"\`, \`extract_info()\` forwards \`...\`
+to \[extract_student_info()\].
 
-  Required arguments:
+Required arguments: - \`dframe\` - \`self_formed_groups\` - either: -
+\`d_mat\`, or - \`demographic_cols\`, so Gower dissimilarity is computed
+internally
 
-  - `dframe`
+Optional arguments: - \`skills\`, which can be supplied or set to
+\`NULL\`
 
-  - `self_formed_groups`
+\- For \`assignment = "preference"\`, \`extract_info()\` forwards
+\`...\` to \[extract_student_info()\].
 
-  - either:
+Required arguments: - \`dframe\` - \`self_formed_groups\` - \`pref_mat\`
 
-    - `d_mat`, or
+\- For \`assignment = "phd"\`, \`extract_info()\` forwards \`...\` to
+\[extract_phd_info()\].
 
-    - `demographic_cols`, so Gower dissimilarity is computed internally
+Required arguments: - \`student_df\` - \`p_mat\` - \`d_mat\`
 
-  Optional arguments:
+Optional arguments: - \`e_mode\`, which uses the default from
+\[extract_phd_info()\] - \`C\`, which uses the default from
+\[extract_phd_info()\] - \`s\`, which uses the default from
+\[extract_phd_info()\]
 
-  - `skills`, which can be supplied or set to `NULL`
+\- For \`assignment = "multirole"\`, \`extract_info()\` forwards \`...\`
+to \[extract_multirole_info()\].
 
-- For `assignment = "preference"`, `extract_info()` forwards `...` to
-  [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md).
+Required arguments: - \`student_df\` - \`d_mat\`
 
-  Required arguments:
-
-  - `dframe`
-
-  - `self_formed_groups`
-
-  - `pref_mat`
-
-- For `assignment = "phd"`, `extract_info()` forwards `...` to
-  [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md).
-
-  Required arguments:
-
-  - `student_df`
-
-  - `p_mat`
-
-  - `d_mat`
-
-  Optional arguments:
-
-  - `e_mode`, which uses the default from
-    [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-
-  - `C`, which uses the default from
-    [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-
-  - `s`, which uses the default from
-    [`extract_phd_info()`](https://Zimmy313.github.io/grouper/reference/extract_phd_info.md)
-
-- For `assignment = "multirole"`, `extract_info()` forwards `...` to
-  [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
-
-  Required arguments:
-
-  - `student_df`
-
-  - `d_mat`
-
-  Optional arguments:
-
-  - `p_ta_mat` and `p_gr_mat`
-
-  - `e_mode`, `C`, `s`, and `single_semester`
+Optional arguments: - \`p_ta_mat\` and \`p_gr_mat\` - \`e_mode\`, \`C\`,
+\`s\`, and \`single_semester\`
 
 This wrapper does not parse YAML files. YAML-based parameter extraction
-remains available via
-[`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).
+remains available via \[extract_params_yaml()\].

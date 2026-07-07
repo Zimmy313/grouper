@@ -13,9 +13,8 @@ assign_job(model_result, student_df, course_codes, name_col = "Name")
 
 - model_result:
 
-  Result object from
-  [`ompr::solve_model()`](https://rdrr.io/pkg/ompr/man/solve_model.html)
-  for a PhD or multi-role workload model.
+  Result object from \`ompr::solve_model()\` for a PhD or multi-role
+  workload model.
 
 - student_df:
 
@@ -25,13 +24,13 @@ assign_job(model_result, student_df, course_codes, name_col = "Name")
 - course_codes:
 
   Character vector of course codes in the same order as
-  preference-matrix columns and `d_mat` rows.
+  preference-matrix columns and \`d_mat\` rows.
 
 - name_col:
 
-  Student name column name in `student_df`.
+  Student name column name in \`student_df\`.
 
 ## Value
 
-A data frame with columns: `Name`, then all `<course>-t`, all
-`<course>-g`, all `<course>-e`.
+A data frame with columns: \`Name\`, then all \`\<course\>-t\`, all
+\`\<course\>-g\`, all \`\<course\>-e\`.

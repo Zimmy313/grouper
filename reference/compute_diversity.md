@@ -12,7 +12,7 @@ compute_diversity(id, dmat)
 
 - id:
 
-  Integer vector of student indices into `dmat`.
+  Integer vector of student indices into \`dmat\`.
 
 - dmat:
 
@@ -20,4 +20,4 @@ compute_diversity(id, dmat)
 
 ## Value
 
-Scalar: sum of upper-triangle distances among `id`.
+Scalar: sum of upper-triangle distances among \`id\`.

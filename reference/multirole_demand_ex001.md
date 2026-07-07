@@ -10,11 +10,10 @@ multirole_demand_ex001
 
 ## Format
 
-### `multirole_demand_ex001`
+\## \`multirole_demand_ex001\` A matrix with 4 rows and 2 columns.
 
-A matrix with 4 rows and 2 columns.
-
-Columns are in the order `TA`, `GR`. Row names store the course codes.
+Columns are in the order \`TA\`, \`GR\`. Row names store the course
+codes.
 
 ## Source
 

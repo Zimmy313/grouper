@@ -1,9 +1,7 @@
 # Assigns model result to the original data frame.
 
-From the result of
-[`ompr::solve_model()`](https://rdrr.io/pkg/ompr/man/solve_model.html),
-this function attaches the derived groupings to the original dataframe
-comprising students.
+From the result of \[ompr::solve_model()\], this function attaches the
+derived groupings to the original dataframe comprising students.
 
 ## Usage
 
@@ -31,14 +29,13 @@ assign_groups(
 
 - dframe:
 
-  The original dataframe used in
-  [`extract_student_info()`](https://Zimmy313.github.io/grouper/reference/extract_student_info.md).
+  The original dataframe used in \[extract_student_info()\].
 
 - params_list:
 
   The list of parameters from the YAML file, i.e. the output of
-  [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).
-  This is only required for the preference-based assignment.
+  \[extract_params_yaml()\]. This is only required for the
+  preference-based assignment.
 
 - group_names:
 

@@ -23,42 +23,33 @@ prepare_model(
 
 - yaml_list:
 
-  Parameter list from
-  [`extract_params_yaml()`](https://Zimmy313.github.io/grouper/reference/extract_params_yaml.md).
-  Optional for `assignment = "diversity"` and
-  `assignment = "preference"` for backward compatibility. If supplied,
-  this list is used directly. Ignored for `assignment = "phd"` and
-  `assignment = "multirole"`.
+  Parameter list from \[extract_params_yaml()\]. Optional for
+  \`assignment = "diversity"\` and \`assignment = "preference"\` for
+  backward compatibility. If supplied, this list is used directly.
+  Ignored for \`assignment = "phd"\` and \`assignment = "multirole"\`.
 
 - assignment:
 
-  Character string indicating model type. Must be one of `"diversity"`,
-  `"preference"`, `"phd"`, or `"multirole"`.
+  Character string indicating model type. Must be one of
+  \`"diversity"\`, \`"preference"\`, \`"phd"\`, or \`"multirole"\`.
 
 - w1, w2:
 
   Numeric values between 0 and 1. Should sum to 1. Used only for
-  `assignment = "diversity"`.
+  \`assignment = "diversity"\`.
 
 - ...:
 
-  Additional arguments:
-
-  - For `assignment = "diversity"` when `yaml_list` is `NULL`: supply
-    `n_topics`, `nmin`, `nmax`, `rmin`, and `rmax`.
-
-  - For `assignment = "preference"` when `yaml_list` is `NULL`: supply
-    `n_topics`, `B`, `nmin`, `nmax`, `rmin`, and `rmax`.
-
-  - For `assignment = "phd"`: passed to
-    [`prepare_phd_model()`](https://Zimmy313.github.io/grouper/reference/prepare_phd_model.md),
-    including `protected_year` when a cohort other than Year 1 should
-    receive the soft TA-load protection.
-
-  - For `assignment = "multirole"`: passed to
-    [`prepare_multirole_model()`](https://Zimmy313.github.io/grouper/reference/prepare_multirole_model.md).
-    Multi-role semester capacity is supplied during extraction and read
-    from `df_list$C`.
+  Additional arguments: \* For \`assignment = "diversity"\` when
+  \`yaml_list\` is \`NULL\`: supply \`n_topics\`, \`nmin\`, \`nmax\`,
+  \`rmin\`, and \`rmax\`. \* For \`assignment = "preference"\` when
+  \`yaml_list\` is \`NULL\`: supply \`n_topics\`, \`B\`, \`nmin\`,
+  \`nmax\`, \`rmin\`, and \`rmax\`. \* For \`assignment = "phd"\`:
+  passed to \[prepare_phd_model()\], including \`protected_year\` when a
+  cohort other than Year 1 should receive the soft TA-load protection.
+  \* For \`assignment = "multirole"\`: passed to
+  \[prepare_multirole_model()\]. Multi-role semester capacity is
+  supplied during extraction and read from \`df_list\$C\`.
 
 ## Value
 

@@ -33,14 +33,13 @@ prepare_multirole_model(
 
 - df_list:
 
-  A model input list from
-  [`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
+  A model input list from \[extract_multirole_info()\].
 
 - ta_protected_max, gr_protected_max:
 
   Non-negative soft upper limits on current-semester TA or GR workload
-  for the corresponding protected cohort. A value may be `NULL` when the
-  corresponding `rho_*` term is disabled.
+  for the corresponding protected cohort. A value may be \`NULL\` when
+  the corresponding \`rho\_\*\` term is disabled.
 
 - e_max:
 
@@ -81,22 +80,21 @@ prepare_multirole_model(
 
 ## Value
 
-An `ompr` model.
+An \`ompr\` model.
 
 ## Details
 
-Any objective weight set to `NULL` or zero is disabled. Disabled
+Any objective weight set to \`NULL\` or zero is disabled. Disabled
 preference and E terms are omitted from the objective. Disabling a
 spread term also omits its two spread variables and fairness
 constraints. Disabling a protection penalty omits that role's slack
 variables and soft-limit constraints, and includes every individual in
 that role's fairness spread.
 
-When a preference term is active, the corresponding `P_ta` or `P_gr`
-element must be present in `df_list`. Semester capacity is read from
-`df_list$C`, as supplied to
-[`extract_multirole_info()`](https://Zimmy313.github.io/grouper/reference/extract_multirole_info.md).
-Annual total workload is fixed at `2 * C`.
+When a preference term is active, the corresponding \`P_ta\` or \`P_gr\`
+element must be present in \`df_list\`. Semester capacity is read from
+\`df_list\$C\`, as supplied to \[extract_multirole_info()\]. Annual
+total workload is fixed at \`2 \* C\`.
 
 ## Examples
 

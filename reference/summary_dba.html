@@ -58,24 +58,24 @@
 
 
 <dl><dt id="arg-df-result">df_result<a class="anchor" aria-label="anchor" href="#arg-df-result"></a></dt>
-<dd><p>Data frame returned by <code><a href="solve_assignment.html">solve_assignment()</a></code> for a diversity
-model. Must contain columns <code>topic</code>, <code>rep</code>, and the column named by
-<code>id_col</code>.</p></dd>
+<dd><p>Data frame returned by [solve_assignment()] for a diversity
+model. Must contain columns `topic`, `rep`, and the column named by
+`id_col`.</p></dd>
 
 
 <dt id="arg-df-list">df_list<a class="anchor" aria-label="anchor" href="#arg-df-list"></a></dt>
-<dd><p>Input list from <code><a href="extract_student_info.html">extract_student_info()</a></code>. Must contain <code>d</code>
-(distance matrix) and optionally <code>s</code> (skill vector).</p></dd>
+<dd><p>Input list from [extract_student_info()]. Must contain `d`
+(distance matrix) and optionally `s` (skill vector).</p></dd>
 
 
 <dt id="arg-id-col">id_col<a class="anchor" aria-label="anchor" href="#arg-id-col"></a></dt>
-<dd><p>Character. Name of the student-ID column in <code>df_result</code>.</p></dd>
+<dd><p>Character. Name of the student-ID column in `df_result`.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A grouped summary tibble with columns <code>topic</code>, <code>rep</code>, <code>n</code>, and
-<code>total_diversity</code> (plus <code>total_skill</code> when <code>df_list$s</code> is present).</p>
+    <p>A grouped summary tibble with columns `topic`, `rep`, `n`, and
+  `total_diversity` (plus `total_skill` when `df_list$s` is present).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
