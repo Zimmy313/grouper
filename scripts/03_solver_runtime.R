@@ -1,3 +1,9 @@
+# Script for benchmarking open-source solvers on the AY2520 multi-role model.
+# It repeats GLPK and HiGHS solves and writes runtime summaries to data/derived/.
+#
+# Run from the article root with:
+# Rscript scripts/03_solver_runtime.R
+
 suppressPackageStartupMessages({
   library(ROI.plugin.glpk)
   library(ROI.plugin.highs)

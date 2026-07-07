@@ -1,3 +1,10 @@
+# Script for checking the AY2520 manual schedule objective.
+# It recomputes the manuscript objective components for the manual schedule and
+# prints the result without writing files.
+#
+# Run from the article root with:
+# Rscript scripts/03_manual_objective.R
+
 source("scripts/multirole_helpers.R")
 
 weights <- manuscript_weights()

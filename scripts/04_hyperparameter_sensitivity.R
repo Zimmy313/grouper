@@ -1,3 +1,10 @@
+# Script for one-at-a-time sensitivity checks on AY2520 policy weights.
+# It varies alpha_ta, beta_ta, phi, and rho_ta around the manuscript setting and
+# prints the resulting objective summaries without writing files.
+#
+# Run from the article root with:
+# Rscript scripts/04_hyperparameter_sensitivity.R
+
 suppressPackageStartupMessages(library(ROI.plugin.glpk))
 
 source("scripts/multirole_helpers.R")

@@ -1,3 +1,9 @@
+# Shared helper functions for the multi-role reproduction scripts.
+# These functions load raw semester data, build and solve the model, and
+# recompute objective components for model and manual schedules.
+#
+# This file is sourced by other scripts and is not intended to be run directly.
+
 suppressPackageStartupMessages({
   library(dplyr)
   library(readr)

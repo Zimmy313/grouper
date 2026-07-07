@@ -1,33 +1,30 @@
 # Reproducibility scripts
 
-Run scripts from root in this order:
+Run the main multi-role workflow from the article root:
 
 1. `Rscript scripts/01_build_results.R`
 2. `Rscript scripts/02_build_plots.R`
 3. `Rscript scripts/03_solver_runtime.R`
-4. Optional check: `Rscript scripts/03_manual_objective.R`
-5. Optional check: `Rscript scripts/04_hyperparameter_sensitivity.R`
 
-What each script does:
+Optional checks:
 
-- `01_build_results.R`: reads the cleaned anonymized AY2420, AY2510, and AY2520
-  inputs in `data/raw/<semester>/`, runs the GLPK multi-role workload
-  optimization for all three semesters using the TA-focused manuscript policy,
-  and writes the result tables plus AY2520 workload-distribution data to
-  `data/derived/`.
-- `02_build_plots.R`: reads the retained derived data and writes
-  `figures/ay2520_distribution.pdf` and
-  `figures/multi_role_objective_comparison.pdf`, which compares absolute
-  objective values, plus the AY2420 objective-term gap figure for the largest
-  model-manual objective gap.
-- `03_solver_runtime.R`: repeats the AY2520 solve 30 times for each open-source
-  solver (`GLPK` and `HiGHS`) and writes `data/derived/ay2520_solver_runtime.csv`.
-- `03_manual_objective.R`: reads the AY2520 raw inputs plus manual-allocation
-  raw files, recomputes the manual objective under the manuscript parameters,
-  and prints the objective components without writing results.
-- `04_hyperparameter_sensitivity.R`: varies `alpha_ta`, `beta_ta`, `phi`, and
-  `rho_ta` one at a time around the AY2520 manuscript setting and prints
-  sensitivity summaries without writing results.
-- `multirole_helpers.R`: shared helper functions used by the result and
-  sensitivity scripts. The empirical workflow uses `assignment = "multirole"`
-  with GR-specific objective terms disabled.
+- `Rscript scripts/03_manual_objective.R`
+- `Rscript scripts/04_hyperparameter_sensitivity.R`
+
+Files:
+
+- `01_build_results.R`: solves AY2420, AY2510, and AY2520 with the manuscript
+  policy and writes derived result tables.
+- `02_build_plots.R`: rebuilds the multi-role figures from `data/derived/`.
+- `03_solver_runtime.R`: benchmarks GLPK and HiGHS on AY2520.
+- `03_manual_objective.R`: prints the AY2520 manual objective components.
+- `04_hyperparameter_sensitivity.R`: prints one-at-a-time sensitivity summaries.
+- `multirole_helpers.R`: shared multi-role data, model, and objective helpers.
+
+Past-semester DBA/PBA scripts:
+
+- `05_dba_past_semester.R`
+- `06_pba_past_semester.R`
+
+These scripts assume the working directory is `scripts/` and may require editing
+the solver lines depending on whether Gurobi or GLPK is available.

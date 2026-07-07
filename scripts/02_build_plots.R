@@ -1,3 +1,10 @@
+# Script for rebuilding the multi-role figures used in the paper.
+# It reads derived outputs from 01_build_results.R and writes PDF figures to
+# figures/.
+#
+# Run from the article root with:
+# Rscript scripts/02_build_plots.R
+
 suppressPackageStartupMessages({
   library(dplyr)
   library(tidyr)

@@ -1,3 +1,11 @@
+# Script for regenerating the multi-role result tables used in the paper.
+# It solves AY2420, AY2510, and AY2520 with GLPK under the manuscript policy,
+# then writes dataset summaries, objective comparisons, objective terms, and
+# AY2520 workload-distribution data to data/derived/.
+#
+# Run from the article root with:
+# Rscript scripts/01_build_results.R
+
 suppressPackageStartupMessages({
   library(tidyr)
   library(ROI.plugin.glpk)
