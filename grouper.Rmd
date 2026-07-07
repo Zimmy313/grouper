@@ -1316,5 +1316,3 @@ Its scripted and Shiny interfaces support both reproducible analysis and
 operational use. Future development will focus on extending the supported
 allocation models, improving diagnostic summaries, and strengthening interfaces
 for institutional deployment while preserving the common workflow.
-
-# References {-}

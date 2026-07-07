@@ -13,15 +13,23 @@ suppressPackageStartupMessages({
 })
 
 derived_dir <- "data/derived"
-model_manual_colors <- c("Model" = "#0072B2", "Manual" = "#e61b00")
+fixed_figure_colors <- c(
+  "grouper" = "#F8766D",
+  "manual" = "#00BFC4",
+  "neutral" = "#7F7F7F"
+)
+model_manual_colors <- c(
+  "Model" = fixed_figure_colors[["grouper"]],
+  "Manual" = fixed_figure_colors[["manual"]]
+)
 save_pdf <- function(name, plot, width, height) {
   ggsave(file.path("figures", name), plot, width = width, height = height, units = "in")
 }
 
 job_palette <- c(
-  "TA" = "#0072B2",
-  "GR" = "#e61b00",
-  "E" = "#56B4E9"
+  "TA" = fixed_figure_colors[["grouper"]],
+  "GR" = fixed_figure_colors[["manual"]],
+  "E" = fixed_figure_colors[["neutral"]]
 )
 
 dist_long <- read_csv(file.path(derived_dir, "ay2520_distribution_long.csv"), show_col_types = FALSE) |>
@@ -78,7 +86,7 @@ p_dist <- ggplot(dist_long, aes(x = student_plot, y = units, fill = stack_compon
     x = "Student",
     y = "Workload Units",
     title = "Year-Long Work Distribution by Student",
-    subtitle = "AY2520 baseline (model_0, anonymized)"
+    subtitle = "AY2520 baseline (model_0, anonymous labels)"
   ) +
   theme_minimal(base_size = 11) +
   theme(
