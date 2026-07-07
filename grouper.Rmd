@@ -1098,7 +1098,6 @@ carried into the annual balance.
 ```{r fig-ay2520-distribution, fig.cap="AY2520 model workload distribution by anonymized student and cohort year.", fig.alt="Stacked bar chart faceted by year showing AY2520 current and past workload components for anonymized students.", out.width="0.8\\linewidth", fig.pos="!htbp", echo=FALSE}
 knitr::include_graphics("figures/ay2520_distribution.pdf")
 ```
-```
 
 The dashed horizontal line marks the four-unit semester capacity. Faceting by 
 cohort year makes the Year-1 protection
