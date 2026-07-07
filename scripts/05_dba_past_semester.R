@@ -23,12 +23,16 @@ m1 <- prepare_model(df_list, assignment="diversity", w1=1.0, n_topics=5,
                     nmin=4, nmax=5, rmin=1, rmax=1)
 
 # Choose your solver here:
-result <- solve_model(m1, with_ROI(solver="gurobi", verbose=TRUE))
-# tm_limit in milliseconds, https://cran.r-universe.dev/Rglpk/doc/manual.html
-result <- solve_model(m1, with_ROI(solver="glpk", verbose=TRUE, tm_limit=5e3))
+result <- solve_assignment(m1, assignment="diversity",
+                           solver="gurobi", dframe=df1,
+                           verbose=TRUE, group_names = "student_id")
 
-assigned_groups <- assign_groups(result, assignment="diversity",
-                                 dframe=df1, group_names="student_id")
+# tm_limit in milliseconds, https://cran.r-universe.dev/Rglpk/doc/manual.html
+result <- solve_assignment(m1, assignment="diversity",
+                 solver="glpk", dframe=df1,
+                 group_names = "student_id",
+                 solver_args = list(verbose=TRUE, tm_limit=5e3))
+assigned_groups <- result$output
 
 # Plotting
 assigned_groups <- rename(assigned_groups,

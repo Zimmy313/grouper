@@ -35,13 +35,14 @@ mdl2_5 <- prepare_model(df_list, assignment="preference", n_topics=4, B=2,
                         nmin=3, nmax=5, rmin=1, rmax=2)
 
 # Choose your solver here:
-result <- solve_model(mdl2_5, with_ROI(solver="gurobi", verbose=TRUE))
-# result <- solve_model(mdl2_5, with_ROI(solver="glpk", verbose=TRUE))
+result <- solve_assignment(mdl2_5, assignment="preference", solver="gurobi",
+                 dframe=group_comp_df1, params_list = list(n_topics=4, B=2),
+                 group_names = "group_id")
+# result <- solve_assignment(mdl2_5, assignment="preference", solver="glpk",
+#                  dframe=group_comp_df1, params_list = list(n_topics=4, B=2),
+#                  group_names = "group_id")
 
-groupr_assigned_df1 <- assign_groups(result, assignment = "preference",
-                                     dframe=group_comp_df1,
-                                     params_list = list(n_topics=4, B=2),
-                                     group_names="group_id")
+groupr_assigned_df1 <- result$output
 total_pref <- summary_pba(groupr_assigned_df1, df_list, 4)
 
 # Extract the manually allocated topics.
@@ -66,19 +67,23 @@ mdl2_6 <- prepare_model(df_list, assignment="preference", n_topics=7, B=2,
                         nmin=3, nmax=5, rmin=1, rmax=3)
 
 # Choose your solver here:
-result <- solve_model(mdl2_6, with_ROI(solver="gurobi", verbose=TRUE))
-# result <- solve_model(mdl2_6, with_ROI(solver="glpk", verbose=TRUE, tm_limit = 1.2e5))
-groupr_assigned_df1 <- assign_groups(result, assignment = "preference",
-                                     dframe=group_comp_df1,
-                                     params_list = list(n_topics=7, B=2),
-                                     group_names="group_id")
+result <- solve_assignment(model=mdl2_6, assignment="preference",
+                           solver="gurobi", verbose=TRUE, dframe=group_comp_df1,
+                           params_list = list(n_topics=7, B=2),
+                           group_names="group_id")
+# result <- solve_assignment(model=mdl2_6, assignment="preference",
+#                            solver="glpk", dframe=group_comp_df1,
+#                            params_list = list(n_topics=7, B=2),
+#                            group_names="group_id",
+#                            solver_args = list(verbose=TRUE, tm_limit=1.2e5))
+groupr_assigned_df1 <- result$output
 total_pref <- summary_pba(groupr_assigned_df1, df_list, 7)
 
 allocated_pref_mean_2210 <-
  sum(allocated_df1$pref_for_allocated_topic*allocated_df1$size)/sum(allocated_df1$size)
 # 13.06
 groupr_pref_mean_2210 <- sum(total_pref$total_pref_score)/NROW(group_comp_df1)
-# 13.32
+# 13.58
 
 ## Semester 2220
 
@@ -93,12 +98,16 @@ mdl2_7 <- prepare_model(df_list, assignment = "preference", n_topics=7, B=2,
                         nmin=3, nmax=5, rmin=1, rmax=3)
 
 # Choose your solver here:
-result <- solve_model(mdl2_7, with_ROI(solver="gurobi", verbose=TRUE))
-# result <- solve_model(mdl2_7, with_ROI(solver="glpk", verbose=TRUE, tm_limit = 2.4e5))
-groupr_assigned_df1 <- assign_groups(result, assignment = "preference",
-                                     dframe=group_comp_df1,
-                                     params_list = list(n_topics=7, B=2),
-                                     group_names="group_id")
+result <- solve_assignment(model=mdl2_7, assignment="preference",
+                           solver="gurobi", verbose=TRUE, dframe=group_comp_df1,
+                           params_list = list(n_topics=7, B=2),
+                           group_names="group_id")
+# result <- solve_assignment(model=mdl2_7, assignment="preference",
+#                            solver="glpk", dframe=group_comp_df1,
+#                            params_list = list(n_topics=7, B=2),
+#                            group_names="group_id",
+#                            solver_args = list(verbose=TRUE, tm_limit=2.4e5))
+groupr_assigned_df1 <- result$output
 total_pref <- summary_pba(groupr_assigned_df1, df_list, 7)
 
 allocated_pref_mean_2220 <-
@@ -120,12 +129,16 @@ mdl2_8 <- prepare_model(df_list, assignment="preference", n_topics=5, B=2,
                         nmin=3, nmax=5, rmin=3, rmax=5)
 
 # Choose your solver here:
-result <- solve_model(mdl2_8, with_ROI(solver="gurobi", verbose=TRUE))
-# result <- solve_model(mdl2_8, with_ROI(solver="glpk", verbose=TRUE, tm_limit = 2.4e5))
-groupr_assigned_df1 <- assign_groups(result, assignment = "preference",
-                                     dframe=group_comp_df1,
-                                     params_list = list(n_topics=5, B=2),
-                                     group_names="group_id")
+result <- solve_assignment(model=mdl2_8, assignment="preference",
+                           solver="gurobi", verbose=TRUE, dframe=group_comp_df1,
+                           params_list = list(n_topics=5, B=2),
+                           group_names="group_id")
+# result <- solve_assignment(model=mdl2_8, assignment="preference",
+#                             solver="glpk", dframe=group_comp_df1,
+#                             params_list = list(n_topics=5, B=2),
+#                             group_names="group_id",
+#                             solver_args = list(verbose=TRUE, tm_limit=2.4e5))
+groupr_assigned_df1 <- result$output
 total_pref <- summary_pba(groupr_assigned_df1, df_list, 5)
 
 allocated_pref_mean_2310 <-  sum(allocated_df1$pref_for_allocated_topic*allocated_df1$size)/sum(allocated_df1$size)

@@ -768,26 +768,17 @@ dba_ex1_model <- prepare_model(dba_ex1_list, assignment = "diversity",
                                w1 = 1.0, w2 = 0.0, 
                                n_topics = 2, nmin = 2, nmax = 2, rmin = 1, rmax = 1 )
 
-dba_ex1_result <- solve_model(dba_ex1_model, with_ROI(solver = "glpk"))
+dba_ex1_result <- solve_assignment(dba_ex1_model, "diversity", solver="glpk", 
+                                   verbose=FALSE, 
+                                   dframe = dba_gc_ex001,  group_names="groups")
 ```
 
-In order to retrieve the results in a usable format, with the assigned groupings 
-mapped to the original dataset, \pkg{grouper} provides a convenience function
-`assign_groups()` to perform the required table join.
-
-```{r}
-dba_ex1_output_df <- assign_groups(model_result = dba_ex1_result,  
-                                   assignment = "diversity", dframe = dba_gc_ex001, 
-                                   group_names = "groups")
-```
-
-The final output dataset, displayed in Table \@ref(tab:constructed-dba-2), is
-identical to the original data `dba_gc_ex001` except for the columns `topic` and
-`rep`. The allocation agrees with the stated intuition that students 1 and 3
-should be assigned together.
+The output object is a list containing the solved model, and a data frame with the 
+assigned tasks. To retrieve the dataframe, we can use the expression 
+`dba_ex1_result$output`.  
 
 ```{r constructed-dba-2, echo=FALSE}
-knitr::kable(dba_ex1_output_df, booktabs=TRUE,
+knitr::kable(dba_ex1_result$output, booktabs=TRUE,
              col.names = c("topic", "rep", "group", "id", "major", "skill"),
              caption = "The assigned groupings for the constructed DBA dataset. Students 2 and 4 have been assigned to topic 1 and students 1 and 3 to topic 2.") %>% 
   kableExtra::kable_styling(latex_options = c("hold_position"))
@@ -833,10 +824,10 @@ pba_ex2_model <- prepare_model(pba_ex2_list, assignment = "preference",
 
 pba_ex2_result <- solve_model(pba_ex2_model, with_ROI(solver = "glpk"))
 
-pba_ex2_output_df <- assign_groups(model_result = pba_ex2_result, 
-                                   assignment = "preference", 
-                                   dframe = pba_gc_ex002, 
-                                   params_list = list(n_topics = 2, B = 2), 
+pba_ex2_result <- solve_assignment(pba_ex2_model,   
+                                   assignment = "preference", verbose=FALSE, 
+                                   dframe = pba_gc_ex002,   
+                                   params_list = list(n_topics = 2, B = 2),   
                                    group_names = "grouping" )
 ```
 
@@ -844,7 +835,7 @@ As before, the purpose of the final line in the chunk is to merge the output wit
 the original dataset. The allocation is shown in Table \@ref(tab:constructed-pba-2).
 
 ```{r constructed-pba-2, echo=FALSE}
-tmp <- arrange(pba_ex2_output_df, topic2, subtopic)
+tmp <- arrange(pba_ex2_result$output, topic2, subtopic)
 knitr::kable(tmp, booktabs=TRUE,
              col.names = c("topic", "subtopic", "rep", "group", "size", "id"),
              caption = "The assigned groupings for the constructed PBA dataset. The number of rows in this dataset is equal to the number of students in the course.") %>% 
