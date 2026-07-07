@@ -17,10 +17,10 @@ source a separate helper file. Standalone legacy applications and their example
 or test files are not required by the consolidated application and are
 therefore not duplicated here.
 
-Run the application from `LATEX/rj1/` with:
+Run the application from the article root with:
 
 ```r
-shiny::runApp("frontend")
+shiny::runApp("scripts/frontend")
 ```
 
 The application requires `grouper`, `shiny`, `bslib`, `DT`, `magrittr`,
