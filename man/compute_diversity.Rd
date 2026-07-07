@@ -7,12 +7,12 @@
 compute_diversity(id, dmat)
 }
 \arguments{
-\item{id}{Integer vector of student indices into \code{dmat}.}
+\item{id}{Integer vector of student indices into `dmat`.}
 
 \item{dmat}{Numeric distance matrix (students × students).}
 }
 \value{
-Scalar: sum of upper-triangle distances among \code{id}.
+Scalar: sum of upper-triangle distances among `id`.
 }
 \description{
 Compute total pairwise diversity for a set of students

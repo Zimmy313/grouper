@@ -21,49 +21,49 @@ solve_assignment(
 )
 }
 \arguments{
-\item{model}{A prepared \code{ompr} model, usually from \code{\link[=prepare_model]{prepare_model()}}.}
+\item{model}{A prepared `ompr` model, usually from [prepare_model()].}
 
 \item{assignment}{Character string indicating model type. Must be one of
-\code{"diversity"}, \code{"preference"}, \code{"phd"}, or \code{"multirole"}.}
+`"diversity"`, `"preference"`, `"phd"`, or `"multirole"`.}
 
-\item{solver}{Solver to use through \code{ompr.roi}. Must be one of \code{"glpk"},
-\code{"highs"}, or \code{"gurobi"}.}
+\item{solver}{Solver to use through `ompr.roi`. Must be one of `"glpk"`,
+`"highs"`, or `"gurobi"`.}
 
-\item{dframe}{The original dataframe used in \code{\link[=extract_student_info]{extract_student_info()}}. Required
-for \code{assignment = "diversity"} and \code{assignment = "preference"}.}
+\item{dframe}{The original dataframe used in [extract_student_info()]. Required
+for `assignment = "diversity"` and `assignment = "preference"`.}
 
-\item{params_list}{The list of parameters from \code{\link[=extract_params_yaml]{extract_params_yaml()}}.
-Required for \code{assignment = "preference"}.}
+\item{params_list}{The list of parameters from [extract_params_yaml()].
+Required for `assignment = "preference"`.}
 
 \item{group_names}{A character string denoting the self-formed group column in
-\code{dframe}. Required for \code{assignment = "diversity"} and
-\code{assignment = "preference"}.}
+`dframe`. Required for `assignment = "diversity"` and
+`assignment = "preference"`.}
 
 \item{student_df}{A data frame that contains individual name information.
-Required for \code{assignment = "phd"} and \code{assignment = "multirole"}.}
+Required for `assignment = "phd"` and `assignment = "multirole"`.}
 
 \item{course_codes}{Character vector of course or task codes in model order.
-Required for \code{assignment = "phd"} and \code{assignment = "multirole"}.}
+Required for `assignment = "phd"` and `assignment = "multirole"`.}
 
-\item{name_col}{Student name column name in \code{student_df}.}
+\item{name_col}{Student name column name in `student_df`.}
 
-\item{verbose}{Logical value passed to \code{ompr.roi::with_ROI()}.}
+\item{verbose}{Logical value passed to `ompr.roi::with_ROI()`.}
 
 \item{time_limit, iteration_limit}{Optional Gurobi controls. These are applied
-only when \code{solver = "gurobi"}.}
+only when `solver = "gurobi"`.}
 
 \item{solver_args}{Additional named arguments passed to
-\code{ompr.roi::with_ROI()}.}
+`ompr.roi::with_ROI()`.}
 }
 \value{
 A list with two elements:
-\itemize{
-\item \code{model_result}: the raw result from \code{\link[ompr:solve_model]{ompr::solve_model()}}
-\item \code{output}: the post-processed assignment table
-}
+  \itemize{
+  \item \code{model_result}: the raw result from [ompr::solve_model()]
+  \item \code{output}: the post-processed assignment table
+  }
 }
 \description{
-Solves an existing \code{ompr} model with an ROI-backed solver, then routes the
-solver result through \code{\link[=assign_groups]{assign_groups()}} or \code{\link[=assign_job]{assign_job()}} depending on the
+Solves an existing `ompr` model with an ROI-backed solver, then routes the
+solver result through [assign_groups()] or [assign_job()] depending on the
 assignment type.
 }

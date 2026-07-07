@@ -26,11 +26,11 @@ prepare_multirole_model(
 )
 }
 \arguments{
-\item{df_list}{A model input list from \code{\link[=extract_multirole_info]{extract_multirole_info()}}.}
+\item{df_list}{A model input list from [extract_multirole_info()].}
 
 \item{ta_protected_max, gr_protected_max}{Non-negative soft upper limits on
 current-semester TA or GR workload for the corresponding protected cohort.
-A value may be \code{NULL} when the corresponding \verb{rho_*} term is disabled.}
+A value may be `NULL` when the corresponding `rho_*` term is disabled.}
 
 \item{e_max}{Optional upper bound on per-individual E units.}
 
@@ -56,23 +56,23 @@ slack.}
 identifying the TA- and GR-protected cohorts.}
 }
 \value{
-An \code{ompr} model.
+An `ompr` model.
 }
 \description{
 Builds a mixed-integer model for assigning TA, GR, and lighter E duties
 while balancing role-specific workload, preferences, and cohort protection.
 }
 \details{
-Any objective weight set to \code{NULL} or zero is disabled. Disabled preference
+Any objective weight set to `NULL` or zero is disabled. Disabled preference
 and E terms are omitted from the objective. Disabling a spread term also
 omits its two spread variables and fairness constraints. Disabling a
 protection penalty omits that role's slack variables and soft-limit
 constraints, and includes every individual in that role's fairness spread.
 
-When a preference term is active, the corresponding \code{P_ta} or \code{P_gr}
-element must be present in \code{df_list}.
-Semester capacity is read from \code{df_list$C}, as supplied to
-\code{\link[=extract_multirole_info]{extract_multirole_info()}}. Annual total workload is fixed at \code{2 * C}.
+When a preference term is active, the corresponding `P_ta` or `P_gr`
+element must be present in `df_list`.
+Semester capacity is read from `df_list$C`, as supplied to
+[extract_multirole_info()]. Annual total workload is fixed at `2 * C`.
 }
 \examples{
 inputs <- extract_multirole_info(

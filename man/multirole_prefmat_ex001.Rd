@@ -5,16 +5,14 @@
 \alias{multirole_prefmat_ex001}
 \title{Multi-role Preference Matrix Example 001}
 \format{
-\subsection{\code{multirole_prefmat_ex001}}{
-
+## `multirole_prefmat_ex001`
 A matrix with 4 rows and 4 columns.
 
-Rows correspond to individuals in \code{multirole_students_ex001}, and columns
-correspond to rows of \code{multirole_demand_ex001}.
+Rows correspond to individuals in `multirole_students_ex001`, and columns
+correspond to rows of `multirole_demand_ex001`.
 
 Preference scores are encoded as 3 (first choice), 2 (second choice), and 1
 (third choice). Unranked courses are encoded as -99.
-}
 }
 \source{
 This dataset was constructed by hand.

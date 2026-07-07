@@ -22,7 +22,7 @@ prepare_phd_model(
 )
 }
 \arguments{
-\item{df_list}{A list of model inputs, typically from \code{\link[=extract_phd_info]{extract_phd_info()}}.
+\item{df_list}{A list of model inputs, typically from [extract_phd_info()].
 Required elements are:
 \itemize{
 \item \code{Ns}: number of students
@@ -53,8 +53,8 @@ current semester.}
 
 \item{beta}{Objective weight on TA preference term.}
 
-\item{phi}{Objective weight on the score-weighted E term. When \code{phi > 0},
-larger values in \code{df_list$s} make E allocation more attractive.}
+\item{phi}{Objective weight on the score-weighted E term. When `phi > 0`,
+larger values in `df_list$s` make E allocation more attractive.}
 
 \item{rho}{Objective weight on protected-cohort TA slack penalties.}
 
@@ -78,6 +78,6 @@ across students and courses.
 Index alignment is critical: \code{P[i, j]}, \code{d[j, ]}, \code{s[i]},
 \code{year[i]}, \code{t1[i]}, and \code{g1[i]} must refer to the same
 student/course ordering. Protection and TA fairness groups are based on
-\code{year}; \code{s} is used only in the E-allocation objective term.
+`year`; `s` is used only in the E-allocation objective term.
 }
 \keyword{internal}

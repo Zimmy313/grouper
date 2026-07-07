@@ -16,30 +16,28 @@ prepare_model(
 \arguments{
 \item{df_list}{Model input list.}
 
-\item{yaml_list}{Parameter list from \code{\link[=extract_params_yaml]{extract_params_yaml()}}. Optional for
-\code{assignment = "diversity"} and \code{assignment = "preference"} for backward
+\item{yaml_list}{Parameter list from [extract_params_yaml()]. Optional for
+`assignment = "diversity"` and `assignment = "preference"` for backward
 compatibility. If supplied, this list is used directly. Ignored for
-\code{assignment = "phd"} and \code{assignment = "multirole"}.}
+`assignment = "phd"` and `assignment = "multirole"`.}
 
 \item{assignment}{Character string indicating model type. Must be one of
-\code{"diversity"}, \code{"preference"}, \code{"phd"}, or \code{"multirole"}.}
+`"diversity"`, `"preference"`, `"phd"`, or `"multirole"`.}
 
 \item{w1, w2}{Numeric values between 0 and 1. Should sum to 1. Used only for
-\code{assignment = "diversity"}.}
+`assignment = "diversity"`.}
 
 \item{...}{Additional arguments:
-\itemize{
-\item For \code{assignment = "diversity"} when \code{yaml_list} is \code{NULL}: supply
-\code{n_topics}, \code{nmin}, \code{nmax}, \code{rmin}, and \code{rmax}.
-\item For \code{assignment = "preference"} when \code{yaml_list} is \code{NULL}: supply
-\code{n_topics}, \code{B}, \code{nmin}, \code{nmax}, \code{rmin}, and \code{rmax}.
-\item For \code{assignment = "phd"}: passed to \code{\link[=prepare_phd_model]{prepare_phd_model()}}, including
-\code{protected_year} when a cohort other than Year 1 should receive the soft
-TA-load protection.
-\item For \code{assignment = "multirole"}: passed to
-\code{\link[=prepare_multirole_model]{prepare_multirole_model()}}. Multi-role semester capacity is supplied
-during extraction and read from \code{df_list$C}.
-}}
+* For `assignment = "diversity"` when `yaml_list` is `NULL`: supply
+  `n_topics`, `nmin`, `nmax`, `rmin`, and `rmax`.
+* For `assignment = "preference"` when `yaml_list` is `NULL`: supply
+  `n_topics`, `B`, `nmin`, `nmax`, `rmin`, and `rmax`.
+* For `assignment = "phd"`: passed to [prepare_phd_model()], including
+  `protected_year` when a cohort other than Year 1 should receive the soft
+  TA-load protection.
+* For `assignment = "multirole"`: passed to
+  [prepare_multirole_model()]. Multi-role semester capacity is supplied
+  during extraction and read from `df_list$C`.}
 }
 \value{
 An ompr model.

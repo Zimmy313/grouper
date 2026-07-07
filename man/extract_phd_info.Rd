@@ -15,58 +15,56 @@ extract_phd_info(
 }
 \arguments{
 \item{student_df}{A data frame with one row per student. Required columns are:
-\code{student_id}, \code{year}, \code{past_ta}, and \code{past_gr}. Note that it
-has to be in this order and name. \code{year} is capped to 1-4.}
+`student_id`, `year`, `past_ta`, and `past_gr`. Note that it
+ has to be in this order and name. `year` is capped to 1-4.}
 
-\item{p_mat}{Preference matrix with dimensions \verb{Ns x Nj}.
-Row order must match \code{student_df} row order.}
+\item{p_mat}{Preference matrix with dimensions `Ns x Nj`.
+Row order must match `student_df` row order.}
 
-\item{d_mat}{Demand matrix with dimensions \verb{Nj x 2} or \verb{Nj x 3}.
-Columns are interpreted in order as \code{TA}, \code{GR}, and optional \code{E}.
-Row order must match the column order of \code{p_mat}.}
+\item{d_mat}{Demand matrix with dimensions `Nj x 2` or `Nj x 3`.
+Columns are interpreted in order as `TA`, `GR`, and optional `E`.
+Row order must match the column order of `p_mat`.}
 
-\item{e_mode}{How to handle E demand when \code{d_mat} does not include E.
-\code{"rr"} computes E using round-robin allocation from highest to lowest GR
-demand; \code{"none"} leaves E at 0.}
+\item{e_mode}{How to handle E demand when `d_mat` does not include E.
+`"rr"` computes E using round-robin allocation from highest to lowest GR
+demand; `"none"` leaves E at 0.}
 
-\item{C}{Semester workload capacity per student. Used when \code{e_mode = "rr"}
-to compute total semester capacity as \code{Ns * C}.}
+\item{C}{Semester workload capacity per student. Used when `e_mode = "rr"`
+to compute total semester capacity as `Ns * C`.}
 
 \item{s}{Numeric vector containing the E-allocation scores for Years 1, 2,
 3, and 4, respectively. Larger scores make E units more attractive for
-that year when \code{phi > 0} in \code{\link[=prepare_phd_model]{prepare_phd_model()}}. Defaults to
-\code{c(-1, 0, 1, 2)}.}
+that year when `phi > 0` in [prepare_phd_model()]. Defaults to
+`c(-1, 0, 1, 2)`.}
 }
 \value{
 A list containing:
-\itemize{
-\item \code{Ns}: number of students
-\item \code{Nj}: number of courses
-\item \code{P}: preference matrix (\verb{Ns x Nj})
-\item \code{d}: demand matrix (\verb{Nj x 3}) with columns \code{TA}, \code{GR}, \code{E}
-\item \code{s}: student-level E-allocation score vector
-\item \code{year}: capped year-of-study vector
-\item \code{t1}: past TA workload vector
-\item \code{g1}: past GR workload vector
-}
+
+* `Ns`: number of students
+* `Nj`: number of courses
+* `P`: preference matrix (`Ns x Nj`)
+* `d`: demand matrix (`Nj x 3`) with columns `TA`, `GR`, `E`
+* `s`: student-level E-allocation score vector
+* `year`: capped year-of-study vector
+* `t1`: past TA workload vector
+* `g1`: past GR workload vector
 }
 \description{
 Converts student-level data and input matrices into the list expected by
-\code{prepare_phd_model()}.
+`prepare_phd_model()`.
 }
 \details{
 This function assumes input order is already aligned:
-\itemize{
-\item \code{student_df} row \code{i} corresponds to \code{P[i, ]}, \code{s[i]}, \code{t1[i]}, and \code{g1[i]}.
-\item \code{d_mat} row \code{j} corresponds to \code{P[, j]}.
-}
 
-\code{p_mat} is used as supplied, so users can choose any numeric preference
+* `student_df` row `i` corresponds to `P[i, ]`, `s[i]`, `t1[i]`, and `g1[i]`.
+* `d_mat` row `j` corresponds to `P[, j]`.
+
+`p_mat` is used as supplied, so users can choose any numeric preference
 scoring scheme during preprocessing.
 
-If E is computed (\code{e_mode = "rr"}), total E is set to:
+If E is computed (`e_mode = "rr"`), total E is set to:
 
-\code{Ns * C - sum(TA) - sum(GR)}.
+`Ns * C - sum(TA) - sum(GR)`.
 }
 \examples{
 default_scores <- extract_phd_info(

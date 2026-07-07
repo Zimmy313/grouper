@@ -5,12 +5,10 @@
 \alias{multirole_demand_ex001}
 \title{Multi-role Demand Matrix Example 001}
 \format{
-\subsection{\code{multirole_demand_ex001}}{
-
+## `multirole_demand_ex001`
 A matrix with 4 rows and 2 columns.
 
-Columns are in the order \code{TA}, \code{GR}. Row names store the course codes.
-}
+Columns are in the order `TA`, `GR`. Row names store the course codes.
 }
 \source{
 This dataset was constructed by hand.

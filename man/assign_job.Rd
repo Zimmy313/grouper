@@ -7,20 +7,20 @@
 assign_job(model_result, student_df, course_codes, name_col = "Name")
 }
 \arguments{
-\item{model_result}{Result object from \code{ompr::solve_model()} for a PhD or
+\item{model_result}{Result object from `ompr::solve_model()` for a PhD or
 multi-role workload model.}
 
 \item{student_df}{A data frame that contains student name information. Every
 row is a unique student.}
 
 \item{course_codes}{Character vector of course codes in the same order as
-preference-matrix columns and \code{d_mat} rows.}
+preference-matrix columns and `d_mat` rows.}
 
-\item{name_col}{Student name column name in \code{student_df}.}
+\item{name_col}{Student name column name in `student_df`.}
 }
 \value{
 A data frame with columns:
-\code{Name}, then all \verb{<course>-t}, all \verb{<course>-g}, all \verb{<course>-e}.
+  `Name`, then all `<course>-t`, all `<course>-g`, all `<course>-e`.
 }
 \description{
 Creates one row per student and one column per course-role pair, with units

@@ -33,4 +33,4 @@ shiny::runApp().
 ## Contact
 
 For more details, please contact Vik Gopal <vik.gopal@nus.edu.sg>, 
-Kevin Lam <kevinlam@nus.edu.sg> or Mingyuan Zhang <mingyuan.z@nus.edu.sg>
+Kevin Lam <kevinlam@nus.edu.sg> or Mingyuan Zhang <mingyuan.z@u.nus.edu>

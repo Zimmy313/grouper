@@ -7,18 +7,18 @@
 summary_dba(df_result, df_list, id_col)
 }
 \arguments{
-\item{df_result}{Data frame returned by \code{\link[=solve_assignment]{solve_assignment()}} for a diversity
-model. Must contain columns \code{topic}, \code{rep}, and the column named by
-\code{id_col}.}
+\item{df_result}{Data frame returned by [solve_assignment()] for a diversity
+model. Must contain columns `topic`, `rep`, and the column named by
+`id_col`.}
 
-\item{df_list}{Input list from \code{\link[=extract_student_info]{extract_student_info()}}. Must contain \code{d}
-(distance matrix) and optionally \code{s} (skill vector).}
+\item{df_list}{Input list from [extract_student_info()]. Must contain `d`
+(distance matrix) and optionally `s` (skill vector).}
 
-\item{id_col}{Character. Name of the student-ID column in \code{df_result}.}
+\item{id_col}{Character. Name of the student-ID column in `df_result`.}
 }
 \value{
-A grouped summary tibble with columns \code{topic}, \code{rep}, \code{n}, and
-\code{total_diversity} (plus \code{total_skill} when \code{df_list$s} is present).
+A grouped summary tibble with columns `topic`, `rep`, `n`, and
+  `total_diversity` (plus `total_skill` when `df_list$s` is present).
 }
 \description{
 Summarise a DBA result by topic-repetition group

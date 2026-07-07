@@ -50,34 +50,32 @@ this is provided, then demographic_cols is ignored.}
 \value{
 For the diversity-based assignment model, this function returns a
 list containing:
-\itemize{
-\item N: number of students
-\item G: number of self-formed groups
-\item m: a (student x groups) matrix, indicating group membership for each student.
-\item d: dissimilarity matrix, NxN
-\item s: skills vector for each individual student (possibly NULL)
-}
+
+* N: number of students
+* G: number of self-formed groups
+* m: a (student x groups) matrix, indicating group membership for each student.
+* d: dissimilarity matrix, NxN
+* s: skills vector for each individual student (possibly NULL)
 
 For the preference-based assignment model, this function returns a list
 containing:
-\itemize{
-\item N: number of students
-\item G: number of self-formed groups
-\item m: a (student x groups) matrix, indicating group membership for each student.
-\item n: a vector of length G, with the number of students in each self-formed group.
-\item p: The preference matrix from the input argument.
-}
+
+* N: number of students
+* G: number of self-formed groups
+* m: a (student x groups) matrix, indicating group membership for each student.
+* n: a vector of length G, with the number of students in each self-formed group.
+* p: The preference matrix from the input argument.
 }
 \description{
 Converts a dataframe with information on students to a list of parameters. This
 list forms one half of the inputs to prepare_model(). The remaining model
-parameters can come from \code{\link[=extract_params_yaml]{extract_params_yaml()}} or be supplied directly to
-\code{\link[=prepare_model]{prepare_model()}} for non-YAML workflows.
+parameters can come from [extract_params_yaml()] or be supplied directly to
+[prepare_model()] for non-YAML workflows.
 }
 \details{
 For the diversity-based assignment, the demographic variables are converted
 into an NxN dissimilarity matrix. By default, the dissimilarity metric used
-is the Gower distance \code{\link[cluster:daisy]{cluster::daisy()}}.
+is the Gower distance [cluster::daisy()].
 
 For the preference-based assignment, the preference matrix indicates the
 preference that each group has for the project topics. For this model,

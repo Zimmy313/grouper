@@ -5,19 +5,16 @@
 \alias{multirole_students_ex001}
 \title{Multi-role Individual Data Example 001}
 \format{
-\subsection{\code{multirole_students_ex001}}{
-
+## `multirole_students_ex001`
 A data frame with 4 rows and 5 columns.
-\itemize{
-\item student_id: unique individual id.
-\item year: cohort or year, encoded from 1 to 4.
-\item past_ta: previous-semester TA workload units.
-\item past_gr: previous-semester GR workload units.
-\item Name: individual name.
-}
 
-In this toy dataset, \code{past_ta + past_gr = 4} for every individual.
-}
+* student_id: unique individual id.
+* year: cohort or year, encoded from 1 to 4.
+* past_ta: previous-semester TA workload units.
+* past_gr: previous-semester GR workload units.
+* Name: individual name.
+
+In this toy dataset, `past_ta + past_gr = 4` for every individual.
 }
 \source{
 This dataset was constructed by hand.

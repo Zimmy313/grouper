@@ -16,26 +16,24 @@ matching is fine.}
 \value{
 For the diversity+skill-based assignment, this function returns a
 list containing:
-\itemize{
-\item n_topics: the number of topics
-\item R: the optimally desired number of repetitions per topic
-\item nmin: the minimum number of students per topic,
-\item nmax: the maximum number of students per topic,
-\item rmin: the minimum number of repetitions per topic,
-\item rmax: the maximum number of repetitions per topic.
-}
+
+* n_topics: the number of topics
+* R: the optimally desired number of repetitions per topic
+* nmin: the minimum number of students per topic,
+* nmax: the maximum number of students per topic,
+* rmin: the minimum number of repetitions per topic,
+* rmax: the maximum number of repetitions per topic.
 
 For the preference-based assignment, this function returns a list containing:
-\itemize{
-\item n_topics: the number of topics
-\item R: the optimally desired number of repetitions per topic
-\item nmin: the minimum number of students per topic,
-\item nmax: the maximum number of students per topic,
-\item rmin: the minimum number of repetitions per topic,
-\item rmax: the maximum number of repetitions per topic.
-}
+
+* n_topics: the number of topics
+* R: the optimally desired number of repetitions per topic
+* nmin: the minimum number of students per topic,
+* nmax: the maximum number of students per topic,
+* rmin: the minimum number of repetitions per topic,
+* rmax: the maximum number of repetitions per topic.
 }
 \description{
 The remaining parameters for the models are retrieved from a YAML file, so as
-not to clutter the argument list for \code{\link[=extract_student_info]{extract_student_info()}}.
+not to clutter the argument list for [extract_student_info()].
 }

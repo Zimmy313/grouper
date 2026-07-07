@@ -7,17 +7,17 @@
 summary_pba(df_result, df_list, n_topics)
 }
 \arguments{
-\item{df_result}{Data frame returned by \code{\link[=solve_assignment]{solve_assignment()}} for a preference
-model. Must contain columns \code{group}, \code{topic2}, \code{subtopic}, and \code{rep}.}
+\item{df_result}{Data frame returned by [solve_assignment()] for a preference
+model. Must contain columns `group`, `topic2`, `subtopic`, and `rep`.}
 
-\item{df_list}{Input list from \code{\link[=extract_student_info]{extract_student_info()}} for
-\code{assignment = "preference"}. Must contain \code{p} (preference matrix).}
+\item{df_list}{Input list from [extract_student_info()] for
+`assignment = "preference"`. Must contain `p` (preference matrix).}
 
 \item{n_topics}{Integer. Number of base topics.}
 }
 \value{
-A grouped summary tibble with columns \code{topic2}, \code{subtopic}, \code{rep},
-\code{n}, and \code{total_pref_score}.
+A grouped summary tibble with columns `topic2`, `subtopic`, `rep`,
+  `n`, and `total_pref_score`.
 }
 \description{
 Summarise a PBA result by topic-subtopic-repetition group

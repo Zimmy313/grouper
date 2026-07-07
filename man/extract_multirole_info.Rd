@@ -17,56 +17,56 @@ extract_multirole_info(
 }
 \arguments{
 \item{student_df}{A data frame with one row per individual. By default, its
-first four columns must be named \code{student_id}, \code{year}, \code{past_ta}, and
-\code{past_gr}, in that order. With \code{single_semester = TRUE}, only
-\code{student_id} and \code{year} are required as the first two columns. \code{year} is
+first four columns must be named `student_id`, `year`, `past_ta`, and
+`past_gr`, in that order. With `single_semester = TRUE`, only
+`student_id` and `year` are required as the first two columns. `year` is
 capped to the range 1-4.}
 
-\item{d_mat}{Numeric demand matrix with \code{Nj} rows and two or three
+\item{d_mat}{Numeric demand matrix with `Nj` rows and two or three
 columns. Columns are interpreted as TA, GR, and optional E.}
 
 \item{p_ta_mat}{Optional numeric TA preference matrix with dimensions
-\verb{Ns x Nj}.}
+`Ns x Nj`.}
 
 \item{p_gr_mat}{Optional numeric GR preference matrix with dimensions
-\verb{Ns x Nj}.}
+`Ns x Nj`.}
 
-\item{e_mode}{How to handle E demand when \code{d_mat} has no E column. \code{"rr"}
+\item{e_mode}{How to handle E demand when `d_mat` has no E column. `"rr"`
 computes E demand by round-robin allocation from highest to lowest GR
-demand; \code{"none"} sets E demand to zero.}
+demand; `"none"` sets E demand to zero.}
 
 \item{C}{Semester workload capacity per individual. It is stored in the
-extracted input and used by \code{\link[=prepare_multirole_model]{prepare_multirole_model()}} to set annual
-workload to \code{2 * C}. It also determines E demand when \code{e_mode = "rr"}.}
+extracted input and used by [prepare_multirole_model()] to set annual
+workload to `2 * C`. It also determines E demand when `e_mode = "rr"`.}
 
 \item{s}{Numeric vector containing E-allocation scores for Years 1, 2, 3,
-and 4. Larger values make E allocation more attractive when the \code{phi} term
+and 4. Larger values make E allocation more attractive when the `phi` term
 is active.}
 
-\item{single_semester}{Logical flag. When \code{TRUE}, supplied past-workload
+\item{single_semester}{Logical flag. When `TRUE`, supplied past-workload
 columns are ignored and extraction returns synthetic prior workloads
-\code{t1 = 0} and \code{g1 = C} for every individual.}
+`t1 = 0` and `g1 = C` for every individual.}
 }
 \value{
-A list containing \code{Ns}, \code{Nj}, \code{C}, \code{P_ta}, \code{P_gr}, \code{d}, \code{s},
-\code{year}, \code{t1}, and \code{g1}.
+A list containing `Ns`, `Nj`, `C`, `P_ta`, `P_gr`, `d`, `s`,
+  `year`, `t1`, and `g1`.
 }
 \description{
 Converts individual-level data, role-specific preference matrices, and role
-demand into the list expected by \code{\link[=prepare_multirole_model]{prepare_multirole_model()}}.
+demand into the list expected by [prepare_multirole_model()].
 }
 \details{
 Preference matrices are optional during extraction because their objective
-terms can be disabled in \code{\link[=prepare_multirole_model]{prepare_multirole_model()}}. When \code{beta_ta} or
-\code{beta_gr} is active, the corresponding matrix must be present.
+terms can be disabled in [prepare_multirole_model()]. When `beta_ta` or
+`beta_gr` is active, the corresponding matrix must be present.
 
-Input order must already be aligned: row \code{i} in each preference matrix must
-correspond to row \code{i} in \code{student_df}, and demand row \code{j} must correspond to
-preference column \code{j}.
+Input order must already be aligned: row `i` in each preference matrix must
+correspond to row `i` in `student_df`, and demand row `j` must correspond to
+preference column `j`.
 
 In single-semester mode, the uniform synthetic GR workload does not change
 the GR workload spread. It fills the prior-semester half of annual capacity,
-leaving \code{C} units per individual for current allocation.
+leaving `C` units per individual for current allocation.
 }
 \examples{
 inputs <- extract_multirole_info(

@@ -6,7 +6,7 @@ Authors@R: c(
     person("Vik", "Gopal", , "vik.gopal@nus.edu.sg", role = "aut"),
     person("Kevin", "Lam", , "kevinlam@nus.edu.sg", role = "aut"),
     person("Ju", "Xue", , "rigi.jx@gmail.com", role = "ctb"),
-    person("Mingyuan", "Zhang", , "mingyuan.z@nus.edu.sg", role = c("aut", "cre")),
+    person("Mingyuan", "Zhang", , "mingyuan.z@u.nus.edu", role = c("aut", "cre")),
     person("National University of Singapore", role = "cph")
   )
 Description: Integer programming models to assign students to groups by maximising
@@ -38,3 +38,4 @@ Depends:
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 Config/roxygen2/markdown: TRUE
+RoxygenNote: 7.3.3

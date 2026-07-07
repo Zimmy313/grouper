@@ -19,10 +19,10 @@ assign_groups(
 dataset is for. The argument is either 'preference' or 'diversity'. Partial
 matching is fine.}
 
-\item{dframe}{The original dataframe used in \code{\link[=extract_student_info]{extract_student_info()}}.}
+\item{dframe}{The original dataframe used in [extract_student_info()].}
 
 \item{params_list}{The list of parameters from the YAML file, i.e. the output
-of \code{\link[=extract_params_yaml]{extract_params_yaml()}}. This is only required for the preference-based
+of [extract_params_yaml()]. This is only required for the preference-based
 assignment.}
 
 \item{group_names}{A character string. It denotes the column name in the
@@ -34,6 +34,6 @@ A data frame with the group assignments attached to the original
 group composition dataframe.
 }
 \description{
-From the result of \code{\link[ompr:solve_model]{ompr::solve_model()}}, this function attaches the
+From the result of [ompr::solve_model()], this function attaches the
 derived groupings to the original dataframe comprising students.
 }

@@ -5,13 +5,11 @@
 \alias{pba_prefmat_ex002}
 \title{PBA Group Preference Data Example 002}
 \format{
-\subsection{\code{pba_prefmat_ex002}}{
-
+## `pba_prefmat_ex002`
 A matrix with 4 rows and 4 columns
 
 Each row represents the preferences of each self-formed group in the
-dataset \code{pba_gc_ex002}.
-}
+dataset `pba_gc_ex002`.
 }
 \source{
 This dataset was constructed by hand.

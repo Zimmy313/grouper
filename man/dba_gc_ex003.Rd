@@ -5,15 +5,12 @@
 \alias{dba_gc_ex003}
 \title{DBA Group Composition Data Example 003}
 \format{
-\subsection{\code{dba_gc_ex003}}{
-
+## `dba_gc_ex003`
 A matrix with 4 rows and 4 columns
-\itemize{
-\item id: the student id of each students, simply the integers 1 to 4.
-\item self_groups: The self-formed groups
-\item year, major: demographics used in computing dissimilarities
-}
-}
+
+* id: the student id of each students, simply the integers 1 to 4.
+* self_groups: The self-formed groups
+* year, major: demographics used in computing dissimilarities
 }
 \source{
 This dataset was constructed by hand.

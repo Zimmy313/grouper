@@ -14,10 +14,10 @@ convert_pref_mat(pref_mat, n_topics, B)
 \item{B}{Integer. Number of subtopic subgroups per topic.}
 }
 \value{
-Numeric matrix of the same dimensions as \code{pref_mat}.
+Numeric matrix of the same dimensions as `pref_mat`.
 }
 \description{
 Transforms raw preference ranks so that higher values indicate stronger
-preference. A rank of 1 maps to \code{n_topics * B}, rank 2 to \code{n_topics * B - 1},
+preference. A rank of 1 maps to `n_topics * B`, rank 2 to `n_topics * B - 1`,
 and so on.
 }

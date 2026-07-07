@@ -7,11 +7,11 @@
 prepare_preference_model(df_list, yaml_list)
 }
 \arguments{
-\item{df_list}{The output list from \code{\link[=extract_student_info]{extract_student_info()}} for
-\code{assignment = "preference"}.}
+\item{df_list}{The output list from [extract_student_info()] for
+`assignment = "preference"`.}
 
-\item{yaml_list}{The output list from \code{\link[=extract_params_yaml]{extract_params_yaml()}} for
-\code{assignment = "preference"}.}
+\item{yaml_list}{The output list from [extract_params_yaml()] for
+`assignment = "preference"`.}
 }
 \value{
 An ompr model.

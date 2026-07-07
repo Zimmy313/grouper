@@ -7,7 +7,7 @@
 get_group_pref_score(group_num, topic, subtopic, pref_mat, n_topics)
 }
 \arguments{
-\item{group_num}{Integer. Group index (row of \code{pref_mat}).}
+\item{group_num}{Integer. Group index (row of `pref_mat`).}
 
 \item{topic}{Integer. Base topic index.}
 

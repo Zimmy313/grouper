@@ -5,15 +5,12 @@
 \alias{dba_gc_ex004}
 \title{DBA Group Composition Data Example 004}
 \format{
-\subsection{\code{dba_gc_ex004}}{
-
+## `dba_gc_ex004`
 A matrix with 5 rows and 4 columns
-\itemize{
-\item id: the student id of each students, simply the integers 1 to 4.
-\item self_groups: The self-formed groups
-\item python: Python skill level - 1 is lowest, 3 is highest.
-}
-}
+
+* id: the student id of each students, simply the integers 1 to 4.
+* self_groups: The self-formed groups
+* python: Python skill level - 1 is lowest, 3 is highest.
 }
 \source{
 This dataset was constructed by hand.

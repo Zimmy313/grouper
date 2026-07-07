@@ -5,17 +5,14 @@
 \alias{dba_gc_ex001}
 \title{DBA Group Composition Data Example 001}
 \format{
-\subsection{\code{dba_gc_ex001}}{
-
+## `dba_gc_ex001`
 A data frame with 4 rows and 4 columns.
-\itemize{
-\item id: the student id of each students, simply the integers 1 to 4.
-\item major: the primary major of each student.
-\item skill: the skill level of each student.
-\item groups: the self-formed groups submitted by each student. In this case,
-student is in his/her own group.
-}
-}
+
+* id: the student id of each students, simply the integers 1 to 4.
+* major: the primary major of each student.
+* skill: the skill level of each student.
+* groups: the self-formed groups submitted by each student. In this case,
+          student is in his/her own group.
 }
 \source{
 This dataset was constructed by hand.
