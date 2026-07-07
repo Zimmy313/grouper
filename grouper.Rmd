@@ -1,6 +1,6 @@
 ---
 title: "Grouper: Optimal Assignment Workflows for Higher Education"
-date: "2026-06-12"
+date: "2026-07-06"
 abstract: >
   Grouper is an R package for formulating and solving allocation problems that
   arise in higher education. The package provides three mixed-integer
@@ -89,7 +89,7 @@ department may need to distribute teaching or support duties fairly across
 staff.
 
 In many cases, the allocation policy is clear in principle but difficult to
-operationalize. Manual allocation can be time-consuming, difficult to
+apply in practice. Manual allocation can be time-consuming, difficult to
 reproduce, and hard to audit when multiple constraints and policy goals
 interact.
 
@@ -107,8 +107,8 @@ common R workflow in which users prepare structured data, specify policy paramet
 solve the model through existing R optimization infrastructure, and inspect allocation
 results. This design allows users to adapt allocation rules to different courses,
 cohorts, departments, or workload settings without rewriting the underlying model
-code, making the allocation process more reproducible and transparent than ad hoc
-manual assignment.
+code, making the allocation process more reproducible and transparent than
+unstructured manual assignment.
 
 This paper introduces the mathematical models, implementation, and main
 workflows of \pkg{grouper}. The next section reviews related work, including
@@ -336,8 +336,8 @@ Consider \(N\) students arranged into \(G\) self-formed groups. Each group is
 assigned to a topic \(t\) from \(T\) base topics. 
 A topic may contain \(B\) subgroups, giving \(BT\)
 topic-subgroup combinations.  This setting arises in the allocation of
-pre-determined project topics, case studies, supervisors, lab rotations,
-presentation themes, and tutorial or project streams. The concept of sub-topics
+predetermined project topics, case studies, supervisors, lab rotations,
+presentation themes, and tutorial or project streams. The concept of subtopics
 is specific to our use-case (see Section \@ref(sec-pba-real-life)), but it is
 not necessary. By setting $B=1$, it is possible to use this \pkg{grouper} model
 in a more traditional setting.
@@ -425,7 +425,7 @@ $$
 The membership matrix converts group-level assignments into student counts.
 Thus, every active repetition must contain at least \(n_{min}\) and at
 most \(n_{max}\) students, while inactive repetitions remain empty. Table
-\@ref(tab:pba-param-guide) summarises the inputs for the preference-based assignment
+\@ref(tab:pba-param-guide) summarizes the inputs for the preference-based assignment
 model.
 
 ```{r pba-param-guide, echo=FALSE}
@@ -455,7 +455,7 @@ The third model addresses a general multi-role workload allocation problem
 that arises in higher-education departments. Individuals are assigned 
 discrete work units across three roles:
 
-1. teaching assistantship (TA)
+1. teaching assistant work (TA)
 2. grading assignments and exams (GR)
 3. lighter extra duties such as invigilating exams, proctoring, and other administrative support work (E)
 
@@ -577,25 +577,22 @@ Table \@ref(tab:multirole-param-guide) for a summary of inputs.
 ```{r multirole-param-guide, echo=FALSE}
 multirole_param_guide <- tibble::tribble(
   ~parameter, ~if_increased, ~trade_off,
-  "alpha_ta, alpha_gr",
-  "Increases the penalty on annual workload spread for the corresponding role",
-  "Can improve role-specific fairness at the expense of preference, priority, or protection terms",
-  "beta_ta, beta_gr",
-  "Increases the reward for the corresponding role's preference scores",
-  "Can improve role-specific preference attainment at the expense of other objective terms",
-  "phi",
+  "`alpha_ta`, `alpha_gr`",
+  "Increases the penalty on annual workload spread",
+  "Improve role-specific fairness at the expense of preference, priority, or protection terms",
+  "`beta_ta`, `beta_gr`",
+  "Increases the reward for the corresponding preference scores",
+  "Improve role-specific preference attainment",
+  "`phi`",
   "Increases the reward for assigning E to individuals with larger scores",
-  "Can improve priority alignment at the expense of the other objective terms",
-  "rho_ta, rho_gr",
+  "Improve priority alignment",
+  "`rho_ta`, `rho_gr`",
   "Makes the corresponding protected-cohort slack more expensive",
-  "Discourages overload but does not alter feasibility because slack remains available",
-  "ta_protected_max, gr_protected_max",
+  "Discourages overload but does not alter feasibility",
+  "`ta_protected_max`, `gr_protected_max`",
   "Raises the corresponding protected cohort's soft threshold",
-  "Weakens protection and can reduce the slack penalty; formal feasibility is unchanged",
-  "C",
-  "Raises every individual's required annual workload from 2C",
-  "Requires two additional workload units per person for each unit increase and may cause infeasibility if aggregate demand is incompatible",
-  "ta_min, gr_min, e_min",
+  "Weakens protection and can reduce the slack penalty",
+  "`ta_min`, `gr_min`, `e_min`",
   "Raises the required minimum for the corresponding role",
   "Tightens feasibility and forces more of that role onto every individual",
   "ta_max, gr_max, e_max",
@@ -735,7 +732,7 @@ optimization infrastructure, whereas \pkg{grouper} provides a domain-specific la
 that connects higher-education data, institutional policy, model construction,
 and decision-ready allocation outputs.
 
-# Constructed Datasets {#sec-constructed-data}
+# Constructed datasets {#sec-constructed-data}
 
 In order to understand how \pkg{grouper} works, we demonstrate its use on
 two small and artificially constructed datasets in this section. This allows
@@ -795,7 +792,7 @@ pba_gc_ex002
 ```
 
 Suppose that, for this set of students, the instructor wishes to assign
-students into two topics, with each topic having two sub-groups. This requires
+students into two topics, with each topic having two subgroups. This requires
 the preference matrix to have 4 rows (one for each self-formed group), and 4
 columns (one for each topic-subgroup combination). Take note that the ordering
 of topics/subtopics must be:
@@ -811,7 +808,7 @@ pba_prefmat_ex002
 In this toy example, it is possible to assign each self-formed group to its
 optimal choice of topic-subtopic combination. In our solution, we should see
 that group 1 is assigned to subtopic 1 of topic 1, group 2 is assigned to
-sub-topic 1 of topic 2, and so on.
+subtopic 1 of topic 2, and so on.
 
 ```{r}
 pba_ex2_list <- extract_info(assignment = "preference", 
@@ -842,7 +839,7 @@ knitr::kable(tmp, booktabs=TRUE,
   kableExtra::kable_styling(latex_options = c("hold_position"))
 ```
 
-# Examples from Past Semesters {#sec-semester-data}
+# Examples from past semesters {#sec-semester-data}
 
 This section contains real-life examples that motivated the models in
 \pkg{grouper}. In all three scenarios, we revisit semesters where allocation
@@ -856,7 +853,7 @@ with a colleague from the English Language department. Students first learn
 about data science and linguistics in lectures. Then, in small groups, they
 discuss chosen topics from the viewpoint of linguistics and data
 science/statistics. As such, it is necessary to create groups with a good
-balance of Data Science and Statistics (dsds) majors, and non-dsds majors. In
+balance of Data Science and Statistics (DSDS) majors, and non-DSDS majors. In
 short, for this course, the instructors needed to divide tutorial classes of 25
 - 30 students into 4 - 5 heterogeneous groups. Every semester that the course
 was taught, this procedure had to be carried out  5  - 6 times, since the total
@@ -872,10 +869,10 @@ knitr::include_graphics("figures/dba_past_semesters_allocation.png")
 ## Preference-based allocation {#sec-pba-real-life}
 
 The genesis of this particular model began in a project-based course, in which
-it was necessary to divide students into project teams with two sub-groups: one
-sub-group typically developed a user interface, and the other worked on data
+it was necessary to divide students into project teams with two subgroups: one
+subgroup typically developed a user interface, and the other worked on data
 analysis. Each project team then needed to be assigned to one of a set of
-pre-determined project titles. As there were more titles than project teams,
+predetermined project titles. As there were more titles than project teams,
 there was a need to assign multiple teams to the same title; hence the need for
 repetitions. 
 
@@ -883,7 +880,7 @@ Table \@ref(tab:pba-past-1) shows how \pkg{grouper} could have benefited
 us if it had been used over the four semesters the course was taught.
 
 Consider the first semester we ran the course (row 1 in Table
-\@ref(tab:pba-past-1)): the enrolment was 62 and there were 4 topic titles to
+\@ref(tab:pba-past-1)): the enrollment was 62 and there were 4 topic titles to
 be allocated. In the manual allocation carried out, the average preference of
 the self-formed groups was 8.16. *If we could have used* \pkg{grouper}, the average
 preference for this same group of students would have been 9.47 (higher is
@@ -921,13 +918,13 @@ year, the first two digits indicate the academic year, and the final two digits
 indicate the semester. The three cases cover different cohort sizes, course offerings,
 and role-demand profiles, allowing us to assess the workflow across multiple
 operational settings and compare optimized schedules with the manual schedules
-used by the department. Student identifiers and course codes are anonymized
-throughout.
+used by the department. Student identifiers and course codes are replaced with
+anonymous labels throughout.
 
 Table \@ref(tab:multi-role-dataset-summary) summarizes the size and
 structure of each semester instance. Students and Courses describe
 the scale of the assignment problem, while TA, GR, and E report the
-required units for teaching assistantship, grading, and residual support,
+required units for TA work, grading, and residual support,
 respectively. The columns Y1--Y4 show the cohort
 composition by year. AY2510 is the largest instance by both student
 and course count, while role demand and cohort structure vary across
@@ -972,7 +969,7 @@ as `past_ta` and `past_gr`. This lets the model balance annual workload rather
 than treating each semester in isolation.
 
 ```{r load-ay2520, include=FALSE}
-# Read anonymized student records and course-role demand.
+# Read student records with anonymous labels and course-role demand.
 students_ay2520 <- read.csv(
   "data/raw/ay2520/students.csv",
   stringsAsFactors = FALSE
@@ -1009,7 +1006,7 @@ D_ay2520 <- as.matrix(demand_ay2520[, c("TA", "GR", "E")])
 ```
 
 The workflow begins by standardizing the inputs. In this example, `student_df`
-records the anonymized student identifier, cohort year, and previous-semester
+records the anonymous student identifier, cohort year, and previous-semester
 TA/GR workload. The TA preference matrix \(P^{\mathrm{TA}}\) is individual by
 course, and the demand matrix \(D\) is course by role. A GR preference matrix is
 not supplied for this policy configuration. The reproducibility setup fixes the
@@ -1039,7 +1036,7 @@ weights are set to `alpha_ta = 2`, `beta_ta = 1`, `phi = 1`, and
 `rho_ta = 10`, encoding the trade-off between yearly TA fairness, TA preference
 fit, seniority-guided residual support work, and Year-1 TA overload protection.
 The GR-specific weights are explicitly disabled. The bound
-`ta_protected_max = 1` limits Year-1 teaching assistantship load before slack is
+`ta_protected_max = 1` limits Year-1 TA load before slack is
 used, and `e_max = 1` keeps residual support duties from concentrating too
 heavily on any single student.
 
@@ -1097,7 +1094,7 @@ and cohort year. The lower part of each stacked bar is the optimized
 current-semester allocation, while the upper part is previous-semester workload
 carried into the annual balance.
 
-```{r fig-ay2520-distribution, fig.cap="AY2520 model workload distribution by anonymized student and cohort year.", fig.alt="Stacked bar chart faceted by year showing AY2520 current and past workload components for anonymized students.", out.width="0.8\\linewidth", fig.pos="!htbp", echo=FALSE}
+```{r fig-ay2520-distribution, fig.cap="AY2520 model workload distribution by anonymous student label and cohort year.", fig.alt="Stacked bar chart faceted by year showing AY2520 current and past workload components for anonymous student labels.", out.width="0.8\\linewidth", fig.pos="!htbp", echo=FALSE}
 knitr::include_graphics("figures/ay2520_distribution.pdf")
 ```
 
@@ -1175,7 +1172,7 @@ to `r sprintf("%.3f", highs_runtime$max_time)` seconds. These timings indicate
 that the example is small enough for either open-source backend to solve
 interactively.
 
-# Web frontend
+# Web front end
 
 \pkg{grouper} also ships with a \CRANpkg{shiny} [@R-shiny] frontend for users who prefer a
 browser-based workflow over direct R scripting. The unified application is stored
@@ -1235,7 +1232,7 @@ downloads an XLSX assignment file for further processing or record-keeping.
 knitr::include_graphics("figures/grouper_webapp_multirole_results.png")
 ```
 
-The frontend is a convenience layer over the same package functions rather than a
+The front end is a convenience layer over the same package functions rather than a
 separate model implementation. Solver availability still depends on installed
 `ROI` plugins, and `Gurobi`-specific time and iteration limits only apply when the
 `Gurobi` backend is selected. For deployed use, uploaded files may contain
@@ -1248,7 +1245,7 @@ institutionally controlled environment with appropriate access restrictions.
 rules are explicit, repeated across offerings, and difficult to manage reliably
 by hand. Its main advantage is that it combines three policy-aware mathematical
 models with a common workflow over general-purpose optimization tools. Compared
-with spreadsheet-based or ad hoc procedures, the package makes allocation rules
+with spreadsheet-based or informal procedures, the package makes allocation rules
 explicit, records the chosen policy parameters, and returns outputs that can be
 mapped back to teaching and administrative records. Users nevertheless retain
 control over priorities such as diversity, preference satisfaction, workload
@@ -1272,12 +1269,12 @@ model grows with the number of self-formed groups, topic-subgroup slots, and
 repetitions. The multi-role workload model grows with the number of individuals,
 tasks or courses, and role types. The three-semester examples demonstrate
 interactive use for moderate departmental instances, but larger deployments
-should be benchmarked with local data, hardware, and solver settings.
+should be evaluated with local data, hardware, and solver settings.
 
 The package uses a functional interface rather than defining an S3, S4, or R6
 object hierarchy. Inputs are standardized as lists, matrices, and data frames,
 models are represented by `ompr` objects, and solved allocations are returned as
-data frames. This keeps intermediate objects inspectable, although it provides
+data frames. This keeps intermediate objects easy to inspect, although it provides
 less formal encapsulation than a class-based design. The dependency structure
 follows the same principle of using established tools for specialized tasks.
 `ompr` supplies the algebraic modeling layer, while `ompr.roi` and `ROI` plugins
@@ -1288,7 +1285,7 @@ custom solver in \pkg{grouper}, but solver availability, installation, and licen
 remain deployment considerations. Another advantage of this workflow is that it
 invites others to add models. To contribute to the package, which we envision
 to be a collection of models that are useful for educators, an investigator
-only has to consider pre-processing steps (for `extract_info()` to call), and
+only has to consider preprocessing steps (for `extract_info()` to call), and
 a model formulation using `ompr` (for `prepare_model()` to use).
 
 # Conclusion
@@ -1309,9 +1306,9 @@ and Year-1 TA protection, while leaving the optional GR objective terms
 disabled. Under the stated policy weights, the optimized schedules obtain lower
 objective values than the corresponding manual schedules. This comparison is
 specific to the encoded policy. The generalized model supports broader TA and
-GR configurations, while the first two workflows extend the same
-data-build-solve pattern to diversity balancing and preference-sensitive topic
-allocation.
+GR configurations, while the first two workflows extend the same data
+preparation, model building, and solving pattern to diversity balancing and
+preference-sensitive topic allocation.
 
 Overall, \pkg{grouper} fills a practical gap between low-level optimization toolkits
 and the allocation decisions routinely faced by instructors and administrators.
@@ -1319,3 +1316,5 @@ Its scripted and Shiny interfaces support both reproducible analysis and
 operational use. Future development will focus on extending the supported
 allocation models, improving diagnostic summaries, and strengthening interfaces
 for institutional deployment while preserving the common workflow.
+
+# References {-}
