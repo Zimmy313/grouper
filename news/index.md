@@ -3,6 +3,8 @@
 ## grouper 0.7.3
 
 - Removed R from DBA and PBA models
+- Added Big-M notation for DBA model
+- Improved Shiny interface
 
 ## grouper 0.7.2
 
