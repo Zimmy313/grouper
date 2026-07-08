@@ -3,11 +3,14 @@ ompr
 ompr.roi
 ROI
 ROI.plugin.glpk
+ROI.plugin.gurobi
 ROI.plugin.highs
 dplyr
 ggplot2
+kableExtra
 readr
 tidyr
+tidyverse
 shiny
 bslib
 DT
@@ -17,5 +20,6 @@ stringr
 writexl
 htmltools
 knitr
+pkgload
 rmarkdown
 rjtools

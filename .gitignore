@@ -23,8 +23,4 @@
 **/.cache/
 
 *.html
-*.pdf
-
-grouper.R
-grouper.tex
 .Rproj.user
