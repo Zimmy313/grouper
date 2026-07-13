@@ -21,7 +21,7 @@ Although the package is motivated by higher-education applications, its underlyi
 
 We believe this submission is suitable for *The R Journal* because it centers on package design, implementation, extensibility, and reproducible R workflows. The article is intended both for users who need practical allocation tools without writing mixed-integer optimization models from scratch and for developers who may wish to extend the framework with new objectives, constraints, and domain-specific models. It also demonstrates how `grouper` builds on existing R optimization infrastructure, including `ompr`, `ompr.roi`, and ROI-backed solvers.
 
-The submission includes the manuscript source, bibliography, generated PDF, TeX and R files, anonymized data for AY2420, AY2510, and AY2520, generated figures, a package list, reproducibility scripts, and the source code for the consolidated Shiny front end. The scripts reproduce the cross-semester results and figures, run the separate solver benchmark, and provide print-only checks for the manually calculated objective values and hyperparameter sensitivity analysis.
+The submission includes the manuscript source, bibliography, generated PDF, TeX and R files, anonymized data, generated figures, a package list, reproducibility scripts, and the source code for the consolidated Shiny front end. The scripts reproduce the cross-semester results and figures, run the separate solver benchmark, and provide print-only checks for the manually calculated objective values and hyperparameter sensitivity analysis.
 
 \bigskip
 \bigskip

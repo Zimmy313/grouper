@@ -1,6 +1,6 @@
 ---
 title: "Grouper: Optimal Assignment Workflows for Higher Education"
-date: "2026-07-08"
+date: "2026-07-13"
 abstract: >
   Grouper is an R package for formulating and solving allocation problems that
   arise in higher education. The package provides three mixed-integer
